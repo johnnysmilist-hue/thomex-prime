@@ -10,7 +10,7 @@ export default function PromoTiles() {
       {tiles.map((tile) => {
         const boxClass = tile.dark
           ? "rounded-lg p-6 h-40 flex flex-col justify-between bg-brand-dark text-white"
-          : "rounded-lg p-6 h-40 flex flex-col justify-between bg-brand-light/20 text-brand-dark";
+          : "rounded-lg p-6 h-40 flex flex-col justify-between bg-brand-light/20 dark:bg-gray-900 text-brand-dark dark:text-white";
 
         return (
           <div key={tile.title} className={boxClass}>
