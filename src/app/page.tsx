@@ -5,6 +5,7 @@ import TopPicks from "@/components/TopPicks";
 import DealOfTheDay from "@/components/DealOfTheDay";
 import PromoTiles from "@/components/PromoTiles";
 import BestSelling from "@/components/BestSelling";
+import BrandStrip from "@/components/BrandStrip";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -23,6 +24,7 @@ export default function Home() {
       </section>
       <PromoTiles />
       <BestSelling />
+      <BrandStrip />
       <Footer />
     </main>
   );
