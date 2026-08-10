@@ -3,6 +3,8 @@ import Footer from "@/components/Footer";
 import ProductGallery from "@/components/ProductGallery";
 import ProductInfo from "@/components/ProductInfo";
 import TrustBadges from "@/components/TrustBadges";
+import ProductTabs from "@/components/ProductTabs";
+import RelatedProducts from "@/components/RelatedProducts";
 
 export default function ProductPage({ params }: { params: { id: string } }) {
   return (
@@ -19,6 +21,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             <TrustBadges />
           </div>
         </div>
+        <ProductTabs />
+        <RelatedProducts />
       </div>
       <Footer />
     </main>
