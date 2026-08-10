@@ -55,7 +55,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { ...item, qty }];
     });
-    triggerToast(item.name + " added to cart");
+    triggerToast(item.name);
   };
 
   const removeFromCart = (id: string) => {
