@@ -28,7 +28,7 @@ export default function FlashSale() {
         </a>
       </div>
 
-      <div className="border border-t-0 border-red-200 rounded-b-lg p-5">
+      <div className="border border-t-0 border-red-200 dark:border-red-900 bg-white dark:bg-gray-950 rounded-b-lg p-5">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
           {flashProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
