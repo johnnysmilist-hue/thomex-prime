@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type Product = {
   id: string;
   name: string;
@@ -16,10 +18,12 @@ export default function ProductCard({ product }: { product: Product }) {
           -{product.discountPercent}%
         </span>
       )}
-      <div className="h-32 bg-gray-100 dark:bg-gray-800 rounded mb-3 flex items-center justify-center text-gray-400 text-xs">
-        Image
-      </div>
-      <h3 className="text-sm font-medium mb-1 line-clamp-2 text-black dark:text-white">{product.name}</h3>
+      <Link href={"/product/" + product.id}>
+        <div className="h-32 bg-gray-100 dark:bg-gray-800 rounded mb-3 flex items-center justify-center text-gray-400 text-xs">
+          Image
+        </div>
+        <h3 className="text-sm font-medium mb-1 line-clamp-2 text-black dark:text-white">{product.name}</h3>
+      </Link>
       <div className="flex items-center gap-1 text-xs text-yellow-500 mb-2">
         {"★".repeat(Math.round(product.rating))}
         {"☆".repeat(5 - Math.round(product.rating))}
