@@ -1,0 +1,47 @@
+export default function Footer() {
+  return (
+    <footer className="bg-brand-dark text-white mt-10">
+      <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
+        <div>
+          <h3 className="text-lg font-bold mb-3">Thomex</h3>
+          <p className="text-gray-300">Your one-stop shop for the latest tech gadgets. Quality products, best prices, fast delivery.</p>
+        </div>
+        <div>
+          <h4 className="font-semibold mb-3">Shop</h4>
+          <ul className="space-y-2 text-gray-300">
+            <li><a href="/shop">All Products</a></li>
+            <li><a href="/shop">New Arrivals</a></li>
+            <li><a href="/shop">Best Sellers</a></li>
+            <li><a href="/shop">Deals & Offers</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-semibold mb-3">Customer Care</h4>
+          <ul className="space-y-2 text-gray-300">
+            <li><a href="/contact">Contact Us</a></li>
+            <li><a href="/track">Track Your Order</a></li>
+            <li><a href="/returns">Returns & Refunds</a></li>
+            <li><a href="/faq">FAQs</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-semibold mb-3">Stay Updated</h4>
+          <p className="text-gray-300 mb-3">Get special offers and the latest tech deals.</p>
+          <div className="flex">
+            <input
+              type="email"
+              placeholder="Your email"
+              className="flex-1 px-3 py-2 rounded-l-md text-black text-sm focus:outline-none"
+            />
+            <button className="bg-brand px-4 rounded-r-md text-sm font-semibold">
+              Subscribe
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="border-t border-white/10 text-center text-xs text-gray-400 py-4">
+        © 2026 Thomex. All Rights Reserved.
+      </div>
+    </footer>
+  );
+}
