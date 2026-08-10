@@ -19,15 +19,40 @@ const categories = [
   "Clearance",
 ];
 
+const allProductNames = [
+  "iPhone 15 Pro Max 256GB",
+  "Sony WH-1000XM5",
+  "Samsung Galaxy Watch 6",
+  "Canon EOS R50 Camera",
+  "DJI Mini 3 Pro Drone",
+  "AirPods Pro 2nd Gen",
+  "Dell XPS 13 Plus Laptop",
+  "ASUS ROG Strix G15 Gaming Laptop",
+  "MacBook Air M2 13-inch",
+  "JBL Charge 5 Speaker",
+];
+
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const router = useRouter();
+
+  const suggestions =
+    query.trim().length > 0
+      ? allProductNames.filter((name) => name.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
+      : [];
+
+  const goToSearch = (term: string) => {
+    setShowSuggestions(false);
+    setQuery(term);
+    router.push("/search?q=" + encodeURIComponent(term.trim()));
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      router.push("/search?q=" + encodeURIComponent(query.trim()));
+      goToSearch(query);
     }
   };
 
@@ -66,16 +91,37 @@ export default function Header() {
             </div>
           )}
 
-          <form onSubmit={handleSearch} className="flex-1 min-w-[200px] flex">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search anything..."
-              className="w-full px-4 py-2 text-sm rounded-l-md focus:outline-none"
-            />
-            <button type="submit" className="bg-brand-dark text-white px-5 rounded-r-md text-sm">Search</button>
-          </form>
+          <div className="flex-1 min-w-[200px] relative">
+            <form onSubmit={handleSearch} className="flex">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                placeholder="Search anything..."
+                className="w-full px-4 py-2 text-sm rounded-l-md focus:outline-none"
+              />
+              <button type="submit" className="bg-brand-dark text-white px-5 rounded-r-md text-sm">Search</button>
+            </form>
+
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 py-1">
+                {suggestions.map((name) => (
+                  <button
+                    key={name}
+                    onClick={() => goToSearch(name)}
+                    className="block w-full text-left px-4 py-2 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="hidden lg:flex items-center gap-6 text-white text-xs font-medium">
             <span>Free Shipping Over $399</span>
