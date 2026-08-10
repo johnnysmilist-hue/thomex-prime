@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import Categories from "@/components/Categories";
 import TopPicks from "@/components/TopPicks";
 import DealOfTheDay from "@/components/DealOfTheDay";
+import PromoTiles from "@/components/PromoTiles";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
           <DealOfTheDay />
         </div>
       </section>
+      <PromoTiles />
       <Footer />
     </main>
   );
