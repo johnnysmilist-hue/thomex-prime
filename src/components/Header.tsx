@@ -9,6 +9,11 @@ export default function Header() {
             <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">
               Track Order
             </a>
+            <a href="/account">Log In / Sign Up</a>
+            <a href="/cart" className="flex items-center gap-2">
+              <span className="bg-brand text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">3</span>
+              <span>Cart</span>
+            </a>
             <span>USD</span>
             <span>Eng</span>
           </div>
@@ -16,25 +21,10 @@ export default function Header() {
       </div>
 
       {/* Main header */}
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-6 flex-wrap">
+      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-center gap-6">
         <a href="/" className="text-2xl font-bold text-brand shrink-0">
           Thomex
         </a>
-
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-          <a href="/">Home</a>
-          <a href="/shop">Shop</a>
-          <a href="/deals">Deals</a>
-          <a href="/contact">Contact</a>
-        </nav>
-
-        <div className="flex items-center gap-5 text-sm shrink-0">
-          <a href="/account">Log In / Sign Up</a>
-          <a href="/cart" className="flex items-center gap-2">
-            <span className="bg-brand text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">3</span>
-            <span>Cart</span>
-          </a>
-        </div>
       </div>
 
       {/* Search + category bar */}
