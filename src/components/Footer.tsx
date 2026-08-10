@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="bg-brand-dark text-white mt-10">
+    <footer className="bg-brand-dark dark:bg-black text-white mt-10">
       <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
         <div>
           <h3 className="text-lg font-bold mb-3">Thomex</h3>
