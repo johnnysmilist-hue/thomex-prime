@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Categories from "@/components/Categories";
+import ProductCarousel from "@/components/ProductCarousel";
 import TopPicks from "@/components/TopPicks";
 import DealOfTheDay from "@/components/DealOfTheDay";
 import PromoTiles from "@/components/PromoTiles";
@@ -14,6 +15,7 @@ export default function Home() {
       <Header />
       <Hero />
       <Categories />
+      <ProductCarousel />
       <section className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="md:col-span-3">
           <TopPicks />
