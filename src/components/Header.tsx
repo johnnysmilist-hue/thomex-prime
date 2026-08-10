@@ -4,7 +4,9 @@ export default function Header() {
       {/* Top info bar */}
       <div className="text-xs text-gray-600">
         <div className="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
-          <span>Hotline 24/7: +254 700 123 456</span>
+          <a href="/" className="text-lg font-bold text-brand">
+            Thomex
+          </a>
           <div className="flex items-center gap-4">
             <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">
               Track Order
@@ -18,13 +20,6 @@ export default function Header() {
             <span>Eng</span>
           </div>
         </div>
-      </div>
-
-      {/* Main header */}
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-center gap-6">
-        <a href="/" className="text-2xl font-bold text-brand shrink-0">
-          Thomex
-        </a>
       </div>
 
       {/* Search + category bar */}
