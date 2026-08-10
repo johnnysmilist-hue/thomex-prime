@@ -11,13 +11,13 @@ const products = [
 
 export default function TopPicks() {
   return (
-    <section className="max-w-7xl mx-auto px-4 py-10">
+    <div>
       <h2 className="text-xl font-bold mb-5">Top Picks For You</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
-    </section>
+    </div>
   );
 }
