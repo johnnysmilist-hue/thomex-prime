@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Categories from "@/components/Categories";
+import FlashSale from "@/components/FlashSale";
 import ProductRow from "@/components/ProductRow";
 import TopPicks from "@/components/TopPicks";
 import DealOfTheDay from "@/components/DealOfTheDay";
@@ -41,6 +42,7 @@ export default function Home() {
       <Header />
       <Hero />
       <Categories />
+      <FlashSale />
       <ProductRow title="Phones & Tablets" products={tablets} />
       <section className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="md:col-span-3">
