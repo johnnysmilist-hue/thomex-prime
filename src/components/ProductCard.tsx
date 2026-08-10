@@ -1,1 +1,39 @@
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+  oldPrice?: number;
+  rating: number;
+  reviewCount: number;
+  discountPercent?: number;
+};
 
+export default function ProductCard({ product }: { product: Product }) {
+  return (
+    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow relative">
+      {product.discountPercent && (
+        <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+          -{product.discountPercent}%
+        </span>
+      )}
+      <div className="h-32 bg-gray-100 rounded mb-3 flex items-center justify-center text-gray-400 text-xs">
+        Image
+      </div>
+      <h3 className="text-sm font-medium mb-1 line-clamp-2">{product.name}</h3>
+      <div className="flex items-center gap-1 text-xs text-yellow-500 mb-2">
+        {"★".repeat(Math.round(product.rating))}
+        {"☆".repeat(5 - Math.round(product.rating))}
+        <span className="text-gray-400 ml-1">({product.reviewCount})</span>
+      </div>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-brand font-bold">${product.price.toFixed(2)}</span>
+        {product.oldPrice && (
+          <span className="text-gray-400 text-xs line-through">${product.oldPrice.toFixed(2)}</span>
+        )}
+      </div>
+      <button className="w-full bg-black text-white text-sm py-2 rounded-full hover:bg-brand transition-colors">
+        Add to Cart
+      </button>
+    </div>
+  );
+}
