@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import Sidebar from "@/components/Sidebar";
 import Categories from "@/components/Categories";
 import FlashSale from "@/components/FlashSale";
 import ProductRow from "@/components/ProductRow";
@@ -40,7 +41,10 @@ export default function Home() {
   return (
     <main className="min-h-screen">
       <Header />
-      <Hero />
+      <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
+        <Sidebar />
+        <Hero />
+      </div>
       <Categories />
       <FlashSale />
       <ProductRow title="Phones & Tablets" products={tablets} />
