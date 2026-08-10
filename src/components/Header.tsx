@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
+import { useCart } from "@/context/CartContext";
 
 const categories = [
   "Laptops",
@@ -37,6 +38,7 @@ export default function Header() {
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const router = useRouter();
+  const { totalItems } = useCart();
 
   const suggestions =
     query.trim().length > 0
@@ -65,7 +67,7 @@ export default function Header() {
             <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
             <a href="/account">Log In / Sign Up</a>
             <a href="/cart" className="flex items-center gap-2">
-              <span className="bg-brand text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">3</span>
+              <span className="bg-brand text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{totalItems}</span>
               <span>Cart</span>
             </a>
             <span>USD</span>
