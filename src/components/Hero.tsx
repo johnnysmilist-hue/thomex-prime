@@ -1,17 +1,43 @@
 export default function Hero() {
   return (
-    <section className="bg-brand-dark text-white">
-      <div className="max-w-7xl mx-auto px-4 py-16 flex flex-col md:flex-row items-center gap-10">
-        <div className="flex-1">
-          <p className="text-brand-light font-semibold mb-2">BUILD THE FUTURE</p>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">Next Gen Tech<br />For Every Lifestyle</h1>
-          <p className="text-gray-300 mb-6">Latest gadgets. Unbeatable prices. Upgrade your world today!</p>
-          <a href="/shop" className="inline-block bg-brand hover:bg-brand-light transition-colors text-white px-6 py-3 rounded-md font-semibold">Shop Now</a>
+    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Main banner */}
+      <div className="md:col-span-2 bg-gray-500 text-white rounded-lg p-8 flex flex-col justify-center min-h-[280px]">
+        <h1 className="text-3xl font-bold mb-2 leading-tight">
+          A4tech Bloody
+          <br />
+          Gaming Headphone
+        </h1>
+        <p className="text-gray-200 text-sm mb-5 max-w-xs">
+          Feature-Packed Wireless Headset Engineered For Professional Gamers And Audiophiles
+        </p>
+        
+          href="/shop"
+          className="inline-block w-fit bg-brand hover:bg-brand-light transition-colors text-white px-5 py-2 rounded-md text-sm font-semibold"
+        >
+          Buy Now
+        </a>
+      </div>
+
+      {/* Side tiles */}
+      <div className="flex flex-col gap-4">
+        <div className="bg-gray-100 rounded-lg p-5 flex-1 flex flex-col justify-center">
+          <p className="text-xs text-gray-500 mb-1">Watch</p>
+          <h3 className="font-bold mb-3">The Oraimo Watch 5 Smart Watch</h3>
+          
+            href="/shop"
+            className="inline-block w-fit bg-brand text-white px-4 py-2 rounded-md text-xs font-semibold"
+          >
+            Buy Now
+          </a>
         </div>
-        <div className="flex-1 w-full">
-          <div className="bg-white/10 rounded-lg h-64 md:h-80 flex items-center justify-center text-gray-400 text-sm">Hero image goes here</div>
+
+        <div className="bg-gray-800 text-white rounded-lg p-5 flex-1 flex flex-col justify-center">
+          <p className="text-xs text-gray-400 mb-1">Camera</p>
+          <h3 className="font-bold mb-3">Canon EOS R50 Mirrorless Camera</h3>
+          <p className="text-sm text-gray-300">From $499</p>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
