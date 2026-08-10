@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import Toast from "@/components/Toast";
 
 type CartItem = {
   id: string;
@@ -23,6 +24,8 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("thomex-cart");
@@ -38,6 +41,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, loaded]);
 
+  const triggerToast = (message: string) => {
+    setToastMessage(message);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2000);
+  };
+
   const addToCart = (item: Omit<CartItem, "qty">, qty: number = 1) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.id === item.id);
@@ -46,6 +55,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { ...item, qty }];
     });
+    triggerToast(item.name + " added to cart");
   };
 
   const removeFromCart = (id: string) => {
@@ -63,6 +73,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   return (
     <CartContext.Provider value={{ items, addToCart, removeFromCart, updateQty, totalItems, totalPrice }}>
       {children}
+      <Toast message={toastMessage} show={showToast} />
     </CartContext.Provider>
   );
 }
