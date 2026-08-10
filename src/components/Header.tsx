@@ -1,8 +1,9 @@
+import ThemeToggle from "./ThemeToggle";
+
 export default function Header() {
   return (
-    <header className="w-full border-b border-gray-100">
-      {/* Top info bar */}
-      <div className="text-xs text-gray-600">
+    <header className="w-full border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 transition-colors">
+      <div className="text-xs text-gray-600 dark:text-gray-300">
         <div className="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
           <a href="/" className="text-lg font-bold text-brand">
             Thomex
@@ -18,11 +19,11 @@ export default function Header() {
             </a>
             <span>USD</span>
             <span>Eng</span>
+            <ThemeToggle />
           </div>
         </div>
       </div>
 
-      {/* Search + category bar */}
       <div className="bg-brand">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap">
           <button className="bg-white text-brand-dark text-sm font-semibold px-4 py-2 rounded-md flex items-center gap-2 shrink-0">
