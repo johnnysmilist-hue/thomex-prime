@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useCart } from "@/context/CartContext";
 
 type Product = {
   id: string;
@@ -11,6 +14,8 @@ type Product = {
 };
 
 export default function ProductCard({ product }: { product: Product }) {
+  const { addToCart } = useCart();
+
   return (
     <div className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-lg p-4 hover:shadow-md transition-shadow relative">
       {product.discountPercent && (
@@ -35,7 +40,12 @@ export default function ProductCard({ product }: { product: Product }) {
           <span className="text-gray-400 text-xs line-through">${product.oldPrice.toFixed(2)}</span>
         )}
       </div>
-      <button className="w-full bg-black dark:bg-brand text-white text-sm py-2 rounded-full hover:bg-brand transition-colors">
+      <button
+        onClick={() =>
+          addToCart({ id: product.id, name: product.name, price: product.price })
+        }
+        className="w-full bg-black dark:bg-brand text-white text-sm py-2 rounded-full hover:bg-brand transition-colors"
+      >
         Add to Cart
       </button>
     </div>
