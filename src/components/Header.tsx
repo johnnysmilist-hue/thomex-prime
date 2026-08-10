@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 
 const categories = [
@@ -20,6 +21,15 @@ const categories = [
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      router.push("/search?q=" + encodeURIComponent(query.trim()));
+    }
+  };
 
   return (
     <header className="w-full border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 transition-colors">
@@ -56,10 +66,17 @@ export default function Header() {
             </div>
           )}
 
-          <div className="flex-1 min-w-[200px] flex">
-            <input type="text" placeholder="Search anything..." className="w-full px-4 py-2 text-sm rounded-l-md focus:outline-none" />
-            <button className="bg-brand-dark text-white px-5 rounded-r-md text-sm">Search</button>
-          </div>
+          <form onSubmit={handleSearch} className="flex-1 min-w-[200px] flex">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search anything..."
+              className="w-full px-4 py-2 text-sm rounded-l-md focus:outline-none"
+            />
+            <button type="submit" className="bg-brand-dark text-white px-5 rounded-r-md text-sm">Search</button>
+          </form>
+
           <div className="hidden lg:flex items-center gap-6 text-white text-xs font-medium">
             <span>Free Shipping Over $399</span>
             <span>Money Back Guarantee</span>
