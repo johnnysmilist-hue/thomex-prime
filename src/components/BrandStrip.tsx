@@ -13,9 +13,9 @@ const brands = [
 
 export default function BrandStrip() {
   return (
-    <section className="border-t border-gray-200">
+    <section className="border-t border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <h3 className="text-center text-sm font-semibold text-gray-500 mb-5">Shop By Top Brands</h3>
+        <h3 className="text-center text-sm font-semibold text-gray-500 dark:text-gray-400 mb-5">Shop By Top Brands</h3>
         <div className="flex flex-wrap justify-center items-center gap-x-10 gap-y-6">
           {brands.map((brand) => (
             <img
