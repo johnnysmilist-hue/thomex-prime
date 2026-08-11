@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import ThemeToggle from "./ThemeToggle";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
 
 const categories = [
   "Laptops",
@@ -43,6 +44,7 @@ export default function Header() {
   const router = useRouter();
   const { totalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
+  const { user } = useAuth();
   const { theme } = useTheme();
 
   useEffect(() => {
@@ -78,7 +80,11 @@ export default function Header() {
           </a>
           <div className="flex items-center gap-4">
             <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
-            <a href="/account">Log In / Sign Up</a>
+            {mounted && user ? (
+              <a href="/account">{user.email}</a>
+            ) : (
+              <a href="/signin">Log In / Sign Up</a>
+            )}
             <a href="/wishlist" className="flex items-center gap-2">
               <span className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{wishlistItems.length}</span>
               <span>Wishlist</span>
