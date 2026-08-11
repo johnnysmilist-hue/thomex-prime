@@ -43,7 +43,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           </div>
         </div>
         <ProductTabs />
-        <RelatedProducts />
+        <RelatedProducts currentId={product.id} category={product.category} />
       </div>
       <Footer />
     </main>
