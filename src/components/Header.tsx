@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import ThemeToggle from "./ThemeToggle";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -38,9 +39,15 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const { totalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
+  const { theme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const suggestions =
     query.trim().length > 0
@@ -60,11 +67,15 @@ export default function Header() {
     }
   };
 
+  const logoSrc = mounted && theme === "dark" ? "/logo-dark.png" : "/logo-light.png";
+
   return (
     <header className="w-full border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 transition-colors">
       <div className="text-xs text-gray-600 dark:text-gray-300">
         <div className="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
-          <a href="/" className="text-lg font-bold text-brand">Thomex</a>
+          <a href="/">
+            <img src={logoSrc} alt="Thomex" className="h-8 w-auto" />
+          </a>
           <div className="flex items-center gap-4">
             <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
             <a href="/account">Log In / Sign Up</a>
