@@ -39,14 +39,17 @@ export default function AccountPage() {
     );
   }
 
+  const username = user.user_metadata?.username || "Thomex Customer";
+
   return (
     <main className="min-h-screen bg-white dark:bg-gray-950">
       <Header />
       <div className="max-w-md mx-auto px-4 py-16">
         <h1 className="text-xl font-bold mb-6 text-black dark:text-white text-center">My Account</h1>
         <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-5">
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Signed in as</p>
-          <p className="text-sm font-semibold text-black dark:text-white">{user.email}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Welcome back</p>
+          <p className="text-sm font-semibold text-black dark:text-white">{username}</p>
+          <p className="text-xs text-gray-400 mt-1">{user.email}</p>
         </div>
         <div className="space-y-2">
           <a href="/cart" className="block text-sm text-black dark:text-white hover:text-brand py-2 border-b border-gray-100 dark:border-gray-800">
