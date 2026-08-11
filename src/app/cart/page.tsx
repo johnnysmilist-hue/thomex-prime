@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
@@ -67,9 +68,12 @@ export default function CartPage() {
               <span className="text-lg font-bold text-black dark:text-white">
                 Total: ${totalPrice.toFixed(2)}
               </span>
-              <button className="bg-brand text-white px-6 py-3 rounded-md font-semibold hover:bg-brand-dark transition-colors">
+              <Link
+                href="/checkout"
+                className="bg-brand text-white px-6 py-3 rounded-md font-semibold hover:bg-brand-dark transition-colors"
+              >
                 Checkout
-              </button>
+              </Link>
             </div>
           </>
         )}
