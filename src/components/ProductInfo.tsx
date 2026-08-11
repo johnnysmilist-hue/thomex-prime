@@ -3,15 +3,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import type { Product } from "@/lib/products";
 
 const colors = ["#1e3a8a", "#f9a8d4", "#bbf7d0", "#374151"];
 
 export default function ProductInfo({ product }: { product: Product }) {
   const { addToCart } = useCart();
+  const { toggleWishlist, isWishlisted } = useWishlist();
   const router = useRouter();
   const [qty, setQty] = useState(1);
   const [color, setColor] = useState(0);
+  const wishlisted = isWishlisted(product.id);
 
   const handleAddToCart = () => {
     addToCart({ id: product.id, name: product.name, price: product.price }, qty);
@@ -24,7 +27,19 @@ export default function ProductInfo({ product }: { product: Product }) {
 
   return (
     <div>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{product.category}</p>
+      <div className="flex items-start justify-between gap-3 mb-1">
+        <p className="text-xs text-gray-500 dark:text-gray-400">{product.category}</p>
+        <button
+          onClick={() => toggleWishlist({ id: product.id, name: product.name, price: product.price })}
+          aria-label="Toggle wishlist"
+          className="w-8 h-8 rounded-full border border-gray-200 dark:border-gray-700 flex items-center justify-center shrink-0"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill={wishlisted ? "#ef4444" : "none"} stroke={wishlisted ? "#ef4444" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-300">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+          </svg>
+        </button>
+      </div>
+
       <h1 className="text-2xl font-bold mb-2 text-black dark:text-white">{product.name}</h1>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{product.description}</p>
 
