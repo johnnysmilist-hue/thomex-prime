@@ -7,6 +7,7 @@ import ThemeToggle from "./ThemeToggle";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
+import { products } from "@/lib/products";
 
 const categories = [
   "Laptops",
@@ -21,19 +22,6 @@ const categories = [
   "Tablets",
   "Storage, USB",
   "Clearance",
-];
-
-const allProductNames = [
-  "iPhone 15 Pro Max 256GB",
-  "Sony WH-1000XM5",
-  "Samsung Galaxy Watch 6",
-  "Canon EOS R50 Camera",
-  "DJI Mini 3 Pro Drone",
-  "AirPods Pro 2nd Gen",
-  "Dell XPS 13 Plus Laptop",
-  "ASUS ROG Strix G15 Gaming Laptop",
-  "MacBook Air M2 13-inch",
-  "JBL Charge 5 Speaker",
 ];
 
 export default function Header() {
@@ -53,7 +41,7 @@ export default function Header() {
 
   const suggestions =
     query.trim().length > 0
-      ? allProductNames.filter((name) => name.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
+      ? products.filter((p) => p.name.toLowerCase().includes(query.toLowerCase())).slice(0, 6)
       : [];
 
   const goToSearch = (term: string) => {
@@ -136,13 +124,13 @@ export default function Header() {
 
             {showSuggestions && suggestions.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 py-1">
-                {suggestions.map((name) => (
+                {suggestions.map((p) => (
                   <button
-                    key={name}
-                    onClick={() => goToSearch(name)}
+                    key={p.id}
+                    onClick={() => goToSearch(p.name)}
                     className="block w-full text-left px-4 py-2 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
-                    {name}
+                    {p.name}
                   </button>
                 ))}
               </div>
