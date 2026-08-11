@@ -10,6 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function SignUpPage() {
   const { signUp } = useAuth();
   const router = useRouter();
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,7 +21,7 @@ export default function SignUpPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const { error } = await signUp(email, password);
+    const { error } = await signUp(email, password, username);
     setLoading(false);
     if (error) {
       setError(error);
@@ -46,6 +47,14 @@ export default function SignUpPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="text"
+              required
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm focus:outline-none focus:border-brand"
+            />
             <input
               type="email"
               required
