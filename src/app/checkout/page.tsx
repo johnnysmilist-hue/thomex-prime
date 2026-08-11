@@ -4,18 +4,28 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function CheckoutPage() {
-  const { items, totalPrice } = useCart();
+  const { items, totalPrice, clearCart } = useCart();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [orderCode, setOrderCode] = useState("");
+  const [error, setError] = useState("");
 
   const whatsappNumber = "254781102057";
 
-  const buildMessage = () => {
+  const generateOrderCode = () => {
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return "THX-" + random;
+  };
+
+  const buildWhatsAppMessage = (code: string) => {
     let msg = "New Order from Thomex website%0A%0A";
+    msg += "Order Code: " + code + "%0A";
     msg += "Name: " + encodeURIComponent(name) + "%0A";
     msg += "Phone: " + encodeURIComponent(phone) + "%0A";
     msg += "Address: " + encodeURIComponent(address) + "%0A%0A";
@@ -30,11 +40,56 @@ export default function CheckoutPage() {
     return msg;
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    const url = "https://wa.me/" + whatsappNumber + "?text=" + buildMessage();
+    setError("");
+    setLoading(true);
+
+    const code = generateOrderCode();
+
+    const { error: dbError } = await supabase.from("orders").insert({
+      order_code: code,
+      customer_name: name,
+      phone: phone,
+      address: address,
+      items: items,
+      total: totalPrice,
+      notes: notes || null,
+    });
+
+    setLoading(false);
+
+    if (dbError) {
+      setError("Something went wrong saving your order. Please try again.");
+      return;
+    }
+
+    setOrderCode(code);
+    clearCart();
+
+    const url = "https://wa.me/" + whatsappNumber + "?text=" + buildWhatsAppMessage(code);
     window.open(url, "_blank");
   };
+
+  if (orderCode) {
+    return (
+      <main className="min-h-screen bg-white dark:bg-gray-950">
+        <Header />
+        <div className="max-w-md mx-auto px-4 py-20 text-center">
+          <p className="text-green-600 dark:text-green-400 font-semibold mb-2">Order placed successfully!</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Your order code:</p>
+          <p className="text-2xl font-bold text-brand mb-6">{orderCode}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
+            Save this code to track your order status anytime.
+          </p>
+          <a href={"/track?code=" + orderCode} className="inline-block bg-brand text-white px-6 py-2 rounded-md font-semibold">
+            Track This Order
+          </a>
+        </div>
+        <Footer />
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-white dark:bg-gray-950">
@@ -90,11 +145,14 @@ export default function CheckoutPage() {
                 <p className="text-xs text-gray-500 dark:text-gray-400">Pay on Delivery (M-Pesa or cash)</p>
               </div>
 
+              {error && <p className="text-xs text-red-500">{error}</p>}
+
               <button
                 type="submit"
-                className="w-full bg-green-600 text-white py-3 rounded-md font-semibold hover:bg-green-700 transition-colors"
+                disabled={loading}
+                className="w-full bg-green-600 text-white py-3 rounded-md font-semibold hover:bg-green-700 transition-colors disabled:opacity-60"
               >
-                Place Order via WhatsApp
+                {loading ? "Placing order..." : "Place Order via WhatsApp"}
               </button>
             </form>
 
