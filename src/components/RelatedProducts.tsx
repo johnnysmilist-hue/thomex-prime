@@ -1,18 +1,17 @@
 import ProductCard from "./ProductCard";
+import { products } from "@/lib/products";
+import type { Product } from "@/lib/products";
 
-const related = [
-  { id: "40", name: "T-fun NC95 Hybrid", price: 14, oldPrice: 20, rating: 4.5, reviewCount: 32, discountPercent: 30 },
-  { id: "41", name: "Apple AirPod Max", price: 12, oldPrice: 15, rating: 4.6, reviewCount: 45, discountPercent: 20 },
-  { id: "42", name: "Apple AirPods 4 Wireless", price: 25, oldPrice: 30, rating: 4.8, reviewCount: 67, discountPercent: 17 },
-  { id: "43", name: "Sony WH-1000XM5", price: 299, oldPrice: 349, rating: 4.9, reviewCount: 98, discountPercent: 15 },
-];
+export default function RelatedProducts({ currentId, category }: { currentId: string; category: string }) {
+  const related = products.filter((p) => p.category === category && p.id !== currentId).slice(0, 4);
 
-export default function RelatedProducts() {
+  if (related.length === 0) return null;
+
   return (
     <div className="mt-14">
-      <h2 className="text-xl font-bold mb-5 text-black dark:text-white">Related Posts</h2>
+      <h2 className="text-xl font-bold mb-5 text-black dark:text-white">Related Products</h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {related.map((product) => (
+        {related.map((product: Product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
