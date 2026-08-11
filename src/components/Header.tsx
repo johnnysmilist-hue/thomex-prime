@@ -70,6 +70,7 @@ export default function Header() {
   };
 
   const logoSrc = mounted && theme === "dark" ? "/logo-dark.png" : "/logo-light.png";
+  const username = user?.user_metadata?.username;
 
   return (
     <header className="w-full border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 transition-colors">
@@ -81,7 +82,7 @@ export default function Header() {
           <div className="flex items-center gap-4">
             <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
             {mounted && user ? (
-              <a href="/account">{user.email}</a>
+              <a href="/account">{username || user.email}</a>
             ) : (
               <a href="/signin">Log In / Sign Up</a>
             )}
