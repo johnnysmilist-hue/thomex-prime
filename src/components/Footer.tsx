@@ -3,7 +3,7 @@ export default function Footer() {
     <footer className="bg-brand-dark dark:bg-black text-white mt-10">
       <div className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
         <div>
-          <h3 className="text-lg font-bold mb-3">Thomex</h3>
+          <img src="/logo-dark.png" alt="Thomex" className="h-8 w-auto mb-3" />
           <p className="text-gray-300">Your one-stop shop for the latest tech gadgets. Quality products, best prices, fast delivery.</p>
         </div>
         <div>
