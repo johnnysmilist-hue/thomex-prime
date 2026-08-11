@@ -1,31 +1,48 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCart } from "@/context/CartContext";
+import type { Product } from "@/lib/products";
 
 const colors = ["#1e3a8a", "#f9a8d4", "#bbf7d0", "#374151"];
 
-export default function ProductInfo() {
-  const [qty, setQty] = useState(2);
+export default function ProductInfo({ product }: { product: Product }) {
+  const { addToCart } = useCart();
+  const router = useRouter();
+  const [qty, setQty] = useState(1);
   const [color, setColor] = useState(0);
+
+  const handleAddToCart = () => {
+    addToCart({ id: product.id, name: product.name, price: product.price }, qty);
+  };
+
+  const handleBuyNow = () => {
+    addToCart({ id: product.id, name: product.name, price: product.price }, qty);
+    router.push("/checkout");
+  };
 
   return (
     <div>
-      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Headphones</p>
-      <h1 className="text-2xl font-bold mb-2 text-black dark:text-white">AirPods-Max</h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-        Wireless over-ear headphones with active noise cancellation and spatial audio.
-      </p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{product.category}</p>
+      <h1 className="text-2xl font-bold mb-2 text-black dark:text-white">{product.name}</h1>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{product.description}</p>
 
       <div className="flex items-center gap-1 text-sm text-yellow-500 mb-4">
-        ★★★★☆
-        <span className="text-gray-400 ml-1">(258 Reviews)</span>
+        {"★".repeat(Math.round(product.rating))}
+        {"☆".repeat(5 - Math.round(product.rating))}
+        <span className="text-gray-400 ml-1">({product.reviewCount} Reviews)</span>
       </div>
 
       <div className="flex items-center gap-3 mb-1">
-        <span className="text-2xl font-bold text-black dark:text-white">$49.00</span>
-        <span className="text-gray-400 line-through">$69.00</span>
+        <span className="text-2xl font-bold text-black dark:text-white">${product.price.toFixed(2)}</span>
+        {product.oldPrice && (
+          <span className="text-gray-400 line-through">${product.oldPrice.toFixed(2)}</span>
+        )}
       </div>
-      <p className="text-xs text-red-500 mb-5">Discount Only For This Weekend</p>
+      {product.discountPercent && (
+        <p className="text-xs text-red-500 mb-5">Save {product.discountPercent}% for a limited time</p>
+      )}
 
       <p className="text-sm font-semibold mb-2 text-black dark:text-white">Pick a Color</p>
       <div className="flex gap-3 mb-5">
@@ -45,18 +62,23 @@ export default function ProductInfo() {
 
       <div className="flex items-center gap-4 mb-6">
         <div className="flex items-center border border-gray-300 dark:border-gray-700 rounded-md">
-          <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-1 text-lg">-</button>
+          <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-1 text-lg text-black dark:text-white">-</button>
           <span className="px-4 text-black dark:text-white">{qty}</span>
-          <button onClick={() => setQty(qty + 1)} className="px-3 py-1 text-lg">+</button>
+          <button onClick={() => setQty(qty + 1)} className="px-3 py-1 text-lg text-black dark:text-white">+</button>
         </div>
-        <span className="text-xs text-red-500">Only 10 Items Left, Hurry up!</span>
       </div>
 
       <div className="flex gap-3">
-        <button className="flex-1 bg-brand text-white py-3 rounded-md font-semibold hover:bg-brand-dark transition-colors">
+        <button
+          onClick={handleBuyNow}
+          className="flex-1 bg-brand text-white py-3 rounded-md font-semibold hover:bg-brand-dark transition-colors"
+        >
           Buy Now
         </button>
-        <button className="flex-1 border border-brand text-brand py-3 rounded-md font-semibold hover:bg-brand/5 transition-colors">
+        <button
+          onClick={handleAddToCart}
+          className="flex-1 border border-brand text-brand py-3 rounded-md font-semibold hover:bg-brand/5 transition-colors"
+        >
           Add to Cart
         </button>
       </div>
