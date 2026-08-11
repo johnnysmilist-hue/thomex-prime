@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 const categories = [
   "Laptops",
@@ -39,6 +40,7 @@ export default function Header() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const router = useRouter();
   const { totalItems } = useCart();
+  const { items: wishlistItems } = useWishlist();
 
   const suggestions =
     query.trim().length > 0
@@ -66,6 +68,10 @@ export default function Header() {
           <div className="flex items-center gap-4">
             <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
             <a href="/account">Log In / Sign Up</a>
+            <a href="/wishlist" className="flex items-center gap-2">
+              <span className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{wishlistItems.length}</span>
+              <span>Wishlist</span>
+            </a>
             <a href="/cart" className="flex items-center gap-2">
               <span className="bg-brand text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{totalItems}</span>
               <span>Cart</span>
