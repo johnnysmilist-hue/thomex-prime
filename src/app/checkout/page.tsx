@@ -12,7 +12,7 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
 
-  const whatsappNumber = "254700123456";
+  const whatsappNumber = "254781102057";
 
   const buildMessage = () => {
     let msg = "New Order from Thomex website%0A%0A";
