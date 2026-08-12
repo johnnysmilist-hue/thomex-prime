@@ -1,11 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Papa from "papaparse";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminGuard from "@/components/AdminGuard";
-import { fetchProducts, addProduct, deleteProduct, uploadProductImage, DbProduct } from "@/lib/supabaseProducts";
+import { fetchProducts, addProduct, deleteProduct, uploadProductImage, bulkAddProducts, DbProduct } from "@/lib/supabaseProducts";
 import { categories } from "@/lib/categories";
+
+type CsvRow = {
+  name: string;
+  price: string;
+  old_price?: string;
+  category: string;
+  description?: string;
+  image_url?: string;
+  stock?: string;
+  featured?: string;
+  status?: string;
+};
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<DbProduct[]>([]);
@@ -27,6 +40,12 @@ export default function AdminProductsPage() {
   const [imageMode, setImageMode] = useState<"upload" | "link">("upload");
   const [imageUrl, setImageUrl] = useState("");
   const [imagePreview, setImagePreview] = useState("");
+
+  const [showCsvImport, setShowCsvImport] = useState(false);
+  const [csvRows, setCsvRows] = useState<CsvRow[]>([]);
+  const [csvError, setCsvError] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState("");
 
   const loadProducts = async () => {
     setLoading(true);
@@ -110,20 +129,126 @@ export default function AdminProductsPage() {
     loadProducts();
   };
 
+  const handleCsvFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setCsvError("");
+    setImportResult("");
+
+    Papa.parse<CsvRow>(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const rows = results.data.filter((r) => r.name && r.price && r.category);
+        if (rows.length === 0) {
+          setCsvError("No valid rows found. Make sure your CSV has name, price, and category columns.");
+          setCsvRows([]);
+          return;
+        }
+        setCsvRows(rows);
+      },
+      error: () => {
+        setCsvError("Could not read that file. Make sure it's a valid CSV.");
+      },
+    });
+  };
+
+  const handleImport = async () => {
+    setImporting(true);
+    setCsvError("");
+
+    const toInsert = csvRows.map((row) => {
+      const priceNum = parseFloat(row.price);
+      const oldPriceNum = row.old_price ? parseFloat(row.old_price) : null;
+      return {
+        name: row.name,
+        price: priceNum,
+        old_price: oldPriceNum,
+        rating: 0,
+        review_count: 0,
+        discount_percent: oldPriceNum ? Math.round(((oldPriceNum - priceNum) / oldPriceNum) * 100) : null,
+        category: row.category,
+        description: row.description || "",
+        image_url: row.image_url || null,
+        status: row.status === "Draft" ? "Draft" : "Published",
+        stock: row.stock ? parseInt(row.stock) || 0 : 0,
+        featured: row.featured === "true" || row.featured === "TRUE" || row.featured === "1",
+      };
+    });
+
+    const { error: importError } = await bulkAddProducts(toInsert);
+
+    setImporting(false);
+
+    if (importError) {
+      setCsvError("Import failed. Please check your CSV formatting and try again.");
+      return;
+    }
+
+    setImportResult(csvRows.length + " products imported successfully!");
+    setCsvRows([]);
+    loadProducts();
+  };
+
   return (
     <main className="min-h-screen bg-white dark:bg-gray-950">
       <Header />
       <AdminGuard>
         <div className="max-w-5xl mx-auto px-4 py-10">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
             <h1 className="text-xl font-bold text-black dark:text-white">Manage Products</h1>
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="bg-brand text-white px-4 py-2 rounded-md text-sm font-semibold"
-            >
-              {showForm ? "Cancel" : "+ Add Product"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setShowCsvImport(!showCsvImport); setShowForm(false); }}
+                className="border border-brand text-brand px-4 py-2 rounded-md text-sm font-semibold"
+              >
+                {showCsvImport ? "Cancel" : "Import CSV"}
+              </button>
+              <button
+                onClick={() => { setShowForm(!showForm); setShowCsvImport(false); }}
+                className="bg-brand text-white px-4 py-2 rounded-md text-sm font-semibold"
+              >
+                {showForm ? "Cancel" : "+ Add Product"}
+              </button>
+            </div>
           </div>
+
+          {showCsvImport && (
+            <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-8">
+              <p className="text-sm font-semibold text-black dark:text-white mb-2">Bulk Import from CSV</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                Your CSV needs these columns: <strong>name, price, category</strong> (required), and optionally
+                old_price, description, image_url, stock, featured (true/false), status (Published/Draft).
+              </p>
+              <input type="file" accept=".csv" onChange={handleCsvFile} className="text-sm text-black dark:text-white mb-4" />
+
+              {csvError && <p className="text-xs text-red-500 mb-3">{csvError}</p>}
+              {importResult && <p className="text-xs text-green-600 dark:text-green-400 mb-3">{importResult}</p>}
+
+              {csvRows.length > 0 && (
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    Preview — {csvRows.length} product{csvRows.length !== 1 ? "s" : ""} ready to import:
+                  </p>
+                  <div className="max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-800 rounded-md mb-4">
+                    {csvRows.map((row, i) => (
+                      <div key={i} className="px-3 py-2 text-xs text-black dark:text-white border-b border-gray-100 dark:border-gray-800 last:border-0">
+                        {row.name} — ${row.price} — {row.category}
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={handleImport}
+                    disabled={importing}
+                    className="bg-brand text-white px-5 py-2 rounded-md text-sm font-semibold disabled:opacity-60"
+                  >
+                    {importing ? "Importing..." : "Import " + csvRows.length + " Products"}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {showForm && (
             <form onSubmit={handleAdd} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-8 space-y-4">
