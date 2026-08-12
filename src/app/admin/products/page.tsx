@@ -4,21 +4,29 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminGuard from "@/components/AdminGuard";
-import { fetchProducts, addProduct, deleteProduct, DbProduct } from "@/lib/supabaseProducts";
+import { fetchProducts, addProduct, deleteProduct, uploadProductImage, DbProduct } from "@/lib/supabaseProducts";
+import { categories } from "@/lib/categories";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [oldPrice, setOldPrice] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState(categories[0]);
   const [description, setDescription] = useState("");
+  const [stock, setStock] = useState("0");
+  const [featured, setFeatured] = useState(false);
+  const [status, setStatus] = useState("Published");
+
+  const [imageMode, setImageMode] = useState<"upload" | "link">("upload");
   const [imageUrl, setImageUrl] = useState("");
+  const [imagePreview, setImagePreview] = useState("");
 
   const loadProducts = async () => {
     setLoading(true);
@@ -35,9 +43,33 @@ export default function AdminProductsPage() {
     setName("");
     setPrice("");
     setOldPrice("");
-    setCategory("");
+    setCategory(categories[0]);
     setDescription("");
+    setStock("0");
+    setFeatured(false);
+    setStatus("Published");
     setImageUrl("");
+    setImagePreview("");
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setError("");
+
+    const { url, error: uploadError } = await uploadProductImage(file);
+
+    setUploading(false);
+
+    if (uploadError || !url) {
+      setError("Image upload failed. Please try again.");
+      return;
+    }
+
+    setImageUrl(url);
+    setImagePreview(url);
   };
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -55,6 +87,9 @@ export default function AdminProductsPage() {
       category,
       description,
       image_url: imageUrl || null,
+      status,
+      stock: parseInt(stock) || 0,
+      featured,
     });
 
     setSaving(false);
@@ -91,19 +126,93 @@ export default function AdminProductsPage() {
           </div>
 
           {showForm && (
-            <form onSubmit={handleAdd} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-8 space-y-3">
-              <input required placeholder="Product name" value={name} onChange={(e) => setName(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-              <div className="grid grid-cols-2 gap-3">
-                <input required type="number" step="0.01" placeholder="Price" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-                <input type="number" step="0.01" placeholder="Old price (optional)" value={oldPrice} onChange={(e) => setOldPrice(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+            <form onSubmit={handleAdd} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-8 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Product Name</label>
+                <input required placeholder="e.g. Sony WH-1000XM5" value={name} onChange={(e) => setName(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
               </div>
-              <input required placeholder="Category (e.g. Laptops)" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-              <textarea placeholder="Description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm resize-none" />
-              <input placeholder="Image URL (optional for now)" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Price ($)</label>
+                  <input required type="number" step="0.01" placeholder="299.00" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Old Price (optional)</label>
+                  <input type="number" step="0.01" placeholder="349.00" value={oldPrice} onChange={(e) => setOldPrice(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Category</label>
+                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm">
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Stock Quantity</label>
+                  <input type="number" placeholder="10" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Description</label>
+                <textarea placeholder="Short product description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm resize-none" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">Product Image</label>
+                <div className="flex gap-2 mb-3">
+                  <button type="button" onClick={() => setImageMode("upload")} className={imageMode === "upload" ? "px-3 py-1.5 rounded-md text-xs font-semibold bg-brand text-white" : "px-3 py-1.5 rounded-md text-xs font-semibold border border-gray-300 dark:border-gray-700 text-black dark:text-white"}>
+                    Upload Image
+                  </button>
+                  <button type="button" onClick={() => setImageMode("link")} className={imageMode === "link" ? "px-3 py-1.5 rounded-md text-xs font-semibold bg-brand text-white" : "px-3 py-1.5 rounded-md text-xs font-semibold border border-gray-300 dark:border-gray-700 text-black dark:text-white"}>
+                    Use Image Link
+                  </button>
+                </div>
+
+                {imageMode === "upload" ? (
+                  <div>
+                    <input type="file" accept="image/*" onChange={handleFileChange} className="text-sm text-black dark:text-white" />
+                    {uploading && <p className="text-xs text-gray-400 mt-2">Uploading...</p>}
+                  </div>
+                ) : (
+                  <input
+                    placeholder="https://example.com/image.jpg"
+                    value={imageUrl}
+                    onChange={(e) => {
+                      setImageUrl(e.target.value);
+                      setImagePreview(e.target.value);
+                    }}
+                    className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm"
+                  />
+                )}
+
+                {imagePreview && (
+                  <img src={imagePreview} alt="Preview" className="w-24 h-24 object-cover rounded-md mt-3 border border-gray-200 dark:border-gray-800" />
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 items-end">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Status</label>
+                  <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm">
+                    <option value="Published">Published</option>
+                    <option value="Draft">Draft</option>
+                  </select>
+                </div>
+                <label className="flex items-center gap-2 text-sm text-black dark:text-white pb-2">
+                  <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="accent-brand" />
+                  Featured Product
+                </label>
+              </div>
 
               {error && <p className="text-xs text-red-500">{error}</p>}
 
-              <button type="submit" disabled={saving} className="bg-brand text-white px-5 py-2 rounded-md text-sm font-semibold disabled:opacity-60">
+              <button type="submit" disabled={saving || uploading} className="bg-brand text-white px-5 py-2 rounded-md text-sm font-semibold disabled:opacity-60">
                 {saving ? "Saving..." : "Save Product"}
               </button>
             </form>
@@ -117,9 +226,15 @@ export default function AdminProductsPage() {
             <div className="space-y-3">
               {products.map((p) => (
                 <div key={p.id} className="flex items-center gap-4 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded shrink-0 overflow-hidden">
+                    {p.image_url && <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-black dark:text-white truncate">{p.name}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{p.category} • ${p.price.toFixed(2)}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {p.category} • ${p.price.toFixed(2)} • Stock: {p.stock} • {p.status}
+                      {p.featured && " • Featured"}
+                    </p>
                   </div>
                   <button
                     onClick={() => handleDelete(p.id)}
