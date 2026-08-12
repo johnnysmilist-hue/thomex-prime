@@ -88,6 +88,11 @@ export async function deleteProduct(id: string) {
   return { error };
 }
 
+export async function bulkAddProducts(products: Omit<DbProduct, "id" | "created_at">[]) {
+  const { data, error } = await supabase.from("products").insert(products).select();
+  return { data: data as DbProduct[] | null, error };
+}
+
 export async function uploadProductImage(file: File) {
   const fileExt = file.name.split(".").pop();
   const fileName = Math.random().toString(36).substring(2) + "." + fileExt;
