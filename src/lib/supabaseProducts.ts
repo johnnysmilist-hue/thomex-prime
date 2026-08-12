@@ -11,6 +11,9 @@ export type DbProduct = {
   category: string;
   description: string | null;
   image_url: string | null;
+  status: string;
+  stock: number;
+  featured: boolean;
   created_at: string;
 };
 
@@ -25,6 +28,8 @@ export type Product = {
   category: string;
   description: string;
   imageUrl?: string;
+  stock: number;
+  featured: boolean;
 };
 
 function toProduct(p: DbProduct): Product {
@@ -39,6 +44,8 @@ function toProduct(p: DbProduct): Product {
     category: p.category,
     description: p.description ?? "",
     imageUrl: p.image_url ?? undefined,
+    stock: p.stock,
+    featured: p.featured,
   };
 }
 
@@ -54,6 +61,7 @@ export async function fetchAllProductsForSite() {
   const { data, error } = await supabase
     .from("products")
     .select("*")
+    .eq("status", "Published")
     .order("created_at", { ascending: false });
   const products = data ? (data as DbProduct[]).map(toProduct) : [];
   return { products, error };
@@ -78,4 +86,20 @@ export async function updateProduct(id: string, product: Partial<Omit<DbProduct,
 export async function deleteProduct(id: string) {
   const { error } = await supabase.from("products").delete().eq("id", id);
   return { error };
+}
+
+export async function uploadProductImage(file: File) {
+  const fileExt = file.name.split(".").pop();
+  const fileName = Math.random().toString(36).substring(2) + "." + fileExt;
+
+  const { error: uploadError } = await supabase.storage
+    .from("product-images")
+    .upload(fileName, file);
+
+  if (uploadError) {
+    return { url: null, error: uploadError };
+  }
+
+  const { data } = supabase.storage.from("product-images").getPublicUrl(fileName);
+  return { url: data.publicUrl, error: null };
 }
