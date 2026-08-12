@@ -1,17 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import ProductCard from "@/components/ProductCard";
-import { products as allProducts } from "@/lib/products";
+import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
 
 export default function ShopContent() {
   const searchParams = useSearchParams();
   const categoryFilter = searchParams.get("category");
 
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState("featured");
   const [maxPrice, setMaxPrice] = useState(1500);
+
+  useEffect(() => {
+    fetchAllProductsForSite().then(({ products }) => {
+      setAllProducts(products);
+      setLoading(false);
+    });
+  }, []);
 
   let products = allProducts.filter((p) => p.price <= maxPrice);
 
@@ -51,7 +60,9 @@ export default function ShopContent() {
           </select>
         </div>
 
-        {products.length === 0 ? (
+        {loading ? (
+          <p className="text-sm text-gray-400">Loading products...</p>
+        ) : products.length === 0 ? (
           <p className="text-sm text-gray-500 dark:text-gray-400">No products found in this category yet.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
