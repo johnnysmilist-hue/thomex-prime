@@ -14,12 +14,55 @@ export type DbProduct = {
   created_at: string;
 };
 
+export type Product = {
+  id: string;
+  name: string;
+  price: number;
+  oldPrice?: number;
+  rating: number;
+  reviewCount: number;
+  discountPercent?: number;
+  category: string;
+  description: string;
+  imageUrl?: string;
+};
+
+function toProduct(p: DbProduct): Product {
+  return {
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    oldPrice: p.old_price ?? undefined,
+    rating: p.rating,
+    reviewCount: p.review_count,
+    discountPercent: p.discount_percent ?? undefined,
+    category: p.category,
+    description: p.description ?? "",
+    imageUrl: p.image_url ?? undefined,
+  };
+}
+
 export async function fetchProducts() {
   const { data, error } = await supabase
     .from("products")
     .select("*")
     .order("created_at", { ascending: false });
   return { data: data as DbProduct[] | null, error };
+}
+
+export async function fetchAllProductsForSite() {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false });
+  const products = data ? (data as DbProduct[]).map(toProduct) : [];
+  return { products, error };
+}
+
+export async function fetchProductById(id: string) {
+  const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
+  const product = data ? toProduct(data as DbProduct) : null;
+  return { product, error };
 }
 
 export async function addProduct(product: Omit<DbProduct, "id" | "created_at">) {
