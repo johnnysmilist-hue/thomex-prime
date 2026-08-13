@@ -361,6 +361,11 @@ export default function AdminProductsPage() {
                       {p.featured && " • Featured"}
                     </p>
                   </div>
+                 href={"/admin/products/" + p.id + "/edit"}
+                    className="text-brand text-xs font-semibold shrink-0"
+                  >
+                    Edit
+                  </a>
                   <button
                     onClick={() => handleDelete(p.id)}
                     className="text-red-500 text-xs font-semibold shrink-0"
