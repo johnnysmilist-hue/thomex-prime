@@ -361,9 +361,7 @@ export default function AdminProductsPage() {
                       {p.featured && " • Featured"}
                     </p>
                   </div>
-                 href={"/admin/products/" + p.id + "/edit"}
-                    className="text-brand text-xs font-semibold shrink-0"
-                  >
+                  <a href={"/admin/products/" + p.id + "/edit"} className="text-brand text-xs font-semibold shrink-0">
                     Edit
                   </a>
                   <button
