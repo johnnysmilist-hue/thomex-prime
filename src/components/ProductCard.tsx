@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useCurrency } from "@/context/CurrencyContext";
 
 type Product = {
   id: string;
@@ -17,6 +18,7 @@ type Product = {
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
+  const { format } = useCurrency();
   const wishlisted = isWishlisted(product.id);
 
   return (
@@ -34,18 +36,7 @@ export default function ProductCard({ product }: { product: Product }) {
         aria-label="Toggle wishlist"
         className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white dark:bg-gray-800 shadow flex items-center justify-center z-10"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill={wishlisted ? "#ef4444" : "none"}
-          stroke={wishlisted ? "#ef4444" : "currentColor"}
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-gray-500 dark:text-gray-300"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill={wishlisted ? "#ef4444" : "none"} stroke={wishlisted ? "#ef4444" : "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500 dark:text-gray-300">
           <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
         </svg>
       </button>
@@ -62,9 +53,9 @@ export default function ProductCard({ product }: { product: Product }) {
         <span className="text-gray-400 ml-1">({product.reviewCount})</span>
       </div>
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-brand font-bold">${product.price.toFixed(2)}</span>
+        <span className="text-brand font-bold">{format(product.price)}</span>
         {product.oldPrice && (
-          <span className="text-gray-400 text-xs line-through">${product.oldPrice.toFixed(2)}</span>
+          <span className="text-gray-400 text-xs line-through">{format(product.oldPrice)}</span>
         )}
       </div>
       <button
