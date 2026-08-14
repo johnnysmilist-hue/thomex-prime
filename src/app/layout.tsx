@@ -4,6 +4,7 @@ import ThemeProvider from "@/components/ThemeProvider";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 
 export const metadata: Metadata = {
   title: "Thomex - Tech & Electronics Store",
@@ -20,9 +21,11 @@ export default function RootLayout({
       <body className="bg-white text-black dark:bg-gray-950 dark:text-white transition-colors">
         <ThemeProvider>
           <AuthProvider>
-            <CartProvider>
-              <WishlistProvider>{children}</WishlistProvider>
-            </CartProvider>
+            <CurrencyProvider>
+              <CartProvider>
+                <WishlistProvider>{children}</WishlistProvider>
+              </CartProvider>
+            </CurrencyProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
