@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import ProductReviews from "./ProductReviews";
 
 const specs = [
   { label: "Weight", value: "384.8 g" },
   { label: "Dimensions", value: "187.3 x 168.6 x 83.4 mm" },
   { label: "Material", value: "Aluminium & Mesh" },
-  { label: "Colors", value: "Space Gray, Silver, Green, Sky Blue, Pink" },
   { label: "Battery Life", value: "Up to 20 hours" },
   { label: "Warranty", value: "1 Year" },
 ];
 
 const tabs = ["Description", "Additional Information", "Reviews"];
 
-export default function ProductTabs() {
-  const [active, setActive] = useState(1);
+export default function ProductTabs({ productId, description }: { productId: string; description: string }) {
+  const [active, setActive] = useState(0);
 
   return (
     <div className="mt-12">
@@ -36,8 +36,7 @@ export default function ProductTabs() {
 
       {active === 0 && (
         <p className="text-sm text-gray-600 dark:text-gray-300 max-w-2xl">
-          The AirPods-Max delivers rich, immersive sound with active noise cancellation
-          and a comfortable over-ear fit, built for all-day listening.
+          {description}
         </p>
       )}
 
@@ -65,9 +64,7 @@ export default function ProductTabs() {
         </div>
       )}
 
-      {active === 2 && (
-        <p className="text-sm text-gray-600 dark:text-gray-300">No reviews yet.</p>
-      )}
+      {active === 2 && <ProductReviews productId={productId} />}
     </div>
   );
 }
