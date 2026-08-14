@@ -13,6 +13,8 @@ type CsvRow = {
   price: string;
   old_price?: string;
   category: string;
+  brand?: string;
+  color?: string;
   description?: string;
   image_url?: string;
   stock?: string;
@@ -32,6 +34,8 @@ export default function AdminProductsPage() {
   const [price, setPrice] = useState("");
   const [oldPrice, setOldPrice] = useState("");
   const [category, setCategory] = useState(categories[0]);
+  const [brand, setBrand] = useState("");
+  const [color, setColor] = useState("");
   const [description, setDescription] = useState("");
   const [stock, setStock] = useState("0");
   const [featured, setFeatured] = useState(false);
@@ -63,6 +67,8 @@ export default function AdminProductsPage() {
     setPrice("");
     setOldPrice("");
     setCategory(categories[0]);
+    setBrand("");
+    setColor("");
     setDescription("");
     setStock("0");
     setFeatured(false);
@@ -104,6 +110,8 @@ export default function AdminProductsPage() {
       review_count: 0,
       discount_percent: oldPrice ? Math.round(((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) * 100) : null,
       category,
+      brand: brand || null,
+      color: color || null,
       description,
       image_url: imageUrl || null,
       status,
@@ -169,6 +177,8 @@ export default function AdminProductsPage() {
         review_count: 0,
         discount_percent: oldPriceNum ? Math.round(((oldPriceNum - priceNum) / oldPriceNum) * 100) : null,
         category: row.category,
+        brand: row.brand || null,
+        color: row.color || null,
         description: row.description || "",
         image_url: row.image_url || null,
         status: row.status === "Draft" ? "Draft" : "Published",
@@ -219,7 +229,7 @@ export default function AdminProductsPage() {
               <p className="text-sm font-semibold text-black dark:text-white mb-2">Bulk Import from CSV</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
                 Your CSV needs these columns: <strong>name, price, category</strong> (required), and optionally
-                old_price, description, image_url, stock, featured (true/false), status (Published/Draft).
+                old_price, brand, color, description, image_url, stock, featured (true/false), status (Published/Draft).
               </p>
               <input type="file" accept=".csv" onChange={handleCsvFile} className="text-sm text-black dark:text-white mb-4" />
 
@@ -234,7 +244,7 @@ export default function AdminProductsPage() {
                   <div className="max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-800 rounded-md mb-4">
                     {csvRows.map((row, i) => (
                       <div key={i} className="px-3 py-2 text-xs text-black dark:text-white border-b border-gray-100 dark:border-gray-800 last:border-0">
-                        {row.name} — ${row.price} — {row.category}
+                        {row.name} — KSh {row.price} — {row.category}
                       </div>
                     ))}
                   </div>
@@ -259,12 +269,12 @@ export default function AdminProductsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Price ($)</label>
-                  <input required type="number" step="0.01" placeholder="299.00" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Price (KSh)</label>
+                  <input required type="number" step="0.01" placeholder="29900" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Old Price (optional)</label>
-                  <input type="number" step="0.01" placeholder="349.00" value={oldPrice} onChange={(e) => setOldPrice(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                  <input type="number" step="0.01" placeholder="34900" value={oldPrice} onChange={(e) => setOldPrice(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
                 </div>
               </div>
 
@@ -280,6 +290,17 @@ export default function AdminProductsPage() {
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Stock Quantity</label>
                   <input type="number" placeholder="10" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Brand</label>
+                  <input placeholder="e.g. Sony, Apple" value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Color</label>
+                  <input placeholder="e.g. Black" value={color} onChange={(e) => setColor(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
                 </div>
               </div>
 
@@ -357,7 +378,7 @@ export default function AdminProductsPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-black dark:text-white truncate">{p.name}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {p.category} • ${p.price.toFixed(2)} • Stock: {p.stock} • {p.status}
+                      {p.category} • KSh {p.price.toFixed(2)} • Stock: {p.stock} • {p.status}
                       {p.featured && " • Featured"}
                     </p>
                   </div>
