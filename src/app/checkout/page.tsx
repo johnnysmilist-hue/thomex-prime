@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
 import { supabase } from "@/lib/supabaseClient";
+import { fetchSettings } from "@/lib/supabaseSettings";
 
 export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
@@ -15,8 +16,15 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [orderCode, setOrderCode] = useState("");
   const [error, setError] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("254781102057");
 
-  const whatsappNumber = "254781102057";
+  useEffect(() => {
+    fetchSettings().then((r) => {
+      if (r.data?.whatsapp_number) {
+        setWhatsappNumber(r.data.whatsapp_number);
+      }
+    });
+  }, []);
 
   const generateOrderCode = () => {
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
