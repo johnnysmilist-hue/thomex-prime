@@ -42,7 +42,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             <TrustBadges />
           </div>
         </div>
-        <ProductTabs />
+        <ProductTabs productId={product.id} description={product.description} />
         <RelatedProducts currentId={product.id} category={product.category} />
       </div>
       <Footer />
