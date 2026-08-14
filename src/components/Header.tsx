@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
 import { products } from "@/lib/products";
+import { fetchSettings } from "@/lib/supabaseSettings";
 
 const categories = [
   "Laptops",
@@ -29,6 +30,7 @@ export default function Header() {
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [hotline, setHotline] = useState("+254 700 123 456");
   const router = useRouter();
   const { totalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
@@ -37,6 +39,11 @@ export default function Header() {
 
   useEffect(() => {
     setMounted(true);
+    fetchSettings().then((r) => {
+      if (r.data?.hotline) {
+        setHotline(r.data.hotline);
+      }
+    });
   }, []);
 
   const suggestions =
@@ -68,6 +75,7 @@ export default function Header() {
             <img src={logoSrc} alt="Thomex" className="h-8 w-auto" />
           </a>
           <div className="flex items-center gap-4">
+            <span className="hidden lg:inline">Hotline: {hotline}</span>
             <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
             {mounted && user ? (
               <a href="/account">{username || user.email}</a>
