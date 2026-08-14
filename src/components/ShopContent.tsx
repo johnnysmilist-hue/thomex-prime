@@ -13,7 +13,8 @@ export default function ShopContent() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState("featured");
-  const [maxPrice, setMaxPrice] = useState(1500);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
   useEffect(() => {
     fetchAllProductsForSite().then(({ products }) => {
@@ -22,7 +23,17 @@ export default function ShopContent() {
     });
   }, []);
 
-  let products = allProducts.filter((p) => p.price <= maxPrice);
+  let products = allProducts;
+
+  if (minPrice.trim() !== "") {
+    const min = parseFloat(minPrice);
+    if (!isNaN(min)) products = products.filter((p) => p.price >= min);
+  }
+
+  if (maxPrice.trim() !== "") {
+    const max = parseFloat(maxPrice);
+    if (!isNaN(max)) products = products.filter((p) => p.price <= max);
+  }
 
   if (categoryFilter) {
     products = products.filter((p) => p.category === categoryFilter);
@@ -41,8 +52,34 @@ export default function ShopContent() {
       <div className="w-full md:w-56 shrink-0 space-y-6">
         <Sidebar />
         <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-          <p className="text-sm font-semibold mb-3 text-black dark:text-white">Max Price: ${maxPrice}</p>
-          <input type="range" min="10" max="1500" value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} className="w-full accent-brand" />
+          <p className="text-sm font-semibold mb-3 text-black dark:text-white">Price Range</p>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              min="0"
+              placeholder="Min"
+              value={minPrice}
+              onChange={(e) => setMinPrice(e.target.value)}
+              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-2 py-1.5 text-sm"
+            />
+            <span className="text-gray-400 text-xs">to</span>
+            <input
+              type="number"
+              min="0"
+              placeholder="Max"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-2 py-1.5 text-sm"
+            />
+          </div>
+          {(minPrice || maxPrice) && (
+            <button
+              onClick={() => { setMinPrice(""); setMaxPrice(""); }}
+              className="text-xs text-brand font-semibold mt-2"
+            >
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
@@ -63,7 +100,7 @@ export default function ShopContent() {
         {loading ? (
           <p className="text-sm text-gray-400">Loading products...</p>
         ) : products.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400">No products found in this category yet.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">No products found in this range.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {products.map((product) => (
