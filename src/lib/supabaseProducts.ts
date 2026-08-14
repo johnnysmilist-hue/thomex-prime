@@ -9,6 +9,8 @@ export type DbProduct = {
   review_count: number;
   discount_percent: number | null;
   category: string;
+  brand: string | null;
+  color: string | null;
   description: string | null;
   image_url: string | null;
   status: string;
@@ -26,6 +28,8 @@ export type Product = {
   reviewCount: number;
   discountPercent?: number;
   category: string;
+  brand?: string;
+  color?: string;
   description: string;
   imageUrl?: string;
   stock: number;
@@ -42,6 +46,8 @@ function toProduct(p: DbProduct): Product {
     reviewCount: p.review_count,
     discountPercent: p.discount_percent ?? undefined,
     category: p.category,
+    brand: p.brand ?? undefined,
+    color: p.color ?? undefined,
     description: p.description ?? "",
     imageUrl: p.image_url ?? undefined,
     stock: p.stock,
