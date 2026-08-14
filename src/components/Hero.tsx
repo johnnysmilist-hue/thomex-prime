@@ -1,35 +1,61 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchBannerBySlot, Banner } from "@/lib/supabaseBanners";
+import { fetchActiveSlides, fetchBannerBySlot, Banner } from "@/lib/supabaseBanners";
 
 export default function Hero() {
-  const [main, setMain] = useState<Banner | null>(null);
+  const [slides, setSlides] = useState<Banner[]>([]);
+  const [current, setCurrent] = useState(0);
   const [side1, setSide1] = useState<Banner | null>(null);
   const [side2, setSide2] = useState<Banner | null>(null);
 
   useEffect(() => {
-    fetchBannerBySlot("hero_main").then((r) => setMain(r.data));
+    fetchActiveSlides("hero_slide").then((r) => setSlides(r.data || []));
     fetchBannerBySlot("hero_side_1").then((r) => setSide1(r.data));
     fetchBannerBySlot("hero_side_2").then((r) => setSide2(r.data));
   }, []);
 
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [slides]);
+
+  const active = slides[current];
+
   return (
     <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
       <div
-        className="md:col-span-2 bg-gray-500 dark:bg-gray-800 text-white rounded-lg p-8 flex flex-col justify-center min-h-[280px] bg-cover bg-center"
-        style={main?.image_url ? { backgroundImage: "url(" + main.image_url + ")" } : {}}
+        className="md:col-span-2 bg-gray-500 dark:bg-gray-800 text-white rounded-lg p-8 flex flex-col justify-center min-h-[280px] bg-cover bg-center relative overflow-hidden transition-all duration-500"
+        style={active?.image_url ? { backgroundImage: "url(" + active.image_url + ")" } : {}}
       >
-        <h1 className="text-3xl font-bold mb-2 leading-tight max-w-md">
-          {main?.title || "Next Gen Tech For Every Lifestyle"}
-        </h1>
-        <p className="text-gray-200 text-sm mb-5 max-w-xs">
-          {main?.subtitle || "Latest gadgets. Unbeatable prices."}
-        </p>
-        {main?.button_text && (
-          <a href={main.button_link || "/shop"} className="inline-block w-fit bg-brand hover:bg-brand-light transition-colors text-white px-5 py-2 rounded-md text-sm font-semibold">
-            {main.button_text}
-          </a>
+        {active ? (
+          <>
+            <h1 className="text-3xl font-bold mb-2 leading-tight max-w-md">{active.title}</h1>
+            <p className="text-gray-200 text-sm mb-5 max-w-xs">{active.subtitle}</p>
+            {active.button_text && (
+              <a href={active.button_link || "/shop"} className="inline-block w-fit bg-brand hover:bg-brand-light transition-colors text-white px-5 py-2 rounded-md text-sm font-semibold">
+                {active.button_text}
+              </a>
+            )}
+          </>
+        ) : (
+          <h1 className="text-3xl font-bold mb-2 leading-tight max-w-md">Next Gen Tech For Every Lifestyle</h1>
+        )}
+
+        {slides.length > 1 && (
+          <div className="absolute bottom-4 left-8 flex gap-2">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                aria-label={"Go to slide " + (i + 1)}
+                className={i === current ? "w-6 h-1.5 rounded-full bg-white" : "w-1.5 h-1.5 rounded-full bg-white/50"}
+              />
+            ))}
+          </div>
         )}
       </div>
 
