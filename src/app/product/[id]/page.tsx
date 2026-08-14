@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductGallery from "@/components/ProductGallery";
@@ -5,10 +8,28 @@ import ProductInfo from "@/components/ProductInfo";
 import TrustBadges from "@/components/TrustBadges";
 import ProductTabs from "@/components/ProductTabs";
 import RelatedProducts from "@/components/RelatedProducts";
-import { getProductById } from "@/lib/products";
+import { fetchProductById, Product } from "@/lib/supabaseProducts";
 
 export default function ProductPage({ params }: { params: { id: string } }) {
-  const product = getProductById(params.id);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProductById(params.id).then((r) => {
+      setProduct(r.product);
+      setLoading(false);
+    });
+  }, [params.id]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-white dark:bg-gray-950">
+        <Header />
+        <div className="max-w-2xl mx-auto px-4 py-24 text-center text-sm text-gray-400">Loading...</div>
+        <Footer />
+      </main>
+    );
+  }
 
   if (!product) {
     return (
@@ -36,7 +57,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           Home &gt; Shop &gt; {product.category} &gt; {product.name}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <ProductGallery />
+          <ProductGallery imageUrl={product.imageUrl} />
           <div>
             <ProductInfo product={product} />
             <TrustBadges />
