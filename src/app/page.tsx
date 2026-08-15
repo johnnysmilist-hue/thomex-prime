@@ -6,6 +6,7 @@ import Hero from "@/components/Hero";
 import Sidebar from "@/components/Sidebar";
 import Categories from "@/components/Categories";
 import FlashSale from "@/components/FlashSale";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import ProductRow from "@/components/ProductRow";
 import DealOfTheDay from "@/components/DealOfTheDay";
 import PromoTiles from "@/components/PromoTiles";
@@ -37,6 +38,7 @@ export default function Home() {
       <Categories />
 
       <FlashSale />
+      <RecentlyViewed />
 
       {!loading && products.length === 0 && (
         <div className="max-w-7xl mx-auto px-4 py-16 text-center">
