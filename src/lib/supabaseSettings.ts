@@ -9,6 +9,7 @@ export type StoreSettings = {
   address: string | null;
   currency: string;
   free_shipping_threshold: number;
+  flash_sale_end: string | null;
 };
 
 export async function fetchSettings() {
