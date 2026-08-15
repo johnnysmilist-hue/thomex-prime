@@ -170,7 +170,7 @@ export default function AdminProductsPage() {
     const toInsert = csvRows.map((row) => {
       const priceNum = parseFloat(row.price);
       const oldPriceNum = row.old_price ? parseFloat(row.old_price) : null;
-      return {
+     return {
         name: row.name,
         price: priceNum,
         old_price: oldPriceNum,
@@ -185,6 +185,7 @@ export default function AdminProductsPage() {
         status: row.status === "Draft" ? "Draft" : "Published",
         stock: row.stock ? parseInt(row.stock) || 0 : 0,
         featured: row.featured === "true" || row.featured === "TRUE" || row.featured === "1",
+        is_flash_sale: false,
       };
     });
 
