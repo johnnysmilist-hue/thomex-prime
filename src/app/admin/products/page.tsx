@@ -102,7 +102,7 @@ export default function AdminProductsPage() {
     setError("");
     setSaving(true);
 
-    const { error: addError } = await addProduct({
+ const { error: addError } = await addProduct({
       name,
       price: parseFloat(price),
       old_price: oldPrice ? parseFloat(oldPrice) : null,
@@ -117,6 +117,7 @@ export default function AdminProductsPage() {
       status,
       stock: parseInt(stock) || 0,
       featured,
+      is_flash_sale: false,
     });
 
     setSaving(false);
