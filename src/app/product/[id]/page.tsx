@@ -9,16 +9,22 @@ import TrustBadges from "@/components/TrustBadges";
 import ProductTabs from "@/components/ProductTabs";
 import RelatedProducts from "@/components/RelatedProducts";
 import { fetchProductById, Product } from "@/lib/supabaseProducts";
+import { useRecentlyViewed } from "@/context/RecentlyViewedContext";
 
 export default function ProductPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const { addViewed } = useRecentlyViewed();
 
   useEffect(() => {
     fetchProductById(params.id).then((r) => {
       setProduct(r.product);
       setLoading(false);
+      if (r.product) {
+        addViewed(r.product.id);
+      }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   if (loading) {
