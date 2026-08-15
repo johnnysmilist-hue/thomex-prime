@@ -52,11 +52,17 @@ export default function ProductCard({ product }: { product: Product }) {
         {"☆".repeat(5 - Math.round(product.rating))}
         <span className="text-gray-400 ml-1">({product.reviewCount})</span>
       </div>
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-2">
         <span className="text-brand font-bold">{format(product.price)}</span>
         {product.oldPrice && (
           <span className="text-gray-400 text-xs line-through">{format(product.oldPrice)}</span>
         )}
+      </div>
+      <div className="flex items-center gap-1 text-[10px] text-green-600 dark:text-green-400 font-medium mb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+        Pay on Delivery
       </div>
       <button
         onClick={() =>
