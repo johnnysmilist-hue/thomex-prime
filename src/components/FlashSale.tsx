@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ProductCard from "./ProductCard";
 import FlashSaleTimer from "./FlashSaleTimer";
 import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
@@ -10,6 +10,7 @@ export default function FlashSale() {
   const [products, setProducts] = useState<Product[]>([]);
   const [endTime, setEndTime] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     Promise.all([fetchAllProductsForSite(), fetchSettings()]).then(([productsRes, settingsRes]) => {
@@ -18,6 +19,12 @@ export default function FlashSale() {
       setLoading(false);
     });
   }, []);
+
+  const scroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction === "left" ? -220 : 220, behavior: "smooth" });
+  };
 
   if (loading || products.length === 0) return null;
 
@@ -33,12 +40,34 @@ export default function FlashSale() {
         </a>
       </div>
 
-      <div className="border border-t-0 border-red-200 dark:border-red-900 bg-white dark:bg-gray-950 rounded-b-lg p-5">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+      <div className="border border-t-0 border-red-200 dark:border-red-900 bg-white dark:bg-gray-950 rounded-b-lg p-5 relative">
+        <button
+          onClick={() => scroll("left")}
+          aria-label="Scroll left"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-black dark:text-white rounded-full w-9 h-9 flex items-center justify-center shadow"
+        >
+          ‹
+        </button>
+
+        <div
+          ref={scrollRef}
+          className="flex gap-4 overflow-x-auto pb-1 scroll-smooth"
+          style={{ scrollbarWidth: "none" }}
+        >
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <div key={product.id} className="min-w-[180px]">
+              <ProductCard product={product} />
+            </div>
           ))}
         </div>
+
+        <button
+          onClick={() => scroll("right")}
+          aria-label="Scroll right"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-black dark:text-white rounded-full w-9 h-9 flex items-center justify-center shadow"
+        >
+          ›
+        </button>
       </div>
     </section>
   );
