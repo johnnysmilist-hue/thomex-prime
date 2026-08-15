@@ -1,9 +1,18 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import ProductCard from "./ProductCard";
-import { products } from "@/lib/products";
-import type { Product } from "@/lib/products";
+import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
 
 export default function RelatedProducts({ currentId, category }: { currentId: string; category: string }) {
-  const related = products.filter((p) => p.category === category && p.id !== currentId).slice(0, 4);
+  const [related, setRelated] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetchAllProductsForSite().then(({ products }) => {
+      const filtered = products.filter((p) => p.category === category && p.id !== currentId).slice(0, 4);
+      setRelated(filtered);
+    });
+  }, [currentId, category]);
 
   if (related.length === 0) return null;
 
@@ -11,7 +20,7 @@ export default function RelatedProducts({ currentId, category }: { currentId: st
     <div className="mt-14">
       <h2 className="text-xl font-bold mb-5 text-black dark:text-white">Related Products</h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {related.map((product: Product) => (
+        {related.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
