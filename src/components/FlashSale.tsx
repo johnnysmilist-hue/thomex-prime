@@ -13,7 +13,7 @@ export default function FlashSale() {
 
   useEffect(() => {
     Promise.all([fetchAllProductsForSite(), fetchSettings()]).then(([productsRes, settingsRes]) => {
-      setProducts(productsRes.products.filter((p) => (p as any).isFlashSale));
+      setProducts(productsRes.products.filter((p) => p.isFlashSale));
       setEndTime(settingsRes.data?.flash_sale_end || null);
       setLoading(false);
     });
