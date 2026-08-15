@@ -7,15 +7,24 @@ import AdminGuard from "@/components/AdminGuard";
 import AdminSidebar from "@/components/AdminSidebar";
 import { fetchSettings, updateSettings, StoreSettings } from "@/lib/supabaseSettings";
 
+function toLocalDatetimeInput(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+}
+
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<StoreSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [flashSaleEndInput, setFlashSaleEndInput] = useState("");
 
   useEffect(() => {
     fetchSettings().then((r) => {
       setSettings(r.data);
+      setFlashSaleEndInput(toLocalDatetimeInput(r.data?.flash_sale_end || null));
       setLoading(false);
     });
   }, []);
@@ -37,6 +46,7 @@ export default function AdminSettingsPage() {
       address: settings.address,
       currency: settings.currency,
       free_shipping_threshold: settings.free_shipping_threshold,
+      flash_sale_end: flashSaleEndInput ? new Date(flashSaleEndInput).toISOString() : null,
     });
     setSaving(false);
     setSaved(true);
@@ -73,7 +83,6 @@ export default function AdminSettingsPage() {
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">WhatsApp Order Number</label>
                   <input value={settings.whatsapp_number || ""} onChange={(e) => updateField("whatsapp_number", e.target.value)} placeholder="254781102057" className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-                  <p className="text-[11px] text-gray-400 mt-1">Checkout orders are sent to this number via WhatsApp.</p>
                 </div>
 
                 <div>
@@ -95,9 +104,20 @@ export default function AdminSettingsPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Free Shipping Over ($)</label>
+                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Free Shipping Over</label>
                     <input type="number" value={settings.free_shipping_threshold} onChange={(e) => updateField("free_shipping_threshold", parseFloat(e.target.value))} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
                   </div>
+                </div>
+
+                <div className="border-t border-gray-200 dark:border-gray-800 pt-4">
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Flash Sale Ends</label>
+                  <input
+                    type="datetime-local"
+                    value={flashSaleEndInput}
+                    onChange={(e) => setFlashSaleEndInput(e.target.value)}
+                    className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm"
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1">Controls the countdown shown on the homepage Flash Sale section.</p>
                 </div>
 
                 <button type="submit" disabled={saving} className="bg-brand text-white px-5 py-2 rounded-md text-sm font-semibold disabled:opacity-60">
