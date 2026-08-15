@@ -7,10 +7,8 @@ import Sidebar from "@/components/Sidebar";
 import Categories from "@/components/Categories";
 import FlashSale from "@/components/FlashSale";
 import ProductRow from "@/components/ProductRow";
-import TopPicks from "@/components/TopPicks";
 import DealOfTheDay from "@/components/DealOfTheDay";
 import PromoTiles from "@/components/PromoTiles";
-import BestSelling from "@/components/BestSelling";
 import BrandStrip from "@/components/BrandStrip";
 import Footer from "@/components/Footer";
 import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
@@ -37,6 +35,8 @@ export default function Home() {
         <Hero />
       </div>
       <Categories />
+
+      <FlashSale />
 
       {!loading && products.length === 0 && (
         <div className="max-w-7xl mx-auto px-4 py-16 text-center">
