@@ -5,6 +5,7 @@ import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
+import { RecentlyViewedProvider } from "@/context/RecentlyViewedContext";
 
 export const metadata: Metadata = {
   title: "Thomex - Tech & Electronics Store",
@@ -23,7 +24,9 @@ export default function RootLayout({
           <AuthProvider>
             <CurrencyProvider>
               <CartProvider>
-                <WishlistProvider>{children}</WishlistProvider>
+                <WishlistProvider>
+                  <RecentlyViewedProvider>{children}</RecentlyViewedProvider>
+                </WishlistProvider>
               </CartProvider>
             </CurrencyProvider>
           </AuthProvider>
