@@ -16,6 +16,7 @@ export type DbProduct = {
   status: string;
   stock: number;
   featured: boolean;
+  is_flash_sale: boolean;
   created_at: string;
 };
 
@@ -34,6 +35,7 @@ export type Product = {
   imageUrl?: string;
   stock: number;
   featured: boolean;
+  isFlashSale: boolean;
 };
 
 function toProduct(p: DbProduct): Product {
@@ -52,6 +54,7 @@ function toProduct(p: DbProduct): Product {
     imageUrl: p.image_url ?? undefined,
     stock: p.stock,
     featured: p.featured,
+    isFlashSale: p.is_flash_sale,
   };
 }
 
