@@ -22,9 +22,12 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [price, setPrice] = useState("");
   const [oldPrice, setOldPrice] = useState("");
   const [category, setCategory] = useState(categories[0]);
+  const [brand, setBrand] = useState("");
+  const [color, setColor] = useState("");
   const [description, setDescription] = useState("");
   const [stock, setStock] = useState("0");
   const [featured, setFeatured] = useState(false);
+  const [isFlashSale, setIsFlashSale] = useState(false);
   const [status, setStatus] = useState("Published");
   const [imageUrl, setImageUrl] = useState("");
 
@@ -43,9 +46,12 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         setPrice(String(p.price));
         setOldPrice(p.old_price ? String(p.old_price) : "");
         setCategory(p.category);
+        setBrand(p.brand || "");
+        setColor(p.color || "");
         setDescription(p.description || "");
         setStock(String(p.stock));
         setFeatured(p.featured);
+        setIsFlashSale(p.is_flash_sale || false);
         setStatus(p.status);
         setImageUrl(p.image_url || "");
       }
@@ -80,11 +86,14 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       old_price: oldPrice ? parseFloat(oldPrice) : null,
       discount_percent: oldPrice ? Math.round(((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) * 100) : null,
       category,
+      brand: brand || null,
+      color: color || null,
       description,
       image_url: imageUrl || null,
       status,
       stock: parseInt(stock) || 0,
       featured,
+      is_flash_sale: isFlashSale,
     });
 
     setSaving(false);
@@ -159,6 +168,11 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 <input type="number" placeholder="Stock" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <input placeholder="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                <input placeholder="Color" value={color} onChange={(e) => setColor(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+              </div>
+
               <textarea placeholder="Description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm resize-none" />
 
               <div>
@@ -177,6 +191,11 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   Featured
                 </label>
               </div>
+
+              <label className="flex items-center gap-2 text-sm text-black dark:text-white">
+                <input type="checkbox" checked={isFlashSale} onChange={(e) => setIsFlashSale(e.target.checked)} className="accent-brand" />
+                Include in Flash Sale
+              </label>
 
               {error && <p className="text-xs text-red-500">{error}</p>}
 
@@ -197,7 +216,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                     <div key={attr.id} className="flex items-center justify-between border border-gray-200 dark:border-gray-800 rounded-md px-4 py-2 text-sm">
                       <span className="text-black dark:text-white">
                         {attr.name}: {attr.value}
-                        {attr.price_modifier !== 0 && (attr.price_modifier > 0 ? ` (+$${attr.price_modifier})` : ` (-$${Math.abs(attr.price_modifier)})`)}
+                        {attr.price_modifier !== 0 && (attr.price_modifier > 0 ? ` (+${attr.price_modifier})` : ` (-${Math.abs(attr.price_modifier)})`)}
                         {" • Stock: " + attr.stock}
                       </span>
                       <button onClick={() => handleDeleteAttribute(attr.id)} className="text-red-500 text-xs font-semibold">
@@ -213,7 +232,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 <input placeholder="Value (e.g. Black)" value={attrValue} onChange={(e) => setAttrValue(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
               </div>
               <div className="grid grid-cols-2 gap-2 mb-3">
-                <input type="number" step="0.01" placeholder="Price adjustment ($)" value={attrPriceMod} onChange={(e) => setAttrPriceMod(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
+                <input type="number" step="0.01" placeholder="Price adjustment" value={attrPriceMod} onChange={(e) => setAttrPriceMod(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
                 <input type="number" placeholder="Stock" value={attrStock} onChange={(e) => setAttrStock(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
               </div>
               <button onClick={handleAddAttribute} className="border border-brand text-brand px-4 py-2 rounded-md text-sm font-semibold">
