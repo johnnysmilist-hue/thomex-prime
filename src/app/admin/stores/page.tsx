@@ -51,7 +51,10 @@ export default function AdminStoresPage() {
                   <div key={store.id} className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
                     <div className="flex items-center justify-between flex-wrap gap-3">
                       <div>
-                        <p className="text-sm font-bold text-black dark:text-white">{store.name}</p>
+                        <p className="text-sm font-bold text-black dark:text-white flex items-center gap-1">
+                          {store.name}
+                          {store.status === "Approved" && <VerifiedBadge />}
+                        </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{store.contact_email} • {store.contact_phone}</p>
                         <p className={"text-xs font-semibold mt-1 " + statusColor(store.status)}>{store.status}</p>
                       </div>
