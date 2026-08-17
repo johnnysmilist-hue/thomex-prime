@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import AdminGuard from "@/components/AdminGuard";
 import AdminSidebar from "@/components/AdminSidebar";
 import { fetchAllStores, updateStoreStatus, Store } from "@/lib/supabaseStores";
+import VerifiedBadge from "@/components/VerifiedBadge";
 
 export default function AdminStoresPage() {
   const [stores, setStores] = useState<Store[]>([]);
