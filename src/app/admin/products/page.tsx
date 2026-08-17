@@ -118,6 +118,7 @@ export default function AdminProductsPage() {
       stock: parseInt(stock) || 0,
       featured,
       is_flash_sale: false,
+      store_id: null,
     });
 
     setSaving(false);
