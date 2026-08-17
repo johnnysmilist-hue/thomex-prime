@@ -36,6 +36,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [attrValue, setAttrValue] = useState("");
   const [attrPriceMod, setAttrPriceMod] = useState("0");
   const [attrStock, setAttrStock] = useState("0");
+  const [attrImageUrl, setAttrImageUrl] = useState("");
+  const [attrUploading, setAttrUploading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -73,6 +75,15 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       return;
     }
     setImageUrl(url);
+  };
+
+  const handleAttrImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAttrUploading(true);
+    const { url } = await uploadProductImage(file);
+    setAttrUploading(false);
+    if (url) setAttrImageUrl(url);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -114,6 +125,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       value: attrValue,
       price_modifier: parseFloat(attrPriceMod) || 0,
       stock: parseInt(attrStock) || 0,
+      image_url: attrImageUrl || null,
     });
     if (data) {
       setAttributes((prev) => [...prev, data]);
@@ -121,6 +133,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       setAttrValue("");
       setAttrPriceMod("0");
       setAttrStock("0");
+      setAttrImageUrl("");
     }
   };
 
@@ -207,19 +220,24 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             <div className="border-t border-gray-200 dark:border-gray-800 pt-8">
               <h2 className="text-lg font-bold mb-4 text-black dark:text-white">Attributes / Variants</h2>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                Add options like Color: Black, Size: Large, Storage: 256GB — each with its own price adjustment and stock.
+                Add options like Color: Blue with its own photo — customers will see this image automatically when they pick that option.
               </p>
 
               {attributes.length > 0 && (
                 <div className="space-y-2 mb-5">
                   {attributes.map((attr) => (
-                    <div key={attr.id} className="flex items-center justify-between border border-gray-200 dark:border-gray-800 rounded-md px-4 py-2 text-sm">
-                      <span className="text-black dark:text-white">
-                        {attr.name}: {attr.value}
-                        {attr.price_modifier !== 0 && (attr.price_modifier > 0 ? ` (+${attr.price_modifier})` : ` (-${Math.abs(attr.price_modifier)})`)}
-                        {" • Stock: " + attr.stock}
-                      </span>
-                      <button onClick={() => handleDeleteAttribute(attr.id)} className="text-red-500 text-xs font-semibold">
+                    <div key={attr.id} className="flex items-center justify-between border border-gray-200 dark:border-gray-800 rounded-md px-4 py-2 text-sm gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {attr.image_url && (
+                          <img src={attr.image_url} alt={attr.value} className="w-8 h-8 rounded object-cover shrink-0" />
+                        )}
+                        <span className="text-black dark:text-white truncate">
+                          {attr.name}: {attr.value}
+                          {attr.price_modifier !== 0 && (attr.price_modifier > 0 ? ` (+${attr.price_modifier})` : ` (-${Math.abs(attr.price_modifier)})`)}
+                          {" • Stock: " + attr.stock}
+                        </span>
+                      </div>
+                      <button onClick={() => handleDeleteAttribute(attr.id)} className="text-red-500 text-xs font-semibold shrink-0">
                         Remove
                       </button>
                     </div>
@@ -229,11 +247,17 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
               <div className="grid grid-cols-2 gap-2 mb-2">
                 <input placeholder="Attribute name (e.g. Color)" value={attrName} onChange={(e) => setAttrName(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
-                <input placeholder="Value (e.g. Black)" value={attrValue} onChange={(e) => setAttrValue(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
+                <input placeholder="Value (e.g. Blue)" value={attrValue} onChange={(e) => setAttrValue(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
               </div>
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <input type="number" step="0.01" placeholder="Price adjustment" value={attrPriceMod} onChange={(e) => setAttrPriceMod(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
                 <input type="number" placeholder="Stock" value={attrStock} onChange={(e) => setAttrStock(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
+              </div>
+              <div className="mb-3">
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Image for this option (optional)</label>
+                <input type="file" accept="image/*" onChange={handleAttrImageChange} className="text-sm text-black dark:text-white" />
+                {attrUploading && <p className="text-xs text-gray-400 mt-1">Uploading...</p>}
+                {attrImageUrl && <img src={attrImageUrl} alt="Preview" className="w-16 h-16 object-cover rounded-md mt-2 border border-gray-200 dark:border-gray-800" />}
               </div>
               <button onClick={handleAddAttribute} className="border border-brand text-brand px-4 py-2 rounded-md text-sm font-semibold">
                 + Add Attribute
