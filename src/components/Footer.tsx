@@ -22,6 +22,7 @@ export default function Footer() {
             <li><a href="/track">Track Your Order</a></li>
             <li><a href="/returns">Returns & Refunds</a></li>
             <li><a href="/faq">FAQs</a></li>
+            <li><a href="/sell" className="font-semibold text-white">Sell on Thomex</a></li>
           </ul>
         </div>
         <div>
