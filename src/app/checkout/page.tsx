@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { fetchSettings } from "@/lib/supabaseSettings";
 
 export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -63,6 +65,7 @@ export default function CheckoutPage() {
       items: items,
       total: totalPrice,
       notes: notes || null,
+      user_id: user ? user.id : null,
     });
 
     setLoading(false);
