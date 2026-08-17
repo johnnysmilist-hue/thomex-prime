@@ -9,6 +9,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
 import { products } from "@/lib/products";
 import { fetchSettings } from "@/lib/supabaseSettings";
+import { fetchStoreByOwner, Store } from "@/lib/supabaseStores";
 
 const categories = [
   "Laptops",
@@ -31,6 +32,7 @@ export default function Header() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [hotline, setHotline] = useState("+254 700 123 456");
+  const [myStore, setMyStore] = useState<Store | null>(null);
   const router = useRouter();
   const { totalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
@@ -45,6 +47,14 @@ export default function Header() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchStoreByOwner(user.id).then((r) => setMyStore(r.data));
+    } else {
+      setMyStore(null);
+    }
+  }, [user]);
 
   const suggestions =
     query.trim().length > 0
@@ -76,6 +86,9 @@ export default function Header() {
           </a>
           <div className="flex items-center gap-4">
             <span className="hidden lg:inline">Hotline: {hotline}</span>
+            {mounted && myStore?.status === "Approved" && (
+              <a href="/vendor" className="font-semibold text-brand">My Store</a>
+            )}
             <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
             {mounted && user ? (
               <a href="/account">{username || user.email}</a>
