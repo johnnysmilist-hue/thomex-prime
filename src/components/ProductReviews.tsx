@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { fetchReviews, fetchUserReview, upsertReview, deleteReview, Review } from "@/lib/supabaseReviews";
+import { fetchReviews, fetchUserReview, upsertReview, deleteReview, fetchVerifiedUserIds, Review } from "@/lib/supabaseReviews";
 
 export default function ProductReviews({ productId }: { productId: string }) {
   const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [verifiedIds, setVerifiedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [myRating, setMyRating] = useState(0);
   const [myComment, setMyComment] = useState("");
@@ -17,6 +18,11 @@ export default function ProductReviews({ productId }: { productId: string }) {
     setLoading(true);
     const { data } = await fetchReviews(productId);
     setReviews(data || []);
+
+    if (data && data.length > 0) {
+      const { verified } = await fetchVerifiedUserIds(productId, data.map((r) => r.user_id));
+      setVerifiedIds(verified);
+    }
 
     if (user) {
       const { data: mine } = await fetchUserReview(productId, user.id);
@@ -120,7 +126,17 @@ export default function ProductReviews({ productId }: { productId: string }) {
           {reviews.map((review) => (
             <div key={review.id} className="border-b border-gray-100 dark:border-gray-800 pb-4">
               <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-semibold text-black dark:text-white">{review.username}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-semibold text-black dark:text-white">{review.username}</p>
+                  {verifiedIds.has(review.user_id) && (
+                    <span className="flex items-center gap-1 text-[10px] font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/40 px-2 py-0.5 rounded-full">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6 9 17l-5-5" />
+                      </svg>
+                      Verified Purchase
+                    </span>
+                  )}
+                </div>
                 <span className="text-yellow-500 text-xs">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
               </div>
               {review.comment && <p className="text-sm text-gray-600 dark:text-gray-300">{review.comment}</p>}
