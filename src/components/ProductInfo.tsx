@@ -4,13 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import type { Product } from "@/lib/products";
+import { useCurrency } from "@/context/CurrencyContext";
+import SoldBy from "./SoldBy";
+import type { Product } from "@/lib/supabaseProducts";
 
 const colors = ["#1e3a8a", "#f9a8d4", "#bbf7d0", "#374151"];
 
 export default function ProductInfo({ product }: { product: Product }) {
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
+  const { format } = useCurrency();
   const router = useRouter();
   const [qty, setQty] = useState(1);
   const [color, setColor] = useState(0);
@@ -41,6 +44,9 @@ export default function ProductInfo({ product }: { product: Product }) {
       </div>
 
       <h1 className="text-2xl font-bold mb-2 text-black dark:text-white">{product.name}</h1>
+
+      <SoldBy storeId={product.storeId} />
+
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{product.description}</p>
 
       <div className="flex items-center gap-1 text-sm text-yellow-500 mb-4">
@@ -50,9 +56,9 @@ export default function ProductInfo({ product }: { product: Product }) {
       </div>
 
       <div className="flex items-center gap-3 mb-1">
-        <span className="text-2xl font-bold text-black dark:text-white">${product.price.toFixed(2)}</span>
+        <span className="text-2xl font-bold text-black dark:text-white">{format(product.price)}</span>
         {product.oldPrice && (
-          <span className="text-gray-400 line-through">${product.oldPrice.toFixed(2)}</span>
+          <span className="text-gray-400 line-through">{format(product.oldPrice)}</span>
         )}
       </div>
       {product.discountPercent && (
