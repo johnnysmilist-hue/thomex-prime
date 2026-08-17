@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import VendorGuard from "@/components/VendorGuard";
 import { supabase } from "@/lib/supabaseClient";
+import VerifiedBadge from "@/components/VerifiedBadge";
 
 export default function VendorDashboard() {
   return (
@@ -57,7 +58,9 @@ function VendorHome({ storeId, storeName }: { storeId: string; storeName: string
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8 flex-wrap gap-2">
-        <h1 className="text-xl font-bold text-black dark:text-white">{storeName} — Vendor Dashboard</h1>
+       <h1 className="text-xl font-bold text-black dark:text-white flex items-center gap-2">
+          {storeName} <VerifiedBadge size={18} /> — Vendor Dashboard
+        </h1>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
