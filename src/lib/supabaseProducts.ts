@@ -17,6 +17,7 @@ export type DbProduct = {
   stock: number;
   featured: boolean;
   is_flash_sale: boolean;
+  store_id: string | null;
   created_at: string;
 };
 
@@ -36,6 +37,7 @@ export type Product = {
   stock: number;
   featured: boolean;
   isFlashSale: boolean;
+  storeId?: string;
 };
 
 function toProduct(p: DbProduct): Product {
@@ -55,6 +57,7 @@ function toProduct(p: DbProduct): Product {
     stock: p.stock,
     featured: p.featured,
     isFlashSale: p.is_flash_sale,
+    storeId: p.store_id ?? undefined,
   };
 }
 
