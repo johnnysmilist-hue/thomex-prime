@@ -7,6 +7,7 @@ export type Attribute = {
   value: string;
   price_modifier: number;
   stock: number;
+  image_url: string | null;
 };
 
 export async function fetchAttributes(productId: string) {
