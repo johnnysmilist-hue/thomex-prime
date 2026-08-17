@@ -40,6 +40,17 @@ const links = [
     ),
   },
   {
+    href: "/admin/stores",
+    label: "Stores",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 7h20l-1.6 8.2a2 2 0 0 1-2 1.8H5.6a2 2 0 0 1-2-1.8L2 7Z" />
+        <path d="M2 7 4 3h16l2 4" />
+        <path d="M10 11v2a2 2 0 0 0 4 0v-2" />
+      </svg>
+    ),
+  },
+  {
     href: "/admin/banners",
     label: "Banners",
     icon: (
