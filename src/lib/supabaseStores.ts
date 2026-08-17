@@ -8,6 +8,8 @@ export type Store = {
   logo_url: string | null;
   contact_email: string | null;
   contact_phone: string | null;
+  id_document_url: string | null;
+  business_document_url: string | null;
   status: string;
   created_at: string;
 };
@@ -40,4 +42,20 @@ export async function applyAsStore(store: Omit<Store, "id" | "created_at" | "sta
 export async function updateStoreStatus(id: string, status: string) {
   const { error } = await supabase.from("stores").update({ status }).eq("id", id);
   return { error };
+}
+
+export async function uploadStoreDocument(file: File) {
+  const fileExt = file.name.split(".").pop();
+  const fileName = Math.random().toString(36).substring(2) + "." + fileExt;
+
+  const { error: uploadError } = await supabase.storage
+    .from("store-documents")
+    .upload(fileName, file);
+
+  if (uploadError) {
+    return { url: null, error: uploadError };
+  }
+
+  const { data } = supabase.storage.from("store-documents").getPublicUrl(fileName);
+  return { url: data.publicUrl, error: null };
 }
