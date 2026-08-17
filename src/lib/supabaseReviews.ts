@@ -29,6 +29,26 @@ export async function fetchUserReview(productId: string, userId: string) {
   return { data: data as Review | null };
 }
 
+export async function fetchVerifiedUserIds(productId: string, userIds: string[]) {
+  if (userIds.length === 0) return { verified: new Set<string>() };
+
+  const { data } = await supabase
+    .from("orders")
+    .select("user_id, items")
+    .in("user_id", userIds);
+
+  const verified = new Set<string>();
+  (data || []).forEach((order) => {
+    const items = order.items as { id?: string }[] | null;
+    const hasProduct = Array.isArray(items) && items.some((item) => item.id === productId);
+    if (hasProduct && order.user_id) {
+      verified.add(order.user_id);
+    }
+  });
+
+  return { verified };
+}
+
 async function recomputeProductRating(productId: string) {
   const { data } = await supabase.from("reviews").select("rating").eq("product_id", productId);
   if (!data) return;
