@@ -43,7 +43,7 @@ export default function AdminStoresPage() {
           <div className="flex-1">
             <h1 className="text-xl font-bold mb-2 text-black dark:text-white">Vendor Stores</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-              Approve or reject store applications. Approved stores can manage their own products from their vendor dashboard.
+              Review documents, then approve or reject store applications.
             </p>
 
             {loading ? (
@@ -75,9 +75,37 @@ export default function AdminStoresPage() {
                         )}
                       </div>
                     </div>
+
                     {store.description && (
                       <p className="text-xs text-gray-600 dark:text-gray-300 mt-3">{store.description}</p>
                     )}
+
+                    <div className="flex gap-3 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                      {store.id_document_url ? (
+                        
+                          href={store.id_document_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-semibold text-brand underline"
+                        >
+                          View ID Document
+                        </a>
+                      ) : (
+                        <span className="text-xs text-gray-400">No ID document</span>
+                      )}
+                      {store.business_document_url ? (
+                        
+                          href={store.business_document_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-semibold text-brand underline"
+                        >
+                          View Business Document
+                        </a>
+                      ) : (
+                        <span className="text-xs text-gray-400">No business document</span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
