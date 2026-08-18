@@ -1,30 +1,65 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import SoldBy from "./SoldBy";
+import { fetchAttributes, Attribute } from "@/lib/supabaseAttributes";
 import type { Product } from "@/lib/supabaseProducts";
 
-const colors = ["#1e3a8a", "#f9a8d4", "#bbf7d0", "#374151"];
-
-export default function ProductInfo({ product }: { product: Product }) {
+export default function ProductInfo({
+  product,
+  onImageChange,
+}: {
+  product: Product;
+  onImageChange?: (url: string | undefined) => void;
+}) {
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { format } = useCurrency();
   const router = useRouter();
   const [qty, setQty] = useState(1);
-  const [color, setColor] = useState(0);
   const wishlisted = isWishlisted(product.id);
 
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [selected, setSelected] = useState<Record<string, Attribute>>({});
+
+  useEffect(() => {
+    fetchAttributes(product.id).then((r) => setAttributes(r.data || []));
+  }, [product.id]);
+
+  useEffect(() => {
+    const withImage = Object.values(selected).find((a) => a.image_url);
+    if (onImageChange) onImageChange(withImage?.image_url || undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
+
+  const grouped: Record<string, Attribute[]> = {};
+  attributes.forEach((attr) => {
+    if (!grouped[attr.name]) grouped[attr.name] = [];
+    grouped[attr.name].push(attr);
+  });
+
+  const priceAdjustment = Object.values(selected).reduce((sum, a) => sum + a.price_modifier, 0);
+  const finalPrice = product.price + priceAdjustment;
+
+  const selectAttribute = (attr: Attribute) => {
+    setSelected((prev) => ({ ...prev, [attr.name]: attr }));
+  };
+
+  const buildCartName = () => {
+    const variantParts = Object.values(selected).map((a) => a.value);
+    return variantParts.length > 0 ? product.name + " (" + variantParts.join(", ") + ")" : product.name;
+  };
+
   const handleAddToCart = () => {
-    addToCart({ id: product.id, name: product.name, price: product.price }, qty);
+    addToCart({ id: product.id, name: buildCartName(), price: finalPrice }, qty);
   };
 
   const handleBuyNow = () => {
-    addToCart({ id: product.id, name: product.name, price: product.price }, qty);
+    addToCart({ id: product.id, name: buildCartName(), price: finalPrice }, qty);
     router.push("/checkout");
   };
 
@@ -56,7 +91,7 @@ export default function ProductInfo({ product }: { product: Product }) {
       </div>
 
       <div className="flex items-center gap-3 mb-1">
-        <span className="text-2xl font-bold text-black dark:text-white">{format(product.price)}</span>
+        <span className="text-2xl font-bold text-black dark:text-white">{format(finalPrice)}</span>
         {product.oldPrice && (
           <span className="text-gray-400 line-through">{format(product.oldPrice)}</span>
         )}
@@ -65,21 +100,35 @@ export default function ProductInfo({ product }: { product: Product }) {
         <p className="text-xs text-red-500 mb-5">Save {product.discountPercent}% for a limited time</p>
       )}
 
-      <p className="text-sm font-semibold mb-2 text-black dark:text-white">Pick a Color</p>
-      <div className="flex gap-3 mb-5">
-        {colors.map((c, i) => (
-          <button
-            key={c}
-            onClick={() => setColor(i)}
-            style={{ backgroundColor: c }}
-            className={
-              i === color
-                ? "w-7 h-7 rounded-full border-2 border-brand"
-                : "w-7 h-7 rounded-full border border-gray-300 dark:border-gray-600"
-            }
-          />
-        ))}
-      </div>
+      {Object.entries(grouped).map(([attrName, options]) => (
+        <div key={attrName} className="mb-5">
+          <p className="text-sm font-semibold mb-2 text-black dark:text-white">Pick a {attrName}</p>
+          <div className="flex flex-wrap gap-2">
+            {options.map((opt) => {
+              const isSelected = selected[attrName]?.id === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => selectAttribute(opt)}
+                  className={
+                    isSelected
+                      ? "flex items-center gap-2 border-2 border-brand rounded-md px-3 py-1.5 text-sm text-black dark:text-white"
+                      : "flex items-center gap-2 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1.5 text-sm text-black dark:text-white"
+                  }
+                >
+                  {opt.image_url && <img src={opt.image_url} alt={opt.value} className="w-5 h-5 rounded object-cover" />}
+                  {opt.value}
+                  {opt.price_modifier !== 0 && (
+                    <span className="text-xs text-gray-400">
+                      {opt.price_modifier > 0 ? "+" : ""}{opt.price_modifier}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
 
       <div className="flex items-center gap-4 mb-6">
         <div className="flex items-center border border-gray-300 dark:border-gray-700 rounded-md">
