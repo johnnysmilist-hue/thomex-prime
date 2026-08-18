@@ -162,6 +162,7 @@ function VendorProducts({ storeId }: { storeId: string }) {
                 <p className="text-sm font-medium text-black dark:text-white truncate">{p.name}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{p.category} • KSh {p.price.toFixed(2)} • Stock: {p.stock}</p>
               </div>
+                            <a href={"/vendor/products/" + p.id + "/edit"} className="text-brand text-xs font-semibold shrink-0">Edit</a>
               <button onClick={() => handleDelete(p.id)} className="text-red-500 text-xs font-semibold shrink-0">Delete</button>
             </div>
           ))}
