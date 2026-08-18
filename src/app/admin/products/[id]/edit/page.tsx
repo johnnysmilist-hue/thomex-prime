@@ -9,6 +9,7 @@ import AdminSidebar from "@/components/AdminSidebar";
 import { supabase } from "@/lib/supabaseClient";
 import { updateProduct, uploadProductImage, DbProduct } from "@/lib/supabaseProducts";
 import { fetchAttributes, addAttribute, deleteAttribute, Attribute } from "@/lib/supabaseAttributes";
+import { fetchProductImages, addProductImage, deleteProductImage, ProductImage } from "@/lib/supabaseProductImages";
 import { categories } from "@/lib/categories";
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
@@ -39,6 +40,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [attrImageUrl, setAttrImageUrl] = useState("");
   const [attrUploading, setAttrUploading] = useState(false);
 
+  const [gallery, setGallery] = useState<ProductImage[]>([]);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase.from("products").select("*").eq("id", params.id).single();
@@ -59,6 +63,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       }
       const { data: attrs } = await fetchAttributes(params.id);
       setAttributes(attrs || []);
+      const { data: images } = await fetchProductImages(params.id);
+      setGallery(images || []);
       setLoading(false);
     };
     load();
@@ -75,6 +81,24 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       return;
     }
     setImageUrl(url);
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setGalleryUploading(true);
+    const { url } = await uploadProductImage(file);
+    if (url) {
+      const nextOrder = gallery.length;
+      const { data } = await addProductImage(params.id, url, nextOrder);
+      if (data) setGallery((prev) => [...prev, data]);
+    }
+    setGalleryUploading(false);
+  };
+
+  const handleDeleteGalleryImage = async (id: string) => {
+    await deleteProductImage(id);
+    setGallery((prev) => prev.filter((img) => img.id !== id));
   };
 
   const handleAttrImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,6 +213,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               <textarea placeholder="Description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm resize-none" />
 
               <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Main Image</label>
                 <input type="file" accept="image/*" onChange={handleFileChange} className="text-sm text-black dark:text-white mb-2" />
                 {uploading && <p className="text-xs text-gray-400">Uploading...</p>}
                 {imageUrl && <img src={imageUrl} alt="Product" className="w-24 h-24 object-cover rounded-md border border-gray-200 dark:border-gray-800" />}
@@ -216,6 +241,32 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 {saving ? "Saving..." : "Save Changes"}
               </button>
             </form>
+
+            <div className="border-t border-gray-200 dark:border-gray-800 pt-8 mb-10">
+              <h2 className="text-lg font-bold mb-2 text-black dark:text-white">Photo Gallery</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                Add extra photos (different angles, in-box contents, etc.) shown as thumbnails on the product page.
+              </p>
+
+              {gallery.length > 0 && (
+                <div className="grid grid-cols-4 gap-3 mb-4">
+                  {gallery.map((img) => (
+                    <div key={img.id} className="relative">
+                      <img src={img.image_url} alt="Gallery" className="w-full h-20 object-cover rounded-md border border-gray-200 dark:border-gray-800" />
+                      <button
+                        onClick={() => handleDeleteGalleryImage(img.id)}
+                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <input type="file" accept="image/*" onChange={handleGalleryUpload} className="text-sm text-black dark:text-white" />
+              {galleryUploading && <p className="text-xs text-gray-400 mt-1">Uploading...</p>}
+            </div>
 
             <div className="border-t border-gray-200 dark:border-gray-800 pt-8">
               <h2 className="text-lg font-bold mb-4 text-black dark:text-white">Attributes / Variants</h2>
