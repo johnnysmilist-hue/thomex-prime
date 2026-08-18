@@ -14,6 +14,7 @@ import { useRecentlyViewed } from "@/context/RecentlyViewedContext";
 export default function ProductPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [variantImage, setVariantImage] = useState<string | undefined>(undefined);
   const { addViewed } = useRecentlyViewed();
 
   useEffect(() => {
@@ -63,9 +64,9 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           Home &gt; Shop &gt; {product.category} &gt; {product.name}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <ProductGallery imageUrl={product.imageUrl} />
+          <ProductGallery imageUrl={product.imageUrl} overrideUrl={variantImage} />
           <div>
-            <ProductInfo product={product} />
+            <ProductInfo product={product} onImageChange={setVariantImage} />
             <TrustBadges />
           </div>
         </div>
