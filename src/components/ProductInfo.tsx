@@ -7,6 +7,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import SoldBy from "./SoldBy";
 import { fetchAttributes, Attribute } from "@/lib/supabaseAttributes";
+import { getColorHex } from "@/lib/colorMap";
 import type { Product } from "@/lib/supabaseProducts";
 
 export default function ProductInfo({
@@ -100,35 +101,68 @@ export default function ProductInfo({
         <p className="text-xs text-red-500 mb-5">Save {product.discountPercent}% for a limited time</p>
       )}
 
-      {Object.entries(grouped).map(([attrName, options]) => (
-        <div key={attrName} className="mb-5">
-          <p className="text-sm font-semibold mb-2 text-black dark:text-white">Pick a {attrName}</p>
-          <div className="flex flex-wrap gap-2">
-            {options.map((opt) => {
-              const isSelected = selected[attrName]?.id === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  onClick={() => selectAttribute(opt)}
-                  className={
-                    isSelected
-                      ? "flex items-center gap-2 border-2 border-brand rounded-md px-3 py-1.5 text-sm text-black dark:text-white"
-                      : "flex items-center gap-2 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1.5 text-sm text-black dark:text-white"
-                  }
-                >
-                  {opt.image_url && <img src={opt.image_url} alt={opt.value} className="w-5 h-5 rounded object-cover" />}
-                  {opt.value}
-                  {opt.price_modifier !== 0 && (
-                    <span className="text-xs text-gray-400">
-                      {opt.price_modifier > 0 ? "+" : ""}{opt.price_modifier}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+      {Object.entries(grouped).map(([attrName, options]) => {
+        const isColorGroup = attrName.trim().toLowerCase() === "color";
+
+        return (
+          <div key={attrName} className="mb-5">
+            <p className="text-sm font-semibold mb-2 text-black dark:text-white">
+              {attrName}
+              {selected[attrName] && <span className="font-normal text-gray-500 dark:text-gray-400">: {selected[attrName].value}</span>}
+            </p>
+
+            {isColorGroup ? (
+              <div className="flex flex-wrap gap-3">
+                {options.map((opt) => {
+                  const isSelected = selected[attrName]?.id === opt.id;
+                  const hex = getColorHex(opt.value);
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => selectAttribute(opt)}
+                      title={opt.value}
+                      aria-label={opt.value}
+                      style={hex ? { backgroundColor: hex } : undefined}
+                      className={
+                        (isSelected
+                          ? "w-8 h-8 rounded-full border-2 border-brand ring-2 ring-offset-2 ring-brand dark:ring-offset-gray-950"
+                          : "w-8 h-8 rounded-full border border-gray-300 dark:border-gray-600") +
+                        (!hex ? " bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[9px] text-gray-500" : "")
+                      }
+                    >
+                      {!hex && opt.value.charAt(0).toUpperCase()}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {options.map((opt) => {
+                  const isSelected = selected[attrName]?.id === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => selectAttribute(opt)}
+                      className={
+                        isSelected
+                          ? "flex items-center gap-2 border-2 border-brand rounded-md px-3 py-1.5 text-sm text-black dark:text-white"
+                          : "flex items-center gap-2 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1.5 text-sm text-black dark:text-white"
+                      }
+                    >
+                      {opt.value}
+                      {opt.price_modifier !== 0 && (
+                        <span className="text-xs text-gray-400">
+                          {opt.price_modifier > 0 ? "+" : ""}{opt.price_modifier}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <div className="flex items-center gap-4 mb-6">
         <div className="flex items-center border border-gray-300 dark:border-gray-700 rounded-md">
