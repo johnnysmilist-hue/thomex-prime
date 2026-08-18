@@ -10,7 +10,8 @@ export async function POST(request: Request) {
 
     const resend = new Resend(process.env.RESEND_API_KEY);
     const body = await request.json();
-    const { to, orderCode, customerName, items, total, address, phone } = body;
+       const { to, orderCode, customerName, items, total, address, phone } = body;
+    console.log("Received 'to' value:", JSON.stringify(to));
 
     if (!to || !orderCode) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
