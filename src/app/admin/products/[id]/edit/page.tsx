@@ -10,6 +10,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { updateProduct, uploadProductImage, DbProduct } from "@/lib/supabaseProducts";
 import { fetchAttributes, addAttribute, deleteAttribute, Attribute } from "@/lib/supabaseAttributes";
 import { fetchProductImages, addProductImage, deleteProductImage, ProductImage } from "@/lib/supabaseProductImages";
+import { fetchProductFeatures, addProductFeature, deleteProductFeature, ProductFeature } from "@/lib/supabaseFeatures";
+import { featureIconOptions, FeatureIcon } from "@/lib/featureIcons";
 import { categories } from "@/lib/categories";
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
@@ -43,6 +45,11 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [gallery, setGallery] = useState<ProductImage[]>([]);
   const [galleryUploading, setGalleryUploading] = useState(false);
 
+  const [features, setFeatures] = useState<ProductFeature[]>([]);
+  const [featIcon, setFeatIcon] = useState(featureIconOptions[0]);
+  const [featTitle, setFeatTitle] = useState("");
+  const [featDescription, setFeatDescription] = useState("");
+
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase.from("products").select("*").eq("id", params.id).single();
@@ -65,6 +72,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       setAttributes(attrs || []);
       const { data: images } = await fetchProductImages(params.id);
       setGallery(images || []);
+      const { data: feats } = await fetchProductFeatures(params.id);
+      setFeatures(feats || []);
       setLoading(false);
     };
     load();
@@ -108,6 +117,28 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     const { url } = await uploadProductImage(file);
     setAttrUploading(false);
     if (url) setAttrImageUrl(url);
+  };
+
+  const handleAddFeature = async () => {
+    if (!featTitle.trim()) return;
+    const { data } = await addProductFeature({
+      product_id: params.id,
+      icon: featIcon,
+      title: featTitle,
+      description: featDescription,
+      sort_order: features.length,
+    });
+    if (data) {
+      setFeatures((prev) => [...prev, data]);
+      setFeatTitle("");
+      setFeatDescription("");
+      setFeatIcon(featureIconOptions[0]);
+    }
+  };
+
+  const handleDeleteFeature = async (id: string) => {
+    await deleteProductFeature(id);
+    setFeatures((prev) => prev.filter((f) => f.id !== id));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -266,6 +297,54 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
               <input type="file" accept="image/*" onChange={handleGalleryUpload} className="text-sm text-black dark:text-white" />
               {galleryUploading && <p className="text-xs text-gray-400 mt-1">Uploading...</p>}
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-800 pt-8 mb-10">
+              <h2 className="text-lg font-bold mb-2 text-black dark:text-white">Why This Product?</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                Add short feature highlights shown in a "Why [Product]?" section, like "Premium Sound" or "Lightweight Design."
+              </p>
+
+              {features.length > 0 && (
+                <div className="space-y-2 mb-5">
+                  {features.map((f) => (
+                    <div key={f.id} className="flex items-center justify-between border border-gray-200 dark:border-gray-800 rounded-md px-4 py-2 text-sm gap-3">
+                      <div className="flex items-center gap-3 min-w-0 text-black dark:text-white">
+                        <FeatureIcon name={f.icon} />
+                        <div className="min-w-0">
+                          <p className="font-semibold truncate">{f.title}</p>
+                          {f.description && <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{f.description}</p>}
+                        </div>
+                      </div>
+                      <button onClick={() => handleDeleteFeature(f.id)} className="text-red-500 text-xs font-semibold shrink-0">
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2 mb-2">
+                {featureIconOptions.map((icon) => (
+                  <button
+                    key={icon}
+                    type="button"
+                    onClick={() => setFeatIcon(icon)}
+                    className={
+                      icon === featIcon
+                        ? "w-9 h-9 rounded-md border-2 border-brand flex items-center justify-center text-brand"
+                        : "w-9 h-9 rounded-md border border-gray-300 dark:border-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400"
+                    }
+                  >
+                    <FeatureIcon name={icon} size={16} />
+                  </button>
+                ))}
+              </div>
+              <input placeholder="Title (e.g. Premium Sound)" value={featTitle} onChange={(e) => setFeatTitle(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm mb-2" />
+              <input placeholder="Short description" value={featDescription} onChange={(e) => setFeatDescription(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm mb-3" />
+              <button onClick={handleAddFeature} className="border border-brand text-brand px-4 py-2 rounded-md text-sm font-semibold">
+                + Add Feature
+              </button>
             </div>
 
             <div className="border-t border-gray-200 dark:border-gray-800 pt-8">
