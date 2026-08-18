@@ -64,7 +64,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           Home &gt; Shop &gt; {product.category} &gt; {product.name}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <ProductGallery imageUrl={product.imageUrl} overrideUrl={variantImage} />
+                    <ProductGallery productId={product.id} imageUrl={product.imageUrl} overrideUrl={variantImage} />
           <div>
             <ProductInfo product={product} onImageChange={setVariantImage} />
             <TrustBadges />
