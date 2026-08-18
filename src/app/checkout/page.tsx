@@ -196,7 +196,7 @@ export default function CheckoutPage() {
                 disabled={loading}
                 className="w-full bg-green-600 text-white py-3 rounded-md font-semibold hover:bg-green-700 transition-colors disabled:opacity-60"
               >
-                {loading ? "Placing order..." : "Place Order via WhatsApp"}
+                                {loading ? "Placing order..." : "Place Order"}
               </button>
             </form>
 
