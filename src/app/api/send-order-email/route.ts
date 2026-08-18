@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
+    if (!process.env.RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is missing from environment");
+      return NextResponse.json({ error: "Missing API key" }, { status: 500 });
+    }
+
     const resend = new Resend(process.env.RESEND_API_KEY);
     const body = await request.json();
     const { to, orderCode, customerName, items, total, address, phone } = body;
@@ -28,7 +33,7 @@ export async function POST(request: Request) {
       "<p style='color:#555;font-size:13px;'>Track your order anytime using code <strong>" + orderCode + "</strong> at our website.</p>" +
       "</div>";
 
-    const { error } = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: "Thomex <onboarding@resend.dev>",
       to,
       subject: "Your Thomex Order " + orderCode,
@@ -36,11 +41,14 @@ export async function POST(request: Request) {
     });
 
     if (error) {
+      console.error("Resend error:", JSON.stringify(error));
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    console.log("Email sent successfully:", JSON.stringify(data));
     return NextResponse.json({ success: true });
   } catch (err) {
+    console.error("Unexpected error in send-order-email:", err instanceof Error ? err.message : String(err));
     return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
   }
 }
