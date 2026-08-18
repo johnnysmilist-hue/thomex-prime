@@ -11,6 +11,8 @@ import { uploadProductImage } from "@/lib/supabaseProducts";
 const slotLabels: Record<string, string> = {
   hero_side_1: "Side Tile 1",
   hero_side_2: "Side Tile 2",
+  hero_bottom_1: "Bottom Tile 1",
+  hero_bottom_2: "Bottom Tile 2",
 };
 
 export default function AdminBannersPage() {
@@ -90,6 +92,7 @@ export default function AdminBannersPage() {
 
   const slides = banners.filter((b) => b.slot === "hero_slide");
   const sideTiles = banners.filter((b) => b.slot === "hero_side_1" || b.slot === "hero_side_2");
+  const bottomTiles = banners.filter((b) => b.slot === "hero_bottom_1" || b.slot === "hero_bottom_2");
 
   const renderBannerFields = (banner: Banner, showOrder: boolean) => (
     <div className="space-y-3">
@@ -152,7 +155,7 @@ export default function AdminBannersPage() {
           <div className="flex-1 max-w-2xl">
             <h1 className="text-xl font-bold mb-2 text-black dark:text-white">Homepage Banners</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-              Manage the rotating slideshow and the two side tiles on your homepage.
+              Manage the rotating slideshow, side tiles, and bottom tiles on your homepage.
             </p>
 
             {loading ? (
@@ -175,8 +178,18 @@ export default function AdminBannersPage() {
                 </div>
 
                 <h2 className="text-sm font-bold text-black dark:text-white mb-4">Side Tiles</h2>
-                <div className="space-y-6">
+                <div className="space-y-6 mb-10">
                   {sideTiles.map((tile) => (
+                    <div key={tile.id} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5">
+                      <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-4">{slotLabels[tile.slot] || tile.slot}</p>
+                      {renderBannerFields(tile, false)}
+                    </div>
+                  ))}
+                </div>
+
+                <h2 className="text-sm font-bold text-black dark:text-white mb-4">Bottom Tiles</h2>
+                <div className="space-y-6">
+                  {bottomTiles.map((tile) => (
                     <div key={tile.id} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5">
                       <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-4">{slotLabels[tile.slot] || tile.slot}</p>
                       {renderBannerFields(tile, false)}
