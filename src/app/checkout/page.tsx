@@ -13,18 +13,19 @@ export default function CheckoutPage() {
   const { user } = useAuth();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [orderCode, setOrderCode] = useState("");
   const [error, setError] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("254781102057");
+  const [adminEmail, setAdminEmail] = useState("");
 
   useEffect(() => {
     fetchSettings().then((r) => {
-      if (r.data?.whatsapp_number) {
-        setWhatsappNumber(r.data.whatsapp_number);
-      }
+      if (r.data?.whatsapp_number) setWhatsappNumber(r.data.whatsapp_number);
+      if (r.data?.support_email) setAdminEmail(r.data.support_email);
     });
   }, []);
 
@@ -50,6 +51,29 @@ export default function CheckoutPage() {
     return msg;
   };
 
+  const sendOrderEmail = async (code: string) => {
+    const recipients = [adminEmail, email].filter(Boolean);
+    if (recipients.length === 0) return;
+
+    try {
+      await fetch("/api/send-order-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: recipients,
+          orderCode: code,
+          customerName: name,
+          items,
+          total: totalPrice,
+          address,
+          phone,
+        }),
+      });
+    } catch {
+      // Non-fatal — order already saved, email is a bonus notification
+    }
+  };
+
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -68,13 +92,15 @@ export default function CheckoutPage() {
       user_id: user ? user.id : null,
     });
 
-    setLoading(false);
-
     if (dbError) {
+      setLoading(false);
       setError("Something went wrong saving your order. Please try again.");
       return;
     }
 
+    await sendOrderEmail(code);
+
+    setLoading(false);
     setOrderCode(code);
     clearCart();
 
@@ -133,6 +159,13 @@ export default function CheckoutPage() {
                 placeholder="Phone number (for delivery & M-Pesa)"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm focus:outline-none focus:border-brand"
+              />
+              <input
+                type="email"
+                placeholder="Email (optional, for order confirmation)"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm focus:outline-none focus:border-brand"
               />
               <textarea
