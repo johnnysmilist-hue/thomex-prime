@@ -4,6 +4,10 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { fetchReviews, fetchUserReview, upsertReview, deleteReview, fetchVerifiedUserIds, Review } from "@/lib/supabaseReviews";
 
+function initials(name: string) {
+  return name.trim().charAt(0).toUpperCase();
+}
+
 export default function ProductReviews({ productId }: { productId: string }) {
   const { user } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -122,24 +126,27 @@ export default function ProductReviews({ productId }: { productId: string }) {
       ) : reviews.length === 0 ? (
         <p className="text-sm text-gray-500 dark:text-gray-400">No reviews yet — be the first!</p>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {reviews.map((review) => (
-            <div key={review.id} className="border-b border-gray-100 dark:border-gray-800 pb-4">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-black dark:text-white">{review.username}</p>
-                  {verifiedIds.has(review.user_id) && (
-                    <span className="flex items-center gap-1 text-[10px] font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/40 px-2 py-0.5 rounded-full">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 6 9 17l-5-5" />
-                      </svg>
-                      Verified Purchase
-                    </span>
-                  )}
+            <div key={review.id} className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center text-xs font-bold shrink-0">
+                  {initials(review.username)}
                 </div>
-                <span className="text-yellow-500 text-xs">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
+                <div className="flex items-center gap-1 text-yellow-500 text-xs">
+                  {"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}
+                  <span className="text-gray-400 ml-1">{review.rating}</span>
+                </div>
               </div>
-              {review.comment && <p className="text-sm text-gray-600 dark:text-gray-300">{review.comment}</p>}
+              {verifiedIds.has(review.user_id) && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/40 px-2 py-0.5 rounded-full mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Verified
+                </span>
+              )}
+              {review.comment && <p className="text-sm font-medium text-black dark:text-white">{review.comment}</p>}
             </div>
           ))}
         </div>
