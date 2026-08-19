@@ -9,6 +9,7 @@ import TrustBadges from "@/components/TrustBadges";
 import ProductTabs from "@/components/ProductTabs";
 import RelatedProducts from "@/components/RelatedProducts";
 import WhyThisProduct from "@/components/WhyThisProduct";
+import ProductFaqAccordion from "@/components/ProductFaqAccordion";
 import { fetchProductById, Product } from "@/lib/supabaseProducts";
 import { useRecentlyViewed } from "@/context/RecentlyViewedContext";
 
@@ -65,14 +66,14 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           Home &gt; Shop &gt; {product.category} &gt; {product.name}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <ProductGallery productId={product.id} imageUrl={product.imageUrl} overrideUrl={variantImage} />
+          <ProductGallery productId={product.id} imageUrl={product.imageUrl} overrideUrl={variantImage} />
           <div>
             <ProductInfo product={product} onImageChange={setVariantImage} />
             <TrustBadges />
           </div>
         </div>
-                <WhyThisProduct productId={product.id} productName={product.name} />
-                <ProductTabs productId={product.id} description={product.description} />
+        <WhyThisProduct productId={product.id} productName={product.name} />
+        <ProductTabs productId={product.id} description={product.description} />
         <ProductFaqAccordion productId={product.id} />
         <RelatedProducts currentId={product.id} category={product.category} />
       </div>
