@@ -11,6 +11,7 @@ import { updateProduct, uploadProductImage, DbProduct } from "@/lib/supabaseProd
 import { fetchAttributes, addAttribute, deleteAttribute, Attribute } from "@/lib/supabaseAttributes";
 import { fetchProductImages, addProductImage, deleteProductImage, ProductImage } from "@/lib/supabaseProductImages";
 import { fetchProductFeatures, addProductFeature, deleteProductFeature, ProductFeature } from "@/lib/supabaseFeatures";
+import { fetchProductFaqs, addProductFaq, deleteProductFaq, ProductFaq } from "@/lib/supabaseFaqs";
 import { featureIconOptions, FeatureIcon } from "@/lib/featureIcons";
 import { categories } from "@/lib/categories";
 
@@ -50,6 +51,10 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [featTitle, setFeatTitle] = useState("");
   const [featDescription, setFeatDescription] = useState("");
 
+  const [faqs, setFaqs] = useState<ProductFaq[]>([]);
+  const [faqQuestion, setFaqQuestion] = useState("");
+  const [faqAnswer, setFaqAnswer] = useState("");
+
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase.from("products").select("*").eq("id", params.id).single();
@@ -74,6 +79,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       setGallery(images || []);
       const { data: feats } = await fetchProductFeatures(params.id);
       setFeatures(feats || []);
+      const { data: faqData } = await fetchProductFaqs(params.id);
+      setFaqs(faqData || []);
       setLoading(false);
     };
     load();
@@ -139,6 +146,26 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const handleDeleteFeature = async (id: string) => {
     await deleteProductFeature(id);
     setFeatures((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  const handleAddFaq = async () => {
+    if (!faqQuestion.trim() || !faqAnswer.trim()) return;
+    const { data } = await addProductFaq({
+      product_id: params.id,
+      question: faqQuestion,
+      answer: faqAnswer,
+      sort_order: faqs.length,
+    });
+    if (data) {
+      setFaqs((prev) => [...prev, data]);
+      setFaqQuestion("");
+      setFaqAnswer("");
+    }
+  };
+
+  const handleDeleteFaq = async (id: string) => {
+    await deleteProductFaq(id);
+    setFaqs((prev) => prev.filter((f) => f.id !== id));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -344,6 +371,35 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               <input placeholder="Short description" value={featDescription} onChange={(e) => setFeatDescription(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm mb-3" />
               <button onClick={handleAddFeature} className="border border-brand text-brand px-4 py-2 rounded-md text-sm font-semibold">
                 + Add Feature
+              </button>
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-800 pt-8 mb-10">
+              <h2 className="text-lg font-bold mb-2 text-black dark:text-white">Frequently Asked Questions</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                Add common questions and answers shown as an expandable FAQ on the product page.
+              </p>
+
+              {faqs.length > 0 && (
+                <div className="space-y-2 mb-5">
+                  {faqs.map((f) => (
+                    <div key={f.id} className="flex items-start justify-between border border-gray-200 dark:border-gray-800 rounded-md px-4 py-2 text-sm gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-black dark:text-white">{f.question}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{f.answer}</p>
+                      </div>
+                      <button onClick={() => handleDeleteFaq(f.id)} className="text-red-500 text-xs font-semibold shrink-0">
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <input placeholder="Question (e.g. Battery life?)" value={faqQuestion} onChange={(e) => setFaqQuestion(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm mb-2" />
+              <textarea placeholder="Answer" rows={2} value={faqAnswer} onChange={(e) => setFaqAnswer(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm resize-none mb-3" />
+              <button onClick={handleAddFaq} className="border border-brand text-brand px-4 py-2 rounded-md text-sm font-semibold">
+                + Add FAQ
               </button>
             </div>
 
