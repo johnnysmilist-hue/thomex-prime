@@ -72,7 +72,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           </div>
         </div>
                 <WhyThisProduct productId={product.id} productName={product.name} />
-        <ProductTabs productId={product.id} description={product.description} />
+                <ProductTabs productId={product.id} description={product.description} />
+        <ProductFaqAccordion productId={product.id} />
         <RelatedProducts currentId={product.id} category={product.category} />
       </div>
       <Footer />
