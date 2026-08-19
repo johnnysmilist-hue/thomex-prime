@@ -6,6 +6,7 @@ import { WishlistProvider } from "@/context/WishlistContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { CurrencyProvider } from "@/context/CurrencyContext";
 import { RecentlyViewedProvider } from "@/context/RecentlyViewedContext";
+import MobileNav from "@/components/MobileNav";
 
 export const metadata: Metadata = {
   title: "Thomex - Tech & Electronics Store",
@@ -19,13 +20,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-white text-black dark:bg-gray-950 dark:text-white transition-colors">
+      <body className="bg-white text-black dark:bg-gray-950 dark:text-white transition-colors pb-16 md:pb-0">
         <ThemeProvider>
           <AuthProvider>
             <CurrencyProvider>
               <CartProvider>
                 <WishlistProvider>
-                  <RecentlyViewedProvider>{children}</RecentlyViewedProvider>
+                  <RecentlyViewedProvider>
+                    {children}
+                    <MobileNav />
+                  </RecentlyViewedProvider>
                 </WishlistProvider>
               </CartProvider>
             </CurrencyProvider>
