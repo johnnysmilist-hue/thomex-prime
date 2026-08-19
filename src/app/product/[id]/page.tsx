@@ -8,6 +8,7 @@ import ProductInfo from "@/components/ProductInfo";
 import TrustBadges from "@/components/TrustBadges";
 import ProductTabs from "@/components/ProductTabs";
 import RelatedProducts from "@/components/RelatedProducts";
+import WhyThisProduct from "@/components/WhyThisProduct";
 import { fetchProductById, Product } from "@/lib/supabaseProducts";
 import { useRecentlyViewed } from "@/context/RecentlyViewedContext";
 
