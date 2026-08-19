@@ -71,6 +71,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             <TrustBadges />
           </div>
         </div>
+                <WhyThisProduct productId={product.id} productName={product.name} />
         <ProductTabs productId={product.id} description={product.description} />
         <RelatedProducts currentId={product.id} category={product.category} />
       </div>
