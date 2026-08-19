@@ -10,6 +10,7 @@ import RecentlyViewed from "@/components/RecentlyViewed";
 import ProductRow from "@/components/ProductRow";
 import DealOfTheDay from "@/components/DealOfTheDay";
 import PromoTiles from "@/components/PromoTiles";
+import BestSellerSection from "@/components/BestSellerSection";
 import BrandStrip from "@/components/BrandStrip";
 import Footer from "@/components/Footer";
 import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
@@ -77,6 +78,8 @@ export default function Home() {
           {byCategory("Laptops").length > 0 && <ProductRow title="Laptops" products={byCategory("Laptops")} />}
           {byCategory("Sounds").length > 0 && <ProductRow title="Audio & Headphones" products={byCategory("Sounds")} />}
           {byCategory("Cell Phones").length > 0 && <ProductRow title="Phones" products={byCategory("Cell Phones")} />}
+
+          <BestSellerSection products={products} />
         </>
       )}
 
