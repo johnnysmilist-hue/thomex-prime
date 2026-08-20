@@ -56,11 +56,20 @@ export default function MobileNav() {
         <span className="text-[10px] font-medium">Cart</span>
       </Link>
 
-      <Link href={user ? "/account" : "/signin"} className={isActive("/account") || isActive("/signin") ? "flex flex-col items-center gap-0.5 text-brand" : "flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400"}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
+            <Link href={user ? "/account" : "/signin"} className={isActive("/account") || isActive("/signin") ? "flex flex-col items-center gap-0.5 text-brand" : "flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400"}>
+        <div className="relative">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          {user && (
+            <span className="absolute -bottom-0.5 -right-1 bg-brand text-white rounded-full w-3.5 h-3.5 flex items-center justify-center border-2 border-white dark:border-gray-950">
+              <svg xmlns="http://www.w3.org/2000/svg" width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+          )}
+        </div>
         <span className="text-[10px] font-medium">Account</span>
       </Link>
     </nav>
