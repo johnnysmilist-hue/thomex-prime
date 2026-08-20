@@ -24,7 +24,7 @@ export default function MobileNav() {
         <span className="text-[10px] font-medium">Home</span>
       </Link>
 
-      <Link href="/shop" className={isActive("/shop") ? "flex flex-col items-center gap-0.5 text-brand" : "flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400"}>
+      <Link href="/categories" className={isActive("/categories") ? "flex flex-col items-center gap-0.5 text-brand" : "flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400"}>
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="7" height="7" rx="1" />
           <rect x="14" y="3" width="7" height="7" rx="1" />
