@@ -69,10 +69,16 @@ export default function Header() {
 
   return (
     <header className="w-full border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 transition-colors">
-      {/* Mobile compact bar */}
+           {/* Mobile compact bar */}
       <div className="md:hidden px-4 py-3">
-        <div className="relative">
-          <form onSubmit={handleSearch} className="flex items-center bg-gray-100 dark:bg-gray-900 rounded-full px-4 py-2.5">
+        <div className="relative flex items-center gap-3">
+          <a href={mounted && user ? "/account" : "/signin"} className="shrink-0 w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-black dark:text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </a>
+          <form onSubmit={handleSearch} className="flex-1 flex items-center bg-gray-100 dark:bg-gray-900 rounded-full px-4 py-2.5">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 shrink-0 mr-2">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -89,10 +95,10 @@ export default function Header() {
               placeholder="Search on Thomex"
               className="w-full bg-transparent text-sm text-black dark:text-white focus:outline-none"
             />
-          </form>
+                    </form>
 
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 py-1">
+            <div className="absolute top-full left-12 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 py-1">
               {suggestions.map((p) => (
                 <button
                   key={p.id}
