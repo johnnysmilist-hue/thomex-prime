@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import ThemeToggle from "./ThemeToggle";
+import MobileMenu from "./MobileMenu";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
@@ -31,6 +32,7 @@ export default function Header() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [hotline, setHotline] = useState("+254 700 123 456");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const { totalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
@@ -69,7 +71,7 @@ export default function Header() {
 
   return (
     <header className="w-full border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 transition-colors">
-           {/* Mobile compact bar */}
+      {/* Mobile compact bar */}
       <div className="md:hidden px-4 py-3">
         <div className="relative flex items-center gap-3">
           <a href={mounted && user ? "/account" : "/signin"} className="shrink-0 w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-black dark:text-white">
@@ -95,10 +97,18 @@ export default function Header() {
               placeholder="Search on Thomex"
               className="w-full bg-transparent text-sm text-black dark:text-white focus:outline-none"
             />
-                    </form>
+          </form>
+
+          <button onClick={() => setMobileMenuOpen(true)} className="shrink-0 w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-black dark:text-white" aria-label="Open menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
 
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute top-full left-12 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 py-1">
+            <div className="absolute top-full left-12 right-12 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 py-1">
               {suggestions.map((p) => (
                 <button
                   key={p.id}
@@ -112,6 +122,8 @@ export default function Header() {
           )}
         </div>
       </div>
+
+      <MobileMenu open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
 
       {/* Desktop full header */}
       <div className="hidden md:block">
