@@ -15,7 +15,7 @@ const categories = [
 
 export default function Sidebar() {
   return (
-    <aside className="w-full md:w-56 shrink-0">
+       <aside className="hidden md:block md:w-56 shrink-0">
       <div className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-lg p-4">
         <ul className="text-sm divide-y divide-gray-100 dark:divide-gray-800">
           <li>
