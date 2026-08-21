@@ -33,12 +33,12 @@ export default function Hero() {
     <div className="flex-1 flex flex-col gap-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div
-          className="md:col-span-2 bg-gray-500 dark:bg-gray-800 text-white rounded-lg p-8 flex flex-col justify-center min-h-[280px] bg-cover bg-center relative overflow-hidden transition-all duration-500"
+          className="md:col-span-2 bg-gray-500 dark:bg-gray-800 text-white rounded-lg p-8 flex flex-col justify-center min-h-[220px] md:min-h-[280px] bg-cover bg-center relative overflow-hidden transition-all duration-500"
           style={active?.image_url ? { backgroundImage: "url(" + active.image_url + ")" } : {}}
         >
           {active ? (
             <>
-              <h1 className="text-3xl font-bold mb-2 leading-tight max-w-md">{active.title}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2 leading-tight max-w-md">{active.title}</h1>
               <p className="text-gray-200 text-sm mb-5 max-w-xs">{active.subtitle}</p>
               {active.button_text && (
                 <a href={active.button_link || "/shop"} className="inline-block w-fit bg-brand hover:bg-brand-light transition-colors text-white px-5 py-2 rounded-md text-sm font-semibold">
@@ -47,7 +47,7 @@ export default function Hero() {
               )}
             </>
           ) : (
-            <h1 className="text-3xl font-bold mb-2 leading-tight max-w-md">Next Gen Tech For Every Lifestyle</h1>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2 leading-tight max-w-md">Next Gen Tech For Every Lifestyle</h1>
           )}
 
           {slides.length > 1 && (
@@ -64,7 +64,7 @@ export default function Hero() {
           )}
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="hidden md:flex flex-col gap-4">
           <div
             className="bg-gray-100 dark:bg-gray-900 rounded-lg p-5 flex-1 flex flex-col justify-center bg-cover bg-center"
             style={side1?.image_url ? { backgroundImage: "url(" + side1.image_url + ")" } : {}}
@@ -87,7 +87,7 @@ export default function Hero() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div
           className="bg-gray-100 dark:bg-gray-900 rounded-lg p-5 min-h-[140px] bg-cover bg-center flex flex-col justify-center"
           style={bottom1?.image_url ? { backgroundImage: "url(" + bottom1.image_url + ")" } : {}}
