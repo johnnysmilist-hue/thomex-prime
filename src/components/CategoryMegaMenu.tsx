@@ -31,7 +31,7 @@ export default function CategoryMegaMenu() {
         <div className="absolute top-full left-0 mt-1 flex bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-xl z-50 overflow-hidden">
           <div className="w-56 border-r border-gray-100 dark:border-gray-800 py-2">
             {categories.map((cat) => (
-              
+              <a
                 key={cat.id}
                 href={"/shop?category=" + encodeURIComponent(cat.name)}
                 onMouseEnter={() => setActiveCat(cat.id)}
@@ -57,7 +57,7 @@ export default function CategoryMegaMenu() {
               <p className="text-sm text-gray-400 col-span-3">No subcategories yet.</p>
             ) : (
               activeSubs.map((sub) => (
-                
+                <a
                   key={sub.id}
                   href={
                     "/shop?category=" +
