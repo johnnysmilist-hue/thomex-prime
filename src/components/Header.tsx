@@ -5,29 +5,14 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import ThemeToggle from "./ThemeToggle";
 import MobileMenu from "./MobileMenu";
+import CategoryMegaMenu from "./CategoryMegaMenu";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
 import { products } from "@/lib/products";
 import { fetchSettings } from "@/lib/supabaseSettings";
 
-const categories = [
-  "Laptops",
-  "PC & Computers",
-  "Accessories",
-  "Gaming & VR",
-  "Networking",
-  "Office",
-  "Sounds",
-  "Cameras",
-  "Cell Phones",
-  "Tablets",
-  "Storage, USB",
-  "Clearance",
-];
-
 export default function Header() {
-  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -157,19 +142,7 @@ export default function Header() {
 
         <div className="bg-brand">
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap relative">
-            <button onClick={() => setOpen(!open)} className="bg-white text-brand-dark text-sm font-semibold px-4 py-2 rounded-md flex items-center gap-2 shrink-0">
-              All Categories ▾
-            </button>
-
-            {open && (
-              <div className="absolute top-full left-4 mt-1 w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 py-2">
-                {categories.map((cat) => (
-                  <a key={cat} href={"/shop?category=" + encodeURIComponent(cat)} onClick={() => setOpen(false)} className="block px-4 py-2 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">
-                    {cat}
-                  </a>
-                ))}
-              </div>
-            )}
+            <CategoryMegaMenu />
 
             <div className="flex-1 min-w-[200px] relative">
               <form onSubmit={handleSearch} className="flex">
