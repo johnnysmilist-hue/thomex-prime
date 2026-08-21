@@ -36,12 +36,7 @@ export default function MobileMenu({ open, onClose }: { open: boolean; onClose: 
 
         <nav className="flex-1 overflow-y-auto py-2">
           {links.map((link) => (
-            
-              key={link.name}
-              href={link.href}
-              onClick={onClose}
-              className="block px-4 py-3 text-sm text-black dark:text-white border-b border-gray-50 dark:border-gray-900"
-            >
+            <a key={link.name} href={link.href} onClick={onClose} className="block px-4 py-3 text-sm text-black dark:text-white border-b border-gray-50 dark:border-gray-900">
               {link.name}
             </a>
           ))}
