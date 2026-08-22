@@ -214,6 +214,7 @@ export default function Header() {
               <a href="/signin">Log In / Sign Up</a>
             )}
             <a href="/cart" className="flex items-center gap-2">
+              <span className="text-gray-500 dark:text-gray-400">{menuIcon("cart")}</span>
               <span className="bg-brand text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{totalItems}</span>
               <span>Cart</span>
             </a>
