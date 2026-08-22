@@ -14,13 +14,18 @@ type Product = {
   reviewCount: number;
   discountPercent?: number;
   imageUrl?: string;
+  stock?: number;
 };
+
+const LOW_STOCK_THRESHOLD = 5;
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { format } = useCurrency();
   const wishlisted = isWishlisted(product.id);
+  const outOfStock = product.stock !== undefined && product.stock <= 0;
+  const lowStock = product.stock !== undefined && product.stock > 0 && product.stock <= LOW_STOCK_THRESHOLD;
 
   return (
    <div className="border border-transparent bg-white dark:bg-gray-900 rounded-lg p-4 hover:shadow-md transition-shadow relative">
@@ -57,12 +62,19 @@ export default function ProductCard({ product }: { product: Product }) {
         {"☆".repeat(5 - Math.round(product.rating))}
         <span className="text-gray-400 ml-1">({product.reviewCount})</span>
       </div>
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-1">
         <span className="text-brand font-bold">{format(product.price)}</span>
         {product.oldPrice && (
           <span className="text-gray-400 text-xs line-through">{format(product.oldPrice)}</span>
         )}
       </div>
+      {outOfStock ? (
+        <p className="text-[10px] text-red-500 font-bold mb-2">Out of Stock</p>
+      ) : lowStock ? (
+        <p className="text-[10px] text-orange-500 font-bold mb-2">Only {product.stock} left in stock!</p>
+      ) : (
+        <div className="mb-2" />
+      )}
       <div className="flex items-center gap-1 text-[10px] text-green-600 dark:text-green-400 font-medium mb-3">
         <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 6 9 17l-5-5" />
@@ -73,9 +85,10 @@ export default function ProductCard({ product }: { product: Product }) {
         onClick={() =>
           addToCart({ id: product.id, name: product.name, price: product.price })
         }
-        className="w-full bg-black dark:bg-brand text-white text-sm py-2 rounded-full hover:bg-brand transition-colors"
+        disabled={outOfStock}
+        className="w-full bg-black dark:bg-brand text-white text-sm py-2 rounded-full hover:bg-brand transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:hover:bg-gray-300 dark:disabled:hover:bg-gray-700"
       >
-        Add to Cart
+        {outOfStock ? "Out of Stock" : "Add to Cart"}
       </button>
     </div>
   );
