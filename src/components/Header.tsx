@@ -20,8 +20,9 @@ export default function Header() {
   const router = useRouter();
   const { totalItems } = useCart();
   const { items: wishlistItems } = useWishlist();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { theme } = useTheme();
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -52,6 +53,22 @@ export default function Header() {
 
   const logoSrc = mounted && theme === "dark" ? "/logo-dark.png" : "/logo-light.png";
   const username = user?.user_metadata?.username;
+
+  const handleSignOut = async () => {
+    setAccountMenuOpen(false);
+    await signOut();
+    router.push("/");
+  };
+
+  const menuIcon = (name: string) => {
+    const common = { xmlns: "http://www.w3.org/2000/svg", width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+    if (name === "account") return <svg {...common}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
+    if (name === "orders") return <svg {...common}><path d="M20 7h-3a2 2 0 0 1-2-2V2" /><path d="M9 22h9a2 2 0 0 0 2-2V7l-5-5H9a2 2 0 0 0-2 2v3" /><path d="M3 12h6" /><path d="M3 16h6" /><path d="M3 8h2" /></svg>;
+    if (name === "wishlist") return <svg {...common}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>;
+    if (name === "cart") return <svg {...common}><circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" /><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" /></svg>;
+    if (name === "logout") return <svg {...common}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>;
+    return null;
+  };
 
   return (
     <header className="w-full border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 transition-colors">
@@ -120,7 +137,46 @@ export default function Header() {
               <span className="hidden lg:inline">Hotline: {hotline}</span>
               <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
               {mounted && user ? (
-                <a href="/account">{username || user.email}</a>
+                <div
+                  className="relative"
+                  onMouseEnter={() => setAccountMenuOpen(true)}
+                  onMouseLeave={() => setAccountMenuOpen(false)}
+                >
+                  <button className="flex items-center gap-1.5">
+                    <span className="text-gray-500 dark:text-gray-400">{menuIcon("account")}</span>
+                    Hi, {username || user.email?.split("@")[0]}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+
+                  {accountMenuOpen && (
+                    <div className="absolute right-0 top-full w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 py-2">
+                      <a href="/account" className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <span className="text-gray-500 dark:text-gray-400">{menuIcon("account")}</span>
+                        My Account
+                      </a>
+                      <a href="/account/orders" className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <span className="text-gray-500 dark:text-gray-400">{menuIcon("orders")}</span>
+                        Orders
+                      </a>
+                      <a href="/wishlist" className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <span className="text-gray-500 dark:text-gray-400">{menuIcon("wishlist")}</span>
+                        Wishlist
+                      </a>
+                      <a href="/cart" className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <span className="text-gray-500 dark:text-gray-400">{menuIcon("cart")}</span>
+                        Cart
+                      </a>
+                      <div className="border-t border-gray-100 dark:border-gray-800 mt-2 pt-2">
+                        <button onClick={handleSignOut} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-gray-800 w-full text-left">
+                          <span>{menuIcon("logout")}</span>
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <a href="/signin">Log In / Sign Up</a>
               )}
