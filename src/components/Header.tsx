@@ -137,12 +137,11 @@ export default function Header() {
               <span className="hidden lg:inline">Hotline: {hotline}</span>
               <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
               {mounted && user ? (
-                <div
-                  className="relative"
-                  onMouseEnter={() => setAccountMenuOpen(true)}
-                  onMouseLeave={() => setAccountMenuOpen(false)}
-                >
-                  <button className="flex items-center gap-1.5">
+                <div className="relative">
+                  <button
+                    onClick={() => setAccountMenuOpen((prev) => !prev)}
+                    className="flex items-center gap-1.5"
+                  >
                     <span className="text-gray-500 dark:text-gray-400">{menuIcon("account")}</span>
                     Hi, {username || user.email?.split("@")[0]}
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -151,30 +150,33 @@ export default function Header() {
                   </button>
 
                   {accountMenuOpen && (
-                    <div className="absolute right-0 top-full w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 py-2">
-                      <a href="/account" className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <span className="text-gray-500 dark:text-gray-400">{menuIcon("account")}</span>
-                        My Account
-                      </a>
-                      <a href="/account/orders" className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <span className="text-gray-500 dark:text-gray-400">{menuIcon("orders")}</span>
-                        Orders
-                      </a>
-                      <a href="/wishlist" className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <span className="text-gray-500 dark:text-gray-400">{menuIcon("wishlist")}</span>
-                        Wishlist
-                      </a>
-                      <a href="/cart" className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <span className="text-gray-500 dark:text-gray-400">{menuIcon("cart")}</span>
-                        Cart
-                      </a>
-                      <div className="border-t border-gray-100 dark:border-gray-800 mt-2 pt-2">
-                        <button onClick={handleSignOut} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-gray-800 w-full text-left">
-                          <span>{menuIcon("logout")}</span>
-                          Logout
-                        </button>
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setAccountMenuOpen(false)} />
+                      <div className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 py-2">
+                        <a href="/account" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <span className="text-gray-500 dark:text-gray-400">{menuIcon("account")}</span>
+                          My Account
+                        </a>
+                        <a href="/account/orders" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <span className="text-gray-500 dark:text-gray-400">{menuIcon("orders")}</span>
+                          Orders
+                        </a>
+                        <a href="/wishlist" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <span className="text-gray-500 dark:text-gray-400">{menuIcon("wishlist")}</span>
+                          Wishlist
+                        </a>
+                        <a href="/cart" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <span className="text-gray-500 dark:text-gray-400">{menuIcon("cart")}</span>
+                          Cart
+                        </a>
+                        <div className="border-t border-gray-100 dark:border-gray-800 mt-2 pt-2">
+                          <button onClick={handleSignOut} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-gray-800 w-full text-left">
+                            <span>{menuIcon("logout")}</span>
+                            Logout
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
               ) : (
