@@ -128,114 +128,103 @@ export default function Header() {
 
       {/* Desktop full header */}
       <div className="hidden md:block">
-        <div className="text-xs text-gray-600 dark:text-gray-300">
-          <div className="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
-            <a href="/">
-              <img src={logoSrc} alt="Thomex" className="h-8 w-auto" />
-            </a>
-            <div className="flex items-center gap-4">
-              <span className="hidden lg:inline">Hotline: {hotline}</span>
-              <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
-              {mounted && user ? (
-                <div className="relative">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-6">
+          <a href="/" className="shrink-0">
+            <img src={logoSrc} alt="Thomex" className="h-8 w-auto" />
+          </a>
+
+          <div className="flex-1 min-w-[200px] relative">
+            <form onSubmit={handleSearch} className="flex">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                placeholder="Search anything..."
+                className="w-full px-4 py-2.5 text-sm bg-gray-100 dark:bg-gray-900 text-black dark:text-white rounded-l-md focus:outline-none"
+              />
+              <button type="submit" className="bg-brand text-white px-6 rounded-r-md text-sm font-semibold">Search</button>
+            </form>
+
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 py-1">
+                {suggestions.map((p) => (
                   <button
-                    onClick={() => setAccountMenuOpen((prev) => !prev)}
-                    className="flex items-center gap-1.5"
+                    key={p.id}
+                    onClick={() => goToSearch(p.name)}
+                    className="block w-full text-left px-4 py-2 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
-                    <span className="text-gray-500 dark:text-gray-400">{menuIcon("account")}</span>
-                    Hi, {username || user.email?.split("@")[0]}
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
+                    {p.name}
                   </button>
-
-                  {accountMenuOpen && (
-                    <>
-                      <div className="fixed inset-0 z-40" onClick={() => setAccountMenuOpen(false)} />
-                      <div className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 py-2">
-                        <a href="/account" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <span className="text-gray-500 dark:text-gray-400">{menuIcon("account")}</span>
-                          My Account
-                        </a>
-                        <a href="/account/orders" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <span className="text-gray-500 dark:text-gray-400">{menuIcon("orders")}</span>
-                          Orders
-                        </a>
-                        <a href="/wishlist" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <span className="text-gray-500 dark:text-gray-400">{menuIcon("wishlist")}</span>
-                          Wishlist
-                        </a>
-                        <a href="/cart" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <span className="text-gray-500 dark:text-gray-400">{menuIcon("cart")}</span>
-                          Cart
-                        </a>
-                        <div className="border-t border-gray-100 dark:border-gray-800 mt-2 pt-2">
-                          <button onClick={handleSignOut} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-gray-800 w-full text-left">
-                            <span>{menuIcon("logout")}</span>
-                            Logout
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <a href="/signin">Log In / Sign Up</a>
-              )}
-              <a href="/wishlist" className="flex items-center gap-2">
-                <span className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{wishlistItems.length}</span>
-                <span>Wishlist</span>
-              </a>
-              <a href="/cart" className="flex items-center gap-2">
-                <span className="bg-brand text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{totalItems}</span>
-                <span>Cart</span>
-              </a>
-              <span>USD</span>
-              <span>Eng</span>
-              <ThemeToggle />
-            </div>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
 
-        <div className="bg-brand">
-          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap relative">
-            <div className="flex-1 min-w-[200px] relative">
-              <form onSubmit={handleSearch} className="flex">
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setShowSuggestions(true);
-                  }}
-                  onFocus={() => setShowSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                  placeholder="Search anything..."
-                  className="w-full px-4 py-2 text-sm rounded-l-md focus:outline-none"
-                />
-                <button type="submit" className="bg-brand-dark text-white px-5 rounded-r-md text-sm">Search</button>
-              </form>
+          <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-300 shrink-0">
+            <span className="hidden lg:inline">Hotline: {hotline}</span>
+            <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
+            {mounted && user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setAccountMenuOpen((prev) => !prev)}
+                  className="flex items-center gap-1.5"
+                >
+                  <span className="text-gray-500 dark:text-gray-400">{menuIcon("account")}</span>
+                  Hi, {username || user.email?.split("@")[0]}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
 
-              {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 py-1">
-                  {suggestions.map((p) => (
-                    <button
-                      key={p.id}
-                      onClick={() => goToSearch(p.name)}
-                      className="block w-full text-left px-4 py-2 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
-                    >
-                      {p.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="hidden lg:flex items-center gap-6 text-white text-xs font-medium">
-              <span>Free Shipping Over $399</span>
-              <span>Money Back Guarantee</span>
-              <span>100% Secure Payment</span>
-            </div>
+                {accountMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setAccountMenuOpen(false)} />
+                    <div className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 py-2">
+                      <a href="/account" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <span className="text-gray-500 dark:text-gray-400">{menuIcon("account")}</span>
+                        My Account
+                      </a>
+                      <a href="/account/orders" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <span className="text-gray-500 dark:text-gray-400">{menuIcon("orders")}</span>
+                        Orders
+                      </a>
+                      <a href="/wishlist" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <span className="text-gray-500 dark:text-gray-400">{menuIcon("wishlist")}</span>
+                        Wishlist
+                      </a>
+                      <a href="/cart" onClick={() => setAccountMenuOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <span className="text-gray-500 dark:text-gray-400">{menuIcon("cart")}</span>
+                        Cart
+                      </a>
+                      <div className="border-t border-gray-100 dark:border-gray-800 mt-2 pt-2">
+                        <button onClick={handleSignOut} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-gray-50 dark:hover:bg-gray-800 w-full text-left">
+                          <span>{menuIcon("logout")}</span>
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <a href="/signin">Log In / Sign Up</a>
+            )}
+            <a href="/wishlist" className="flex items-center gap-2">
+              <span className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{wishlistItems.length}</span>
+              <span>Wishlist</span>
+            </a>
+            <a href="/cart" className="flex items-center gap-2">
+              <span className="bg-brand text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{totalItems}</span>
+              <span>Cart</span>
+            </a>
+            <span>USD</span>
+            <span>Eng</span>
+            <ThemeToggle />
           </div>
         </div>
       </div>
