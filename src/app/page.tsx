@@ -55,20 +55,7 @@ export default function Home() {
 
           <section className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-3">
-              <h2 className="text-xl font-bold mb-5 text-black dark:text-white">All Products</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {products.slice(0, 6).map((p) => (
-                  <div key={p.id} className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-lg p-4">
-                    <a href={"/product/" + p.id}>
-                      <div className="h-32 bg-gray-100 dark:bg-gray-800 rounded mb-3 overflow-hidden flex items-center justify-center text-gray-400 text-xs">
-                        {p.imageUrl ? <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" /> : "Image"}
-                      </div>
-                      <h3 className="text-sm font-medium mb-1 line-clamp-2 text-black dark:text-white">{p.name}</h3>
-                    </a>
-                    <span className="text-brand font-bold text-sm">${p.price.toFixed(2)}</span>
-                  </div>
-                ))}
-              </div>
+              <ProductRow title="Recommended for You" products={products} />
             </div>
             <div className="md:col-span-1">
               <DealOfTheDay />
