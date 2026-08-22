@@ -13,6 +13,7 @@ type Product = {
   rating: number;
   reviewCount: number;
   discountPercent?: number;
+  imageUrl?: string;
 };
 
 export default function ProductCard({ product }: { product: Product }) {
@@ -42,8 +43,12 @@ export default function ProductCard({ product }: { product: Product }) {
       </button>
 
       <Link href={"/product/" + product.id}>
-        <div className="h-32 bg-gray-100 dark:bg-gray-800 rounded mb-3 flex items-center justify-center text-gray-400 text-xs">
-          Image
+        <div className="h-32 bg-gray-100 dark:bg-gray-800 rounded mb-3 flex items-center justify-center text-gray-400 text-xs overflow-hidden">
+          {product.imageUrl ? (
+            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+          ) : (
+            "Image"
+          )}
         </div>
         <h3 className="text-sm font-medium mb-1 line-clamp-2 text-black dark:text-white">{product.name}</h3>
       </Link>
