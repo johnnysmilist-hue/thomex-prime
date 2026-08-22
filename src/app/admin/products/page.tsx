@@ -6,13 +6,14 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminGuard from "@/components/AdminGuard";
 import { fetchProducts, addProduct, deleteProduct, uploadProductImage, bulkAddProducts, DbProduct } from "@/lib/supabaseProducts";
-import { categories } from "@/lib/categories";
+import { fetchCategories, fetchAllSubcategories, SiteCategory, SiteSubcategory } from "@/lib/supabaseCategories";
 
 type CsvRow = {
   name: string;
   price: string;
   old_price?: string;
   category: string;
+  subcategory?: string;
   brand?: string;
   color?: string;
   description?: string;
@@ -30,10 +31,14 @@ export default function AdminProductsPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
+  const [siteCategories, setSiteCategories] = useState<SiteCategory[]>([]);
+  const [siteSubcategories, setSiteSubcategories] = useState<SiteSubcategory[]>([]);
+
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [oldPrice, setOldPrice] = useState("");
-  const [category, setCategory] = useState(categories[0]);
+  const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
   const [brand, setBrand] = useState("");
   const [color, setColor] = useState("");
   const [description, setDescription] = useState("");
@@ -60,13 +65,28 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     loadProducts();
+    fetchCategories().then((r) => {
+      const cats = r.data || [];
+      setSiteCategories(cats);
+      setCategory((prev) => prev || cats[0]?.name || "");
+    });
+    fetchAllSubcategories().then((r) => setSiteSubcategories(r.data || []));
   }, []);
+
+  const selectedCategoryObj = siteCategories.find((c) => c.name === category);
+  const availableSubcategories = siteSubcategories.filter((s) => s.category_id === selectedCategoryObj?.id);
+
+  const handleCategoryChange = (name: string) => {
+    setCategory(name);
+    setSubcategory("");
+  };
 
   const resetForm = () => {
     setName("");
     setPrice("");
     setOldPrice("");
-    setCategory(categories[0]);
+    setCategory(siteCategories[0]?.name || "");
+    setSubcategory("");
     setBrand("");
     setColor("");
     setDescription("");
@@ -110,6 +130,7 @@ export default function AdminProductsPage() {
       review_count: 0,
       discount_percent: oldPrice ? Math.round(((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) * 100) : null,
       category,
+      subcategory: subcategory || null,
       brand: brand || null,
       color: color || null,
       description,
@@ -179,6 +200,7 @@ export default function AdminProductsPage() {
         review_count: 0,
         discount_percent: oldPriceNum ? Math.round(((oldPriceNum - priceNum) / oldPriceNum) * 100) : null,
         category: row.category,
+        subcategory: row.subcategory || null,
         brand: row.brand || null,
         color: row.color || null,
         description: row.description || "",
@@ -233,7 +255,7 @@ export default function AdminProductsPage() {
               <p className="text-sm font-semibold text-black dark:text-white mb-2">Bulk Import from CSV</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
                 Your CSV needs these columns: <strong>name, price, category</strong> (required), and optionally
-                old_price, brand, color, description, image_url, stock, featured (true/false), status (Published/Draft).
+                subcategory, old_price, brand, color, description, image_url, stock, featured (true/false), status (Published/Draft).
               </p>
               <input type="file" accept=".csv" onChange={handleCsvFile} className="text-sm text-black dark:text-white mb-4" />
 
@@ -285,16 +307,33 @@ export default function AdminProductsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Category</label>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm">
-                    {categories.map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
+                  <select value={category} onChange={(e) => handleCategoryChange(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm">
+                    {siteCategories.map((cat) => (
+                      <option key={cat.id} value={cat.name}>{cat.name}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Stock Quantity</label>
-                  <input type="number" placeholder="10" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Subcategory</label>
+                  <select
+                    value={subcategory}
+                    onChange={(e) => setSubcategory(e.target.value)}
+                    disabled={availableSubcategories.length === 0}
+                    className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm disabled:opacity-50"
+                  >
+                    <option value="">
+                      {availableSubcategories.length === 0 ? "No subcategories" : "None"}
+                    </option>
+                    {availableSubcategories.map((sub) => (
+                      <option key={sub.id} value={sub.name}>{sub.name}</option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Stock Quantity</label>
+                <input type="number" placeholder="10" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -382,7 +421,7 @@ export default function AdminProductsPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-black dark:text-white truncate">{p.name}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {p.category} • KSh {p.price.toFixed(2)} • Stock: {p.stock} • {p.status}
+                      {p.category}{p.subcategory ? " / " + p.subcategory : ""} • KSh {p.price.toFixed(2)} • Stock: {p.stock} • {p.status}
                       {p.featured && " • Featured"}
                     </p>
                   </div>
