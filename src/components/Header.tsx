@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import ThemeToggle from "./ThemeToggle";
 import MobileMenu from "./MobileMenu";
-import CategoryMegaMenu from "./CategoryMegaMenu";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
@@ -142,8 +141,6 @@ export default function Header() {
 
         <div className="bg-brand">
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap relative">
-            <CategoryMegaMenu />
-
             <div className="flex-1 min-w-[200px] relative">
               <form onSubmit={handleSearch} className="flex">
                 <input
