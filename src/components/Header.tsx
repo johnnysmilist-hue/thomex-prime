@@ -120,39 +120,67 @@ export default function Header() {
               <span className="hidden lg:inline">Hotline: {hotline}</span>
               <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
               {mounted && user ? (
-                <a href="/account" className="flex items-center gap-1.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  {username || user.email}
-                </a>
+                <a href="/account">{username || user.email}</a>
               ) : (
-                <a href="/signin" className="flex items-center gap-1.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  Log In / Sign Up
-                </a>
+                <a href="/signin">Log In / Sign Up</a>
               )}
-              <a href="/wishlist" className="flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                </svg>
+              <a href="/wishlist" className="flex items-center gap-2">
                 <span className="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{wishlistItems.length}</span>
                 <span>Wishlist</span>
               </a>
-              <a href="/cart" className="flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="8" cy="21" r="1" />
-                  <circle cx="19" cy="21" r="1" />
-                  <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
-                </svg>
+              <a href="/cart" className="flex items-center gap-2">
                 <span className="bg-brand text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{totalItems}</span>
                 <span>Cart</span>
               </a>
-              <span className="flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-                  <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"
+              <span>USD</span>
+              <span>Eng</span>
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-brand">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap relative">
+            <div className="flex-1 min-w-[200px] relative">
+              <form onSubmit={handleSearch} className="flex">
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                  placeholder="Search anything..."
+                  className="w-full px-4 py-2 text-sm rounded-l-md focus:outline-none"
+                />
+                <button type="submit" className="bg-brand-dark text-white px-5 rounded-r-md text-sm">Search</button>
+              </form>
+
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 py-1">
+                  {suggestions.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => goToSearch(p.name)}
+                      className="block w-full text-left px-4 py-2 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                    >
+                      {p.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="hidden lg:flex items-center gap-6 text-white text-xs font-medium">
+              <span>Free Shipping Over $399</span>
+              <span>Money Back Guarantee</span>
+              <span>100% Secure Payment</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
