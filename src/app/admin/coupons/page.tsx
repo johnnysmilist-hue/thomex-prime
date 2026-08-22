@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminGuard from "@/components/AdminGuard";
 import AdminSidebar from "@/components/AdminSidebar";
-import { fetchCoupons, addCoupon, toggleCoupon, deleteCoupon, Coupon } from "@/lib/supabaseCoupons";
+import { fetchCoupons, addCoupon, updateCoupon, toggleCoupon, deleteCoupon, Coupon } from "@/lib/supabaseCoupons";
 
 export default function AdminCouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -19,6 +19,8 @@ export default function AdminCouponsPage() {
   const [minOrder, setMinOrder] = useState("");
   const [maxUses, setMaxUses] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -38,6 +40,18 @@ export default function AdminCouponsPage() {
     setMinOrder("");
     setMaxUses("");
     setExpiresAt("");
+    setEditingId(null);
+  };
+
+  const handleEditClick = (c: Coupon) => {
+    setEditingId(c.id);
+    setCode(c.code);
+    setDiscountType(c.discount_type);
+    setDiscountValue(String(c.discount_value));
+    setMinOrder(c.min_order !== null ? String(c.min_order) : "");
+    setMaxUses(c.max_uses !== null ? String(c.max_uses) : "");
+    setExpiresAt(c.expires_at ? c.expires_at.slice(0, 10) : "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -50,14 +64,17 @@ export default function AdminCouponsPage() {
     }
 
     setSaving(true);
-    const { error: err } = await addCoupon({
+
+    const payload = {
       code,
       discount_type: discountType,
       discount_value: parseFloat(discountValue),
       min_order: minOrder ? parseFloat(minOrder) : null,
       max_uses: maxUses ? parseInt(maxUses) : null,
       expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
-    });
+    };
+
+    const { error: err } = editingId ? await updateCoupon(editingId, payload) : await addCoupon(payload);
     setSaving(false);
 
     if (err) {
@@ -91,7 +108,14 @@ export default function AdminCouponsPage() {
             <h1 className="text-xl font-bold mb-8 text-black dark:text-white">Coupons</h1>
 
             <form onSubmit={handleCreate} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-8 space-y-4">
-              <p className="text-sm font-bold text-black dark:text-white">New Coupon</p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-bold text-black dark:text-white">{editingId ? "Edit Coupon" : "New Coupon"}</p>
+                {editingId && (
+                  <button type="button" onClick={resetForm} className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                    Cancel edit
+                  </button>
+                )}
+              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -171,7 +195,7 @@ export default function AdminCouponsPage() {
                 disabled={saving}
                 className="bg-brand text-white px-5 py-2 rounded-md text-sm font-semibold disabled:opacity-60"
               >
-                {saving ? "Creating..." : "Create Coupon"}
+                {saving ? "Saving..." : editingId ? "Save Changes" : "Create Coupon"}
               </button>
             </form>
 
@@ -202,6 +226,9 @@ export default function AdminCouponsPage() {
                       </span>
                       <button onClick={() => handleToggle(c)} className="text-xs font-semibold text-brand">
                         {c.active ? "Disable" : "Enable"}
+                      </button>
+                      <button onClick={() => handleEditClick(c)} className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                        Edit
                       </button>
                       <button onClick={() => handleDelete(c.id)} className="text-xs font-semibold text-red-500">
                         Delete
