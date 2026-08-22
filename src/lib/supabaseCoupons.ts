@@ -34,6 +34,24 @@ export async function addCoupon(coupon: {
   return { data: data as Coupon | null, error };
 }
 
+export async function updateCoupon(
+  id: string,
+  updates: {
+    code: string;
+    discount_type: "percent" | "fixed";
+    discount_value: number;
+    min_order: number | null;
+    max_uses: number | null;
+    expires_at: string | null;
+  }
+) {
+  const { error } = await supabase
+    .from("coupons")
+    .update({ ...updates, code: updates.code.trim().toUpperCase() })
+    .eq("id", id);
+  return { error };
+}
+
 export async function toggleCoupon(id: string, active: boolean) {
   const { error } = await supabase.from("coupons").update({ active }).eq("id", id);
   return { error };
