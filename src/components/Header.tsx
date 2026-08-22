@@ -134,7 +134,11 @@ export default function Header() {
           </a>
 
           <div className="flex-1 min-w-[200px] relative">
-            <form onSubmit={handleSearch} className="flex">
+            <form onSubmit={handleSearch} className="flex items-center bg-gray-100 dark:bg-gray-900 rounded-full pl-4 overflow-hidden">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 shrink-0 mr-2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
               <input
                 type="text"
                 value={query}
@@ -145,9 +149,9 @@ export default function Header() {
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                 placeholder="Search anything..."
-                className="w-full px-4 py-2.5 text-sm bg-gray-100 dark:bg-gray-900 text-black dark:text-white rounded-l-md focus:outline-none"
+                className="w-full py-2.5 text-sm bg-transparent text-black dark:text-white focus:outline-none"
               />
-              <button type="submit" className="bg-brand text-white px-6 rounded-r-md text-sm font-semibold">Search</button>
+              <button type="submit" className="bg-brand text-white px-6 py-2.5 rounded-full text-sm font-semibold shrink-0">Search</button>
             </form>
 
             {showSuggestions && suggestions.length > 0 && (
