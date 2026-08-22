@@ -11,13 +11,14 @@ const discountOptions = [10, 20, 30, 40, 50];
 export default function ShopContent() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get("category");
+  const initialBrand = searchParams.get("brand");
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState("featured");
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory);
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>(initialBrand ? [initialBrand] : []);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [minDiscount, setMinDiscount] = useState<number | null>(null);
   const [minPrice, setMinPrice] = useState("");
@@ -155,7 +156,7 @@ export default function ShopContent() {
       <div className="flex-1">
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <h1 className="text-xl font-bold text-black dark:text-white">
-            {selectedCategory || "All Products"}{" "}
+            {selectedCategory || (selectedBrands.length === 1 ? selectedBrands[0] : "All Products")}{" "}
             <span className="text-sm font-normal text-gray-400">({products.length})</span>
           </h1>
           <select value={sort} onChange={(e) => setSort(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white text-sm rounded-md px-3 py-2">
