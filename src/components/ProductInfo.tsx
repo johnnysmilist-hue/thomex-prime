@@ -64,6 +64,9 @@ export default function ProductInfo({
     router.push("/checkout");
   };
 
+  const outOfStock = product.stock <= 0;
+  const lowStock = product.stock > 0 && product.stock <= 5;
+
   return (
     <div>
       <div className="flex items-start justify-between gap-3 mb-1">
@@ -164,7 +167,7 @@ export default function ProductInfo({
         );
       })}
 
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-center gap-4 mb-2">
         <div className="flex items-center border border-gray-300 dark:border-gray-700 rounded-md">
           <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-1 text-lg text-black dark:text-white">-</button>
           <span className="px-4 text-black dark:text-white">{qty}</span>
@@ -172,18 +175,28 @@ export default function ProductInfo({
         </div>
       </div>
 
+      {outOfStock ? (
+        <p className="text-sm text-red-500 font-bold mb-4">Out of Stock</p>
+      ) : lowStock ? (
+        <p className="text-sm text-orange-500 font-bold mb-4">Only {product.stock} left in stock — order soon!</p>
+      ) : (
+        <div className="mb-4" />
+      )}
+
       <div className="flex gap-3">
         <button
           onClick={handleBuyNow}
-          className="flex-1 bg-brand text-white py-3 rounded-md font-semibold hover:bg-brand-dark transition-colors"
+          disabled={outOfStock}
+          className="flex-1 bg-brand text-white py-3 rounded-md font-semibold hover:bg-brand-dark transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:hover:bg-gray-300 dark:disabled:hover:bg-gray-700"
         >
           Buy Now
         </button>
         <button
           onClick={handleAddToCart}
-          className="flex-1 border border-brand text-brand py-3 rounded-md font-semibold hover:bg-brand/5 transition-colors"
+          disabled={outOfStock}
+          className="flex-1 border border-brand text-brand py-3 rounded-md font-semibold hover:bg-brand/5 transition-colors disabled:border-gray-300 dark:disabled:border-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:bg-transparent"
         >
-          Add to Cart
+          {outOfStock ? "Out of Stock" : "Add to Cart"}
         </button>
       </div>
     </div>
