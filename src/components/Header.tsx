@@ -166,7 +166,6 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-300 shrink-0">
-            <span className="hidden lg:inline">Hotline: {hotline}</span>
             <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
             {mounted && user ? (
               <div className="relative">
@@ -223,7 +222,6 @@ export default function Header() {
               <span>Cart</span>
             </a>
             <span>USD</span>
-            <span>Eng</span>
             <ThemeToggle />
           </div>
         </div>
