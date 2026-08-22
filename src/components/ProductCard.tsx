@@ -22,7 +22,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const wishlisted = isWishlisted(product.id);
 
   return (
-    <div className="border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-lg p-4 hover:shadow-md transition-shadow relative">
+   <div className="border border-transparent bg-white dark:bg-gray-900 rounded-lg p-4 hover:shadow-md transition-shadow relative">
       {product.discountPercent && (
         <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
           -{product.discountPercent}%
