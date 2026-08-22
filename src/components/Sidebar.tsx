@@ -18,7 +18,7 @@ export default function Sidebar() {
 
   return (
     <aside className="hidden md:block md:w-56 shrink-0 relative">
-      <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+      <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden h-full">
         <a href="/shop" className="block px-4 py-2.5 text-sm font-semibold text-black dark:text-white border-b border-gray-100 dark:border-gray-800 hover:text-brand">
           All Products
         </a>
@@ -26,7 +26,7 @@ export default function Sidebar() {
           {categories.map((cat) => (
             <li key={cat.id} onMouseEnter={() => setHoveredId(cat.id)} onMouseLeave={() => setHoveredId(null)}>
               
-               <a href={"/shop?category=" + encodeURIComponent(cat.name)}
+                href={"/shop?category=" + encodeURIComponent(cat.name)}
                 className={
                   hoveredId === cat.id
                     ? "flex items-center gap-2 py-2 px-4 text-brand bg-brand/5"
@@ -45,12 +45,12 @@ export default function Sidebar() {
         <div
           onMouseEnter={() => setHoveredId(hoveredId)}
           onMouseLeave={() => setHoveredId(null)}
-          className="absolute top-0 left-full ml-2 w-[420px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 p-5"
+          className="absolute top-0 left-full ml-2 w-[420px] min-h-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 p-5"
         >
           <p className="text-sm font-bold text-black dark:text-white mb-4">{hoveredCategory?.name}</p>
           <div className="grid grid-cols-2 gap-3">
             {hoveredSubs.map((sub) => (
-              <a
+              
                 key={sub.id}
                 href={"/shop?category=" + encodeURIComponent(hoveredCategory?.name || "")}
                 className="text-sm text-gray-700 dark:text-gray-300 hover:text-brand"
