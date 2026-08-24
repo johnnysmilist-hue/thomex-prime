@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
@@ -8,6 +8,9 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { fetchSettings } from "@/lib/supabaseSettings";
 import { validateCoupon, incrementCouponUsage, Coupon } from "@/lib/supabaseCoupons";
+
+type PaymentMethod = "mpesa" | "cod";
+type MpesaStatus = "idle" | "requesting" | "polling" | "paid" | "failed";
 
 export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
@@ -29,6 +32,12 @@ export default function CheckoutPage() {
   const [couponError, setCouponError] = useState("");
   const [checkingCoupon, setCheckingCoupon] = useState(false);
 
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mpesa");
+  const [mpesaStatus, setMpesaStatus] = useState<MpesaStatus>("idle");
+  const [mpesaError, setMpesaError] = useState("");
+  const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollAttempts = useRef(0);
+
   const finalTotal = Math.max(totalPrice - discountAmount, 0);
 
   useEffect(() => {
@@ -36,6 +45,9 @@ export default function CheckoutPage() {
       if (r.data?.whatsapp_number) setWhatsappNumber(r.data.whatsapp_number);
       if (r.data?.support_email) setAdminEmail(r.data.support_email);
     });
+    return () => {
+      if (pollTimer.current) clearInterval(pollTimer.current);
+    };
   }, []);
 
   const generateOrderCode = () => {
@@ -69,7 +81,7 @@ export default function CheckoutPage() {
     setCouponError("");
   };
 
-  const buildWhatsAppMessage = (code: string) => {
+  const buildWhatsAppMessage = (code: string, method: PaymentMethod) => {
     let msg = "New Order from Thomex website%0A%0A";
     msg += "Order Code: " + code + "%0A";
     msg += "Name: " + encodeURIComponent(name) + "%0A";
@@ -83,6 +95,7 @@ export default function CheckoutPage() {
       msg += "%0ACoupon: " + appliedCoupon.code + " (-$" + discountAmount.toFixed(2) + ")%0A";
     }
     msg += "%0ATotal: $" + finalTotal.toFixed(2) + "%0A";
+    msg += "Payment: " + (method === "mpesa" ? "Paid via M-Pesa" : "Pay on Delivery") + "%0A";
     if (notes.trim()) {
       msg += "%0ANotes: " + encodeURIComponent(notes);
     }
@@ -112,27 +125,79 @@ export default function CheckoutPage() {
     }
   };
 
+  const finishSuccessfulOrder = async (code: string, method: PaymentMethod) => {
+    await sendOrderEmail(code);
+    setOrderCode(code);
+    clearCart();
+    const url = "https://wa.me/" + whatsappNumber + "?text=" + buildWhatsAppMessage(code, method);
+    window.open(url, "_blank");
+  };
+
+  const pollPaymentStatus = (orderId: string, code: string) => {
+    pollAttempts.current = 0;
+    pollTimer.current = setInterval(async () => {
+      pollAttempts.current += 1;
+
+      try {
+        const res = await fetch("/api/mpesa/status?orderId=" + orderId);
+        const data = await res.json();
+
+        if (data.status === "paid") {
+          if (pollTimer.current) clearInterval(pollTimer.current);
+          setMpesaStatus("paid");
+          setLoading(false);
+          await finishSuccessfulOrder(code, "mpesa");
+          return;
+        }
+
+        if (data.status === "failed") {
+          if (pollTimer.current) clearInterval(pollTimer.current);
+          setMpesaStatus("failed");
+          setMpesaError("Payment was not completed. You can try again or choose Pay on Delivery.");
+          setLoading(false);
+          return;
+        }
+      } catch {
+        // transient — keep polling
+      }
+
+      if (pollAttempts.current >= 20) {
+        if (pollTimer.current) clearInterval(pollTimer.current);
+        setMpesaStatus("failed");
+        setMpesaError("We didn't get confirmation in time. Check your phone, or try again.");
+        setLoading(false);
+      }
+    }, 3000);
+  };
+
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setMpesaError("");
     setLoading(true);
 
     const code = generateOrderCode();
 
-    const { error: dbError } = await supabase.from("orders").insert({
-      order_code: code,
-      customer_name: name,
-      phone: phone,
-      address: address,
-      items: items,
-      total: finalTotal,
-      notes: notes || null,
-      user_id: user ? user.id : null,
-      coupon_code: appliedCoupon ? appliedCoupon.code : null,
-      discount_amount: discountAmount || null,
-    });
+    const { data: inserted, error: dbError } = await supabase
+      .from("orders")
+      .insert({
+        order_code: code,
+        customer_name: name,
+        phone: phone,
+        address: address,
+        items: items,
+        total: finalTotal,
+        notes: notes || null,
+        user_id: user ? user.id : null,
+        coupon_code: appliedCoupon ? appliedCoupon.code : null,
+        discount_amount: discountAmount || null,
+        payment_method: paymentMethod,
+        payment_status: paymentMethod === "cod" ? "cod" : "pending",
+      })
+      .select()
+      .single();
 
-    if (dbError) {
+    if (dbError || !inserted) {
       setLoading(false);
       setError("Something went wrong saving your order. Please try again.");
       return;
@@ -142,14 +207,47 @@ export default function CheckoutPage() {
       await incrementCouponUsage(appliedCoupon.id, appliedCoupon.uses_count);
     }
 
-    await sendOrderEmail(code);
+    if (paymentMethod === "cod") {
+      setLoading(false);
+      await finishSuccessfulOrder(code, "cod");
+      return;
+    }
 
-    setLoading(false);
-    setOrderCode(code);
-    clearCart();
+    // M-Pesa STK Push flow
+    setMpesaStatus("requesting");
 
-    const url = "https://wa.me/" + whatsappNumber + "?text=" + buildWhatsAppMessage(code);
-    window.open(url, "_blank");
+    try {
+      const res = await fetch("/api/mpesa/stkpush", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: inserted.id,
+          orderCode: code,
+          phone,
+          amount: finalTotal,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setMpesaStatus("failed");
+        setMpesaError(data.error || "Could not start M-Pesa payment. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      setMpesaStatus("polling");
+      pollPaymentStatus(inserted.id, code);
+    } catch {
+      setMpesaStatus("failed");
+      setMpesaError("Could not reach M-Pesa. Check your connection and try again.");
+      setLoading(false);
+    }
+  };
+
+  const handleRetryMpesa = () => {
+    setMpesaStatus("idle");
+    setMpesaError("");
   };
 
   if (orderCode) {
@@ -228,9 +326,65 @@ export default function CheckoutPage() {
                 className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm focus:outline-none focus:border-brand resize-none"
               />
 
-              <div className="border border-gray-200 dark:border-gray-800 rounded-md p-4">
-                <p className="text-sm font-semibold text-black dark:text-white mb-1">Payment Method</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Pay on Delivery (M-Pesa or cash)</p>
+              <div className="border border-gray-200 dark:border-gray-800 rounded-md p-4 space-y-3">
+                <p className="text-sm font-semibold text-black dark:text-white">Payment Method</p>
+
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    checked={paymentMethod === "mpesa"}
+                    onChange={() => {
+                      setPaymentMethod("mpesa");
+                      setMpesaStatus("idle");
+                      setMpesaError("");
+                    }}
+                    className="accent-brand mt-1"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-black dark:text-white">M-Pesa</span>
+                    <span className="block text-xs text-gray-500 dark:text-gray-400">
+                      You'll get a prompt on your phone to enter your M-Pesa PIN.
+                    </span>
+                  </span>
+                </label>
+
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    checked={paymentMethod === "cod"}
+                    onChange={() => {
+                      setPaymentMethod("cod");
+                      setMpesaStatus("idle");
+                      setMpesaError("");
+                    }}
+                    className="accent-brand mt-1"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-black dark:text-white">Pay on Delivery</span>
+                    <span className="block text-xs text-gray-500 dark:text-gray-400">Cash or M-Pesa when your order arrives.</span>
+                  </span>
+                </label>
+
+                {paymentMethod === "mpesa" && mpesaStatus === "polling" && (
+                  <div className="bg-brand/5 border border-brand/20 rounded-md px-3 py-2.5 flex items-center gap-2.5">
+                    <svg className="animate-spin h-4 w-4 text-brand shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span className="text-xs text-black dark:text-white">Check your phone and enter your M-Pesa PIN to complete payment...</span>
+                  </div>
+                )}
+
+                {paymentMethod === "mpesa" && mpesaStatus === "failed" && (
+                  <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-md px-3 py-2.5">
+                    <p className="text-xs text-red-600 dark:text-red-400 mb-2">{mpesaError}</p>
+                    <button type="button" onClick={handleRetryMpesa} className="text-xs font-semibold text-brand">
+                      Try again
+                    </button>
+                  </div>
+                )}
               </div>
 
               {error && <p className="text-xs text-red-500">{error}</p>}
@@ -240,7 +394,13 @@ export default function CheckoutPage() {
                 disabled={loading}
                 className="w-full bg-green-600 text-white py-3 rounded-md font-semibold hover:bg-green-700 transition-colors disabled:opacity-60"
               >
-                                {loading ? "Placing order..." : "Place Order"}
+                {loading
+                  ? mpesaStatus === "polling"
+                    ? "Waiting for M-Pesa..."
+                    : "Processing..."
+                  : paymentMethod === "mpesa"
+                  ? "Pay with M-Pesa"
+                  : "Place Order"}
               </button>
             </form>
 
