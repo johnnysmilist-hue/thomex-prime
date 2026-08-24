@@ -28,9 +28,9 @@ export default function ProductCard({ product }: { product: Product }) {
   const lowStock = product.stock !== undefined && product.stock > 0 && product.stock <= LOW_STOCK_THRESHOLD;
 
   return (
-   <div className="border border-transparent bg-white dark:bg-gray-900 rounded-lg p-4 hover:shadow-md transition-shadow relative">
+    <div className="h-full flex flex-col border border-transparent bg-white dark:bg-gray-900 rounded-lg p-4 hover:shadow-md transition-shadow relative overflow-hidden">
       {product.discountPercent && (
-        <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+        <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
           -{product.discountPercent}%
         </span>
       )}
@@ -55,19 +55,22 @@ export default function ProductCard({ product }: { product: Product }) {
             "Image"
           )}
         </div>
-        <h3 className="text-sm font-medium mb-1 line-clamp-2 text-black dark:text-white">{product.name}</h3>
+        <h3 className="text-sm font-medium mb-1 line-clamp-2 text-black dark:text-white min-h-[2.5rem]">{product.name}</h3>
       </Link>
+
       <div className="flex items-center gap-1 text-xs text-yellow-500 mb-2">
         {"★".repeat(Math.round(product.rating))}
         {"☆".repeat(5 - Math.round(product.rating))}
         <span className="text-gray-400 ml-1">({product.reviewCount})</span>
       </div>
-      <div className="flex items-center gap-2 mb-1">
-        <span className="text-brand font-bold">{format(product.price)}</span>
+
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1 min-w-0">
+        <span className="text-brand font-bold text-sm truncate max-w-full">{format(product.price)}</span>
         {product.oldPrice && (
-          <span className="text-gray-400 text-xs line-through">{format(product.oldPrice)}</span>
+          <span className="text-gray-400 text-[10px] line-through truncate max-w-full">{format(product.oldPrice)}</span>
         )}
       </div>
+
       {outOfStock ? (
         <p className="text-[10px] text-red-500 font-bold mb-2">Out of Stock</p>
       ) : lowStock ? (
@@ -75,18 +78,20 @@ export default function ProductCard({ product }: { product: Product }) {
       ) : (
         <div className="mb-2" />
       )}
+
       <div className="flex items-center gap-1 text-[10px] text-green-600 dark:text-green-400 font-medium mb-3">
-        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
           <path d="M20 6 9 17l-5-5" />
         </svg>
         Pay on Delivery
       </div>
+
       <button
         onClick={() =>
           addToCart({ id: product.id, name: product.name, price: product.price })
         }
         disabled={outOfStock}
-        className="w-full bg-black dark:bg-brand text-white text-sm py-2 rounded-full hover:bg-brand transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:hover:bg-gray-300 dark:disabled:hover:bg-gray-700"
+        className="mt-auto w-full bg-black dark:bg-brand text-white text-sm py-2 rounded-full hover:bg-brand transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:hover:bg-gray-300 dark:disabled:hover:bg-gray-700"
       >
         {outOfStock ? "Out of Stock" : "Add to Cart"}
       </button>
