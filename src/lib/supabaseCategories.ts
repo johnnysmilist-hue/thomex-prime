@@ -11,6 +11,7 @@ export type SiteSubcategory = {
   id: string;
   category_id: string;
   name: string;
+  image_url: string | null;
   sort_order: number;
 };
 
@@ -46,6 +47,11 @@ export async function deleteCategory(id: string) {
 
 export async function addSubcategory(subcategory: Omit<SiteSubcategory, "id">) {
   const { data, error } = await supabase.from("site_subcategories").insert(subcategory).select().single();
+  return { data: data as SiteSubcategory | null, error };
+}
+
+export async function updateSubcategory(id: string, subcategory: Partial<Omit<SiteSubcategory, "id">>) {
+  const { data, error } = await supabase.from("site_subcategories").update(subcategory).eq("id", id).select().single();
   return { data: data as SiteSubcategory | null, error };
 }
 
