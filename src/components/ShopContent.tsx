@@ -12,12 +12,14 @@ export default function ShopContent() {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get("category");
   const initialBrand = searchParams.get("brand");
+  const initialSubcategory = searchParams.get("subcategory");
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState("featured");
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(initialCategory);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(initialSubcategory);
   const [selectedBrands, setSelectedBrands] = useState<string[]>(initialBrand ? [initialBrand] : []);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [minDiscount, setMinDiscount] = useState<number | null>(null);
@@ -37,6 +39,7 @@ export default function ShopContent() {
   let products = allProducts;
 
   if (selectedCategory) products = products.filter((p) => p.category === selectedCategory);
+  if (selectedSubcategory) products = products.filter((p) => p.subcategory === selectedSubcategory);
   if (selectedBrands.length > 0) products = products.filter((p) => p.brand && selectedBrands.includes(p.brand));
   if (selectedColors.length > 0) products = products.filter((p) => p.color && selectedColors.includes(p.color));
   if (minDiscount) products = products.filter((p) => (p.discountPercent || 0) >= minDiscount);
@@ -64,6 +67,7 @@ export default function ShopContent() {
 
   const clearAll = () => {
     setSelectedCategory(null);
+    setSelectedSubcategory(null);
     setSelectedBrands([]);
     setSelectedColors([]);
     setMinDiscount(null);
@@ -156,7 +160,7 @@ export default function ShopContent() {
       <div className="flex-1">
         <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
           <h1 className="text-xl font-bold text-black dark:text-white">
-            {selectedCategory || (selectedBrands.length === 1 ? selectedBrands[0] : "All Products")}{" "}
+            {selectedSubcategory || selectedCategory || (selectedBrands.length === 1 ? selectedBrands[0] : "All Products")}{" "}
             <span className="text-sm font-normal text-gray-400">({products.length})</span>
           </h1>
           <select value={sort} onChange={(e) => setSort(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white text-sm rounded-md px-3 py-2">
