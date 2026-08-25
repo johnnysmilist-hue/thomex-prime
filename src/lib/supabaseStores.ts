@@ -11,6 +11,9 @@ export type Store = {
   id_document_url: string | null;
   business_document_url: string | null;
   status: string;
+  commission_rate: number | null;
+  featured: boolean;
+  admin_notes: string | null;
   created_at: string;
 };
 
@@ -34,13 +37,21 @@ export async function fetchApprovedStores() {
   return { data: data as Store[] | null, error };
 }
 
-export async function applyAsStore(store: Omit<Store, "id" | "created_at" | "status">) {
+export async function applyAsStore(store: Omit<Store, "id" | "created_at" | "status" | "featured" | "commission_rate" | "admin_notes">) {
   const { data, error } = await supabase.from("stores").insert({ ...store, status: "Pending" }).select().single();
   return { data: data as Store | null, error };
 }
 
 export async function updateStoreStatus(id: string, status: string) {
   const { error } = await supabase.from("stores").update({ status }).eq("id", id);
+  return { error };
+}
+
+export async function updateStoreAdminFields(
+  id: string,
+  fields: Partial<Pick<Store, "commission_rate" | "featured" | "admin_notes">>
+) {
+  const { error } = await supabase.from("stores").update(fields).eq("id", id);
   return { error };
 }
 
