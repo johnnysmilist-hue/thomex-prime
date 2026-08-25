@@ -13,6 +13,7 @@ export default function ShopContent() {
   const initialCategory = searchParams.get("category");
   const initialBrand = searchParams.get("brand");
   const initialSubcategory = searchParams.get("subcategory");
+  const initialStore = searchParams.get("store");
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +41,7 @@ export default function ShopContent() {
 
   if (selectedCategory) products = products.filter((p) => p.category === selectedCategory);
   if (selectedSubcategory) products = products.filter((p) => p.subcategory === selectedSubcategory);
+  if (initialStore) products = products.filter((p) => p.storeId === initialStore);
   if (selectedBrands.length > 0) products = products.filter((p) => p.brand && selectedBrands.includes(p.brand));
   if (selectedColors.length > 0) products = products.filter((p) => p.color && selectedColors.includes(p.color));
   if (minDiscount) products = products.filter((p) => (p.discountPercent || 0) >= minDiscount);
