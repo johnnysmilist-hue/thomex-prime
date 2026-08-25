@@ -65,7 +65,7 @@ export default function AdminBrandsPage() {
     setSaving(false);
 
     if (dbErr) {
-      setError(dbErr.message.includes("duplicate") ? "That brand already exists." : "Something went wrong.");
+      setError(dbErr.message.includes("duplicate") ? "That brand already exists." : dbErr.message);
       return;
     }
 
