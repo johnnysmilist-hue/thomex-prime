@@ -12,6 +12,7 @@ import DealOfTheDay from "@/components/DealOfTheDay";
 import PromoTiles from "@/components/PromoTiles";
 import BestSellerSection from "@/components/BestSellerSection";
 import BrandStrip from "@/components/BrandStrip";
+import FeaturedSellers from "@/components/FeaturedSellers";
 import Footer from "@/components/Footer";
 import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
 
@@ -72,6 +73,7 @@ export default function Home() {
 
       <PromoTiles />
       <BrandStrip />
+      <FeaturedSellers />
       <Footer />
     </main>
   );
