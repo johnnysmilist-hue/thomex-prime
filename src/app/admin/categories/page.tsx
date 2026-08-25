@@ -7,7 +7,7 @@ import AdminGuard from "@/components/AdminGuard";
 import AdminSidebar from "@/components/AdminSidebar";
 import {
   fetchCategories, addCategory, updateCategory, deleteCategory,
-  fetchAllSubcategories, addSubcategory, deleteSubcategory,
+  fetchAllSubcategories, addSubcategory, updateSubcategory, deleteSubcategory,
   SiteCategory, SiteSubcategory,
 } from "@/lib/supabaseCategories";
 import { uploadProductImage } from "@/lib/supabaseProducts";
@@ -18,6 +18,7 @@ export default function AdminCategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [newCatName, setNewCatName] = useState("");
   const [uploadingId, setUploadingId] = useState<string | null>(null);
+  const [uploadingSubId, setUploadingSubId] = useState<string | null>(null);
   const [subInputs, setSubInputs] = useState<Record<string, string>>({});
 
   const load = async () => {
@@ -67,10 +68,22 @@ export default function AdminCategoriesPage() {
     if (!name || !name.trim()) return;
     const existing = subcategories.filter((s) => s.category_id === categoryId);
     const maxOrder = Math.max(0, ...existing.map((s) => s.sort_order));
-    const { data } = await addSubcategory({ category_id: categoryId, name, sort_order: maxOrder + 1 });
+    const { data } = await addSubcategory({ category_id: categoryId, name, image_url: null, sort_order: maxOrder + 1 });
     if (data) {
       setSubcategories((prev) => [...prev, data]);
       setSubInputs((prev) => ({ ...prev, [categoryId]: "" }));
+    }
+  };
+
+  const handleSubcategoryImageUpload = async (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingSubId(id);
+    const { url } = await uploadProductImage(file);
+    setUploadingSubId(null);
+    if (url) {
+      await updateSubcategory(id, { image_url: url });
+      setSubcategories((prev) => prev.map((s) => (s.id === id ? { ...s, image_url: url } : s)));
     }
   };
 
@@ -129,12 +142,28 @@ export default function AdminCategoriesPage() {
                       <div className="pl-2">
                         <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Subcategories</p>
                         {subs.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-3">
+                          <div className="space-y-2 mb-3">
                             {subs.map((sub) => (
-                              <span key={sub.id} className="flex items-center gap-2 bg-gray-100 dark:bg-gray-900 text-black dark:text-white text-xs px-3 py-1.5 rounded-full">
-                                {sub.name}
-                                <button onClick={() => handleDeleteSubcategory(sub.id)} className="text-red-500 font-bold">×</button>
-                              </span>
+                              <div key={sub.id} className="flex items-center gap-3 bg-gray-50 dark:bg-gray-900 rounded-md px-3 py-2">
+                                <div className="w-9 h-9 rounded-md bg-gray-200 dark:bg-gray-800 overflow-hidden shrink-0 flex items-center justify-center text-gray-400 text-[10px]">
+                                  {sub.image_url ? (
+                                    <img src={sub.image_url} alt={sub.name} className="w-full h-full object-cover" />
+                                  ) : (
+                                    sub.name.charAt(0)
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-black dark:text-white truncate">{sub.name}</p>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleSubcategoryImageUpload(sub.id, e)}
+                                    className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 w-full"
+                                  />
+                                  {uploadingSubId === sub.id && <p className="text-[10px] text-gray-400">Uploading...</p>}
+                                </div>
+                                <button onClick={() => handleDeleteSubcategory(sub.id)} className="text-red-500 font-bold text-sm shrink-0">×</button>
+                              </div>
                             ))}
                           </div>
                         )}
