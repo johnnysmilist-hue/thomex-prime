@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import ThemeToggle from "./ThemeToggle";
 import MobileMenu from "./MobileMenu";
+import NotificationBell from "./NotificationBell";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
@@ -108,6 +109,12 @@ export default function Header() {
             </svg>
           </button>
 
+          {mounted && user && (
+            <div className="shrink-0 w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+              <NotificationBell />
+            </div>
+          )}
+
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute top-full left-12 right-12 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 py-1">
               {suggestions.map((p) => (
@@ -171,6 +178,7 @@ export default function Header() {
 
           <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-300 shrink-0">
             <a href="/track" className="bg-green-600 text-white px-3 py-1 rounded-full font-semibold">Track Order</a>
+            {mounted && user && <NotificationBell />}
             {mounted && user ? (
               <div className="relative">
                 <button
