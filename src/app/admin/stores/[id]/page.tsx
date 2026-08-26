@@ -9,6 +9,8 @@ import AdminSidebar from "@/components/AdminSidebar";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { supabase } from "@/lib/supabaseClient";
 import { fetchStoreById, updateStoreStatus, updateStoreAdminFields, Store } from "@/lib/supabaseStores";
+import { fetchVendorMessages, sendVendorMessage, markMessagesRead, VendorMessage } from "@/lib/supabaseMessages";
+import { createNotification } from "@/lib/supabaseNotifications";
 
 type OrderItem = { id?: string; name: string; qty: number; price: number };
 type OrderRow = { id: string; items: OrderItem[]; created_at: string };
@@ -28,6 +30,10 @@ export default function AdminVendorDetailPage() {
   const [notesInput, setNotesInput] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
+
+  const [messages, setMessages] = useState<VendorMessage[]>([]);
+  const [messageBody, setMessageBody] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -81,6 +87,30 @@ export default function AdminVendorDetailPage() {
   useEffect(() => {
     load();
   }, [params.id]);
+
+  useEffect(() => {
+    if (!store) return;
+    fetchVendorMessages(store.id).then((r) => setMessages(r.data || []));
+    markMessagesRead(store.id, "admin");
+  }, [store?.id]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!store || !messageBody.trim()) return;
+    setSendingMessage(true);
+    const { data } = await sendVendorMessage(store.id, "admin", messageBody.trim());
+    if (data) {
+      setMessages((prev) => [...prev, data]);
+      await createNotification({
+        recipient_type: "vendor",
+        recipient_id: store.id,
+        title: "New message from Thomex Admin",
+        body: messageBody.trim().length > 80 ? messageBody.trim().slice(0, 80) + "..." : messageBody.trim(),
+      });
+    }
+    setMessageBody("");
+    setSendingMessage(false);
+  };
 
   const handleStatusChange = async (status: string) => {
     if (!store) return;
@@ -257,6 +287,46 @@ export default function AdminVendorDetailPage() {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-8">
+                  <p className="text-sm font-bold text-black dark:text-white mb-1">Messages</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Chat directly with this vendor.</p>
+
+                  <div className="border border-gray-100 dark:border-gray-800 rounded-md h-64 overflow-y-auto p-3 space-y-2 mb-3">
+                    {messages.length === 0 ? (
+                      <p className="text-xs text-gray-400 text-center mt-8">No messages yet.</p>
+                    ) : (
+                      messages.map((m) => (
+                        <div key={m.id} className={"flex " + (m.sender === "admin" ? "justify-end" : "justify-start")}>
+                          <div
+                            className={
+                              "max-w-[75%] rounded-lg px-3 py-2 text-xs " +
+                              (m.sender === "admin"
+                                ? "bg-brand text-white"
+                                : "bg-gray-100 dark:bg-gray-800 text-black dark:text-white")
+                            }
+                          >
+                            {m.sender === "vendor" && <p className="text-[10px] font-bold opacity-70 mb-0.5">{store.name}</p>}
+                            <p>{m.body}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <form onSubmit={handleSendMessage} className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Reply to this vendor..."
+                      value={messageBody}
+                      onChange={(e) => setMessageBody(e.target.value)}
+                      className="flex-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm focus:outline-none focus:border-brand"
+                    />
+                    <button type="submit" disabled={sendingMessage || !messageBody.trim()} className="bg-brand text-white px-4 py-2 rounded-md text-sm font-semibold disabled:opacity-60">
+                      Send
+                    </button>
+                  </form>
                 </div>
 
                 <p className="text-sm font-bold text-black dark:text-white mb-3">Products ({products.length})</p>
