@@ -11,7 +11,7 @@ export default function VendorDashboard() {
     <main className="min-h-screen bg-white dark:bg-gray-950">
       <Header />
       <VendorGuard>
-        {(store) => <VendorHome storeId={store.id} storeName={store.name} />}
+        {(store) => <VendorHome storeId={store.id} storeName={store.name} commissionRate={store.commission_rate} />}
       </VendorGuard>
       <Footer />
     </main>
@@ -21,7 +21,7 @@ export default function VendorDashboard() {
 type DayStat = { label: string; revenue: number };
 type ProductStat = { name: string; unitsSold: number; revenue: number };
 
-function VendorHome({ storeId, storeName }: { storeId: string; storeName: string }) {
+function VendorHome({ storeId, storeName, commissionRate }: { storeId: string; storeName: string; commissionRate: number | null }) {
   const [productCount, setProductCount] = useState(0);
   const [orderCount, setOrderCount] = useState(0);
   const [revenue, setRevenue] = useState(0);
@@ -92,14 +92,19 @@ function VendorHome({ storeId, storeName }: { storeId: string; storeName: string
   }, [storeId]);
 
   const maxDayRevenue = Math.max(1, ...dailyStats.map((d) => d.revenue));
+  const rate = commissionRate ?? 10;
+  const payoutEstimate = revenue * (1 - rate / 100);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8 flex-wrap gap-2">
         <h1 className="text-xl font-bold text-black dark:text-white">{storeName} — Vendor Dashboard</h1>
+        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-900 px-3 py-1.5 rounded-full">
+          Commission rate: {rate}%
+        </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
         <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-5">
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your Products</p>
           <p className="text-2xl font-bold text-black dark:text-white">{loading ? "..." : productCount}</p>
@@ -109,8 +114,12 @@ function VendorHome({ storeId, storeName }: { storeId: string; storeName: string
           <p className="text-2xl font-bold text-black dark:text-white">{loading ? "..." : orderCount}</p>
         </div>
         <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-5">
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Revenue</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Gross Revenue</p>
           <p className="text-2xl font-bold text-brand">{loading ? "..." : "KSh " + revenue.toFixed(2)}</p>
+        </div>
+        <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-5">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Est. Payout (after {rate}%)</p>
+          <p className="text-2xl font-bold text-green-600 dark:text-green-400">{loading ? "..." : "KSh " + payoutEstimate.toFixed(2)}</p>
         </div>
       </div>
 
@@ -147,7 +156,7 @@ function VendorHome({ storeId, storeName }: { storeId: string; storeName: string
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <a href="/vendor/products" className="border border-gray-200 dark:border-gray-800 rounded-lg p-6 hover:border-brand transition-colors">
           <h2 className="text-lg font-bold mb-1 text-black dark:text-white">My Products</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">Add, edit, or remove your products.</p>
@@ -155,6 +164,10 @@ function VendorHome({ storeId, storeName }: { storeId: string; storeName: string
         <a href="/vendor/orders" className="border border-gray-200 dark:border-gray-800 rounded-lg p-6 hover:border-brand transition-colors">
           <h2 className="text-lg font-bold mb-1 text-black dark:text-white">My Orders</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">See orders containing your products.</p>
+        </a>
+        <a href="/vendor/messages" className="border border-gray-200 dark:border-gray-800 rounded-lg p-6 hover:border-brand transition-colors">
+          <h2 className="text-lg font-bold mb-1 text-black dark:text-white">Messages</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Chat with the Thomex admin team.</p>
         </a>
       </div>
     </div>
