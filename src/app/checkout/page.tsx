@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { fetchSettings } from "@/lib/supabaseSettings";
 import { validateCoupon, incrementCouponUsage, Coupon } from "@/lib/supabaseCoupons";
+import { createNotification } from "@/lib/supabaseNotifications";
 
 type PaymentMethod = "mpesa" | "cod";
 type MpesaStatus = "idle" | "requesting" | "polling" | "paid" | "failed";
@@ -170,6 +171,31 @@ export default function CheckoutPage() {
     }, 3000);
   };
 
+  const notifyVendorsOfNewOrder = async (code: string) => {
+    const productIds = items.map((i) => i.id).filter(Boolean);
+    if (productIds.length === 0) return;
+
+    const { data: productsData } = await supabase
+      .from("products")
+      .select("id, store_id")
+      .in("id", productIds);
+
+    const storeIds = new Set(
+      (productsData || []).map((p: { store_id: string | null }) => p.store_id).filter((id): id is string => Boolean(id))
+    );
+
+    await Promise.all(
+      Array.from(storeIds).map((storeId) =>
+        createNotification({
+          recipient_type: "vendor",
+          recipient_id: storeId,
+          title: "New order received",
+          body: "Order " + code + " includes one or more of your products.",
+        })
+      )
+    );
+  };
+
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -206,6 +232,8 @@ export default function CheckoutPage() {
     if (appliedCoupon) {
       await incrementCouponUsage(appliedCoupon.id, appliedCoupon.uses_count);
     }
+
+    await notifyVendorsOfNewOrder(code);
 
     if (paymentMethod === "cod") {
       setLoading(false);
