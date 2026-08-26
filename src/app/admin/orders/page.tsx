@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import AdminGuard from "@/components/AdminGuard";
 import AdminSidebar from "@/components/AdminSidebar";
 import { supabase } from "@/lib/supabaseClient";
+import { createNotification } from "@/lib/supabaseNotifications";
 
 type Order = {
   id: string;
@@ -17,6 +18,7 @@ type Order = {
   total: number;
   status: string;
   notes: string | null;
+  user_id: string | null;
   created_at: string;
 };
 
@@ -41,6 +43,17 @@ export default function AdminOrdersPage() {
   const updateStatus = async (id: string, status: string) => {
     await supabase.from("orders").update({ status }).eq("id", id);
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+
+    const order = orders.find((o) => o.id === id);
+    if (order?.user_id) {
+      await createNotification({
+        recipient_type: "customer",
+        recipient_id: order.user_id,
+        title: "Order " + order.order_code + " updated",
+        body: "Your order is now: " + status,
+        order_id: order.id,
+      });
+    }
   };
 
   return (
