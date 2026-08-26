@@ -6,12 +6,14 @@ import Footer from "@/components/Footer";
 import AdminGuard from "@/components/AdminGuard";
 import AdminSidebar from "@/components/AdminSidebar";
 import { fetchAllStores, updateStoreStatus, Store } from "@/lib/supabaseStores";
+import { fetchUnreadCountsByStore } from "@/lib/supabaseMessages";
 import VerifiedBadge from "@/components/VerifiedBadge";
 
 const tabs = ["All", "Pending", "Approved", "Suspended", "Rejected"];
 
 export default function AdminStoresPage() {
   const [stores, setStores] = useState<Store[]>([]);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("All");
   const [search, setSearch] = useState("");
@@ -20,6 +22,8 @@ export default function AdminStoresPage() {
     setLoading(true);
     const { data } = await fetchAllStores();
     setStores(data || []);
+    const counts = await fetchUnreadCountsByStore();
+    setUnreadCounts(counts);
     setLoading(false);
   };
 
@@ -97,6 +101,11 @@ export default function AdminStoresPage() {
                           {store.name}
                           {store.status === "Approved" && <VerifiedBadge />}
                           {store.featured && <span className="text-yellow-500 text-xs">★</span>}
+                          {unreadCounts[store.id] > 0 && (
+                            <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                              {unreadCounts[store.id]} new
+                            </span>
+                          )}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{store.contact_email} • {store.contact_phone}</p>
                         <p className={"text-xs font-semibold mt-1 " + statusColor(store.status)}>{store.status}</p>
