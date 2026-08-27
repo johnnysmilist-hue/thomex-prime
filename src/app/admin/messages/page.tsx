@@ -35,6 +35,9 @@ export default function AdminMessages() {
   const [input, setInput] = useState("");
   const [loadingList, setLoadingList] = useState(true);
   const [loadingThread, setLoadingThread] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "open" | "closed">("all");
+  const [assignedFilter, setAssignedFilter] = useState<"all" | "unassigned" | "mine">("all");
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const adminName = user?.user_metadata?.username || user?.email || "Admin";
@@ -138,15 +141,28 @@ export default function AdminMessages() {
     await supabase.from("conversations").update({ assigned_admin: adminName }).eq("id", activeId);
   };
 
-  const unassignedCount = conversations.filter((c) => !c.assigned_admin && c.status === "open").length;
+   const unassignedCount = conversations.filter((c) => !c.assigned_admin && c.status === "open").length;
   const mineCount = conversations.filter((c) => c.assigned_admin === adminName && c.status === "open").length;
+
+  const filteredConversations = conversations.filter((c) => {
+    if (statusFilter !== "all" && c.status !== statusFilter) return false;
+    if (assignedFilter === "unassigned" && c.assigned_admin) return false;
+    if (assignedFilter === "mine" && c.assigned_admin !== adminName) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      const nameMatch = (c.customer_name || "").toLowerCase().includes(q);
+      const msgMatch = (c.last_message || "").toLowerCase().includes(q);
+      if (!nameMatch && !msgMatch) return false;
+    }
+    return true;
+  });
 
   return (
     <AdminLayout title="Messages">
       <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden flex h-[calc(100vh-180px)] min-h-[500px]">
         {/* Conversation list */}
         <div className="w-72 border-r border-gray-100 dark:border-gray-800 flex flex-col shrink-0">
-          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-4 text-xs">
+          <          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-4 text-xs">
             <div>
               <p className="font-bold text-black dark:text-white text-base">{unassignedCount}</p>
               <p className="text-gray-400">Unassigned</p>
@@ -156,12 +172,51 @@ export default function AdminMessages() {
               <p className="text-gray-400">Mine</p>
             </div>
           </div>
+
+          <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-800 space-y-2">
+            <div className="relative">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search conversations..."
+                className="w-full pl-8 pr-2 py-1.5 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs text-black dark:text-white focus:outline-none"
+              />
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as "all" | "open" | "closed")}
+                className="flex-1 px-2 py-1.5 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs text-black dark:text-white focus:outline-none"
+              >
+                <option value="all">All status</option>
+                <option value="open">Open</option>
+                <option value="closed">Closed</option>
+              </select>
+              <select
+                value={assignedFilter}
+                onChange={(e) => setAssignedFilter(e.target.value as "all" | "unassigned" | "mine")}
+                className="flex-1 px-2 py-1.5 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs text-black dark:text-white focus:outline-none"
+              >
+                <option value="all">Everyone</option>
+                <option value="unassigned">Unassigned</option>
+                <option value="mine">Assigned to me</option>
+              </select>
+            </div>
+          </div>
+
           <div className="flex-1 overflow-y-auto">
             {loadingList && <p className="text-xs text-gray-400 text-center py-6">Loading...</p>}
-            {!loadingList && conversations.length === 0 && (
-              <p className="text-xs text-gray-400 text-center py-6">No conversations yet.</p>
+            {!loadingList && filteredConversations.length === 0 && (
+              <p className="text-xs text-gray-400 text-center py-6">
+                {conversations.length === 0 ? "No conversations yet." : "No conversations match your filters."}
+              </p>
             )}
-            {conversations.map((c) => (
+            {filteredConversations.map((c) => (
               <button
                 key={c.id}
                 onClick={() => setActiveId(c.id)}
