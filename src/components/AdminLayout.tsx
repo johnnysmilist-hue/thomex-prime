@@ -1,10 +1,12 @@
+
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AdminGuard from "./AdminGuard";
+import { supabase } from "@/lib/supabaseClient";
 
 const links = [
   {
