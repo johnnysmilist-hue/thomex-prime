@@ -120,10 +120,79 @@ const links = [
   },
 ];
 
+type Toast = { id: number; name: string; message: string };
+
 export default function AdminLayout({ title, children }: { title: string; children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth();
   const username = user?.user_metadata?.username || user?.email || "Admin";
+
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [toast, setToast] = useState<Toast | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const playBeep = () => {
+    try {
+      const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new Ctx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 720;
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch {
+      // audio not available, fail silently
+    }
+  };
+
+  const refreshUnreadCount = async () => {
+    const { count } = await supabase
+      .from("conversations")
+      .select("id", { count: "exact", head: true })
+      .eq("unread_by_admin", true);
+    setUnreadCount(count || 0);
+  };
+
+  useEffect(() => {
+    refreshUnreadCount();
+
+    const convoChannel = supabase
+      .channel("admin_layout_conversations")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "conversations" },
+        () => refreshUnreadCount()
+      )
+      .subscribe();
+
+    const msgChannel = supabase
+      .channel("admin_layout_new_messages")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "chat_messages" },
+        (payload) => {
+          const msg = payload.new as { sender_type: string; sender_name: string | null; message: string };
+          if (msg.sender_type !== "customer") return;
+
+          playBeep();
+          if (toastTimer.current) clearTimeout(toastTimer.current);
+          const id = Date.now();
+          setToast({ id, name: msg.sender_name || "Customer", message: msg.message });
+          toastTimer.current = setTimeout(() => setToast(null), 5000);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(convoChannel);
+      supabase.removeChannel(msgChannel);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
@@ -147,7 +216,12 @@ export default function AdminLayout({ title, children }: { title: string; childr
                 }
               >
                 {link.icon}
-                <span>{link.label}</span>
+                <span className="flex-1">{link.label}</span>
+                {link.href === "/admin/messages" && unreadCount > 0 && (
+                  <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -183,11 +257,27 @@ export default function AdminLayout({ title, children }: { title: string; childr
           </div>
         </div>
 
-        <div className="px-4 md:px-8 py-6">
+               <div className="px-4 md:px-8 py-6">
           <h1 className="text-xl font-bold text-black dark:text-white mb-6">{title}</h1>
           <AdminGuard>{children}</AdminGuard>
         </div>
       </div>
+
+      {toast && (
+        <button
+          onClick={() => {
+            setToast(null);
+            router.push("/admin/messages");
+          }}
+          className="fixed bottom-5 right-5 z-[60] w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl rounded-xl p-4 text-left animate-in fade-in slide-in-from-bottom-2"
+        >
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-brand" />
+            <p className="text-xs font-bold text-black dark:text-white">New message from {toast.name}</p>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{toast.message}</p>
+        </button>
+      )}
     </div>
   );
 }
