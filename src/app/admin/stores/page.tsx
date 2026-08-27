@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminGuard from "@/components/AdminGuard";
 import AdminSidebar from "@/components/AdminSidebar";
-import { fetchAllStores, updateStoreStatus, Store } from "@/lib/supabaseStores";
+import { fetchAllStores, updateStoreStatus, updateStoreDetails, deleteStore, Store } from "@/lib/supabaseStores";
 import { fetchUnreadCountsByStore } from "@/lib/supabaseMessages";
 import VerifiedBadge from "@/components/VerifiedBadge";
 
@@ -17,6 +17,12 @@ export default function AdminStoresPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("All");
   const [search, setSearch] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -32,6 +38,37 @@ export default function AdminStoresPage() {
   const handleStatusChange = async (id: string, status: string) => {
     await updateStoreStatus(id, status);
     setStores((prev) => prev.map((s) => (s.id === id ? { ...s, status } : s)));
+  };
+
+  const handleEditClick = (store: Store) => {
+    setEditingId(editingId === store.id ? null : store.id);
+    setEditName(store.name);
+    setEditEmail(store.contact_email || "");
+    setEditPhone(store.contact_phone || "");
+    setEditDescription(store.description || "");
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    setSavingEdit(true);
+    await updateStoreDetails(id, {
+      name: editName,
+      contact_email: editEmail,
+      contact_phone: editPhone,
+      description: editDescription,
+    });
+    setStores((prev) =>
+      prev.map((s) =>
+        s.id === id ? { ...s, name: editName, contact_email: editEmail, contact_phone: editPhone, description: editDescription } : s
+      )
+    );
+    setSavingEdit(false);
+    setEditingId(null);
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm("Delete " + name + "? This permanently removes their vendor account and cannot be undone.")) return;
+    await deleteStore(id);
+    setStores((prev) => prev.filter((s) => s.id !== id));
   };
 
   const statusColor = (status: string) => {
@@ -110,9 +147,15 @@ export default function AdminStoresPage() {
                         <p className="text-xs text-gray-500 dark:text-gray-400">{store.contact_email} • {store.contact_phone}</p>
                         <p className={"text-xs font-semibold mt-1 " + statusColor(store.status)}>{store.status}</p>
                       </a>
-                      <div className="flex gap-2 shrink-0">
+                      <div className="flex gap-2 shrink-0 flex-wrap">
                         <a href={"/admin/stores/" + store.id} className="border border-gray-300 dark:border-gray-700 text-black dark:text-white text-xs font-semibold px-3 py-1.5 rounded-md">
-                          View Details
+                          View
+                        </a>
+                        <button onClick={() => handleEditClick(store)} className="border border-gray-300 dark:border-gray-700 text-black dark:text-white text-xs font-semibold px-3 py-1.5 rounded-md">
+                          Edit
+                        </button>
+                        <a href={"/admin/messages?store=" + store.id} className="border border-brand text-brand text-xs font-semibold px-3 py-1.5 rounded-md">
+                          Text
                         </a>
                         {store.status !== "Approved" && (
                           <button onClick={() => handleStatusChange(store.id, "Approved")} className="bg-brand text-white text-xs font-semibold px-3 py-1.5 rounded-md">Approve</button>
@@ -120,8 +163,66 @@ export default function AdminStoresPage() {
                         {store.status !== "Rejected" && (
                           <button onClick={() => handleStatusChange(store.id, "Rejected")} className="border border-red-500 text-red-500 text-xs font-semibold px-3 py-1.5 rounded-md">Reject</button>
                         )}
+                        <button onClick={() => handleDelete(store.id, store.name)} className="border border-red-500 text-red-500 text-xs font-semibold px-3 py-1.5 rounded-md">
+                          Delete
+                        </button>
                       </div>
                     </div>
+
+                    {editingId === store.id && (
+                      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Store Name</label>
+                            <input
+                              type="text"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-1.5 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Contact Email</label>
+                            <input
+                              type="email"
+                              value={editEmail}
+                              onChange={(e) => setEditEmail(e.target.value)}
+                              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-1.5 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Contact Phone</label>
+                            <input
+                              type="text"
+                              value={editPhone}
+                              onChange={(e) => setEditPhone(e.target.value)}
+                              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-1.5 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Description</label>
+                            <input
+                              type="text"
+                              value={editDescription}
+                              onChange={(e) => setEditDescription(e.target.value)}
+                              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-1.5 text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleSaveEdit(store.id)}
+                            disabled={savingEdit}
+                            className="bg-brand text-white text-xs font-semibold px-4 py-1.5 rounded-md disabled:opacity-60"
+                          >
+                            {savingEdit ? "Saving..." : "Save Changes"}
+                          </button>
+                          <button onClick={() => setEditingId(null)} className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
