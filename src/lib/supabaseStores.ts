@@ -47,6 +47,19 @@ export async function updateStoreStatus(id: string, status: string) {
   return { error };
 }
 
+export async function updateStoreDetails(
+  id: string,
+  fields: Partial<Pick<Store, "name" | "description" | "contact_email" | "contact_phone" | "logo_url">>
+) {
+  const { error } = await supabase.from("stores").update(fields).eq("id", id);
+  return { error };
+}
+
+export async function deleteStore(id: string) {
+  const { error } = await supabase.from("stores").delete().eq("id", id);
+  return { error };
+}
+
 export async function updateStoreAdminFields(
   id: string,
   fields: Partial<Pick<Store, "commission_rate" | "featured" | "admin_notes">>
