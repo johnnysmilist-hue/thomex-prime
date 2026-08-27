@@ -30,6 +30,7 @@ export default function RootLayout({
                   <RecentlyViewedProvider>
                     {children}
                     <MobileNav />
+                    <ChatWidget />
                   </RecentlyViewedProvider>
                 </WishlistProvider>
               </CartProvider>
