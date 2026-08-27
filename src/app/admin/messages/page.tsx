@@ -162,7 +162,7 @@ export default function AdminMessages() {
       <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden flex h-[calc(100vh-180px)] min-h-[500px]">
         {/* Conversation list */}
         <div className="w-72 border-r border-gray-100 dark:border-gray-800 flex flex-col shrink-0">
-          <          <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-4 text-xs">
+           <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-4 text-xs">
             <div>
               <p className="font-bold text-black dark:text-white text-base">{unassignedCount}</p>
               <p className="text-gray-400">Unassigned</p>
