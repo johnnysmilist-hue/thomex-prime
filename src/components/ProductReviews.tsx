@@ -121,6 +121,34 @@ export default function ProductReviews({ productId }: { productId: string }) {
         </p>
       )}
 
+      {!loading && reviews.length > 0 && (
+        <div className="flex flex-col sm:flex-row gap-6 mb-6 pb-6 border-b border-gray-100 dark:border-gray-800">
+          <div className="text-center shrink-0 sm:w-32">
+            <p className="text-3xl font-bold text-black dark:text-white">
+              {(reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)} ★
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              Based on {reviews.length} review{reviews.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+          <div className="flex-1 space-y-1.5">
+            {[5, 4, 3, 2, 1].map((star) => {
+              const count = reviews.filter((r) => r.rating === star).length;
+              const pct = (count / reviews.length) * 100;
+              return (
+                <div key={star} className="flex items-center gap-2 text-xs">
+                  <span className="w-8 text-gray-500 dark:text-gray-400">{star} ★</span>
+                  <div className="flex-1 h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-yellow-500" style={{ width: pct + "%" }} />
+                  </div>
+                  <span className="w-6 text-gray-400 text-right">{count}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <p className="text-sm text-gray-400">Loading reviews...</p>
       ) : reviews.length === 0 ? (
