@@ -100,8 +100,11 @@ export default function ProductInfo({
           <span className="text-gray-400 line-through">{format(product.oldPrice)}</span>
         )}
       </div>
-      {product.discountPercent && (
-        <p className="text-xs text-red-500 mb-5">Save {product.discountPercent}% for a limited time</p>
+       {product.oldPrice && product.oldPrice > finalPrice && (
+        <p className="text-xs text-green-600 dark:text-green-400 mb-5">
+          You save {format(product.oldPrice - finalPrice)}
+          {product.discountPercent ? " (" + product.discountPercent + "%)" : ""}
+        </p>
       )}
 
       {Object.entries(grouped).map(([attrName, options]) => {
