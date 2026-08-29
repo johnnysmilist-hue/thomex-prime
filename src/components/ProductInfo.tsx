@@ -57,7 +57,7 @@ export default function ProductInfo({
 
   const handleAddToCart = () => {
         addToCart({ id: product.id, name: buildCartName(), price: finalPrice, imageUrl: product.imageUrl }, qty);
-
+  };
   const handleBuyNow = () => {
     addToCart({ id: product.id, name: buildCartName(), price: finalPrice }, qty);
     router.push("/checkout");
