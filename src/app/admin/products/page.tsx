@@ -5,6 +5,7 @@ import Papa from "papaparse";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminGuard from "@/components/AdminGuard";
+import AdminSidebar from "@/components/AdminSidebar";
 import { fetchProducts, addProduct, deleteProduct, uploadProductImage, bulkAddProducts, DbProduct } from "@/lib/supabaseProducts";
 import { fetchCategories, fetchAllSubcategories, SiteCategory, SiteSubcategory } from "@/lib/supabaseCategories";
 
@@ -227,12 +228,39 @@ export default function AdminProductsPage() {
     loadProducts();
   };
 
+  const stats = {
+    Total: products.length,
+    Published: products.filter((p) => p.status === "Published").length,
+    Draft: products.filter((p) => p.status === "Draft").length,
+    LowStock: products.filter((p) => p.stock > 0 && p.stock <= 5).length,
+    OutOfStock: products.filter((p) => p.stock <= 0).length,
+  };
+
+  const statCards = [
+    { key: "Total", label: "Total Products", bg: "bg-blue-50 dark:bg-blue-500/10", fg: "text-blue-600 dark:text-blue-400" },
+    { key: "Published", label: "Published", bg: "bg-green-50 dark:bg-green-500/10", fg: "text-green-600 dark:text-green-400" },
+    { key: "Draft", label: "Draft", bg: "bg-gray-100 dark:bg-gray-500/10", fg: "text-gray-500 dark:text-gray-400" },
+    { key: "LowStock", label: "Low Stock", bg: "bg-orange-50 dark:bg-orange-500/10", fg: "text-orange-600 dark:text-orange-400" },
+    { key: "OutOfStock", label: "Out of Stock", bg: "bg-red-50 dark:bg-red-500/10", fg: "text-red-600 dark:text-red-400" },
+  ];
+
+  const cardIcon = (key: string) => {
+    const common = { xmlns: "http://www.w3.org/2000/svg", width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+    if (key === "Total") return <svg {...common}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><polyline points="3.29 7 12 12 20.71 7" /><line x1="12" y1="22" x2="12" y2="12" /></svg>;
+    if (key === "Published") return <svg {...common}><path d="M20 6 9 17l-5-5" /></svg>;
+    if (key === "Draft") return <svg {...common}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z" /></svg>;
+    if (key === "LowStock") return <svg {...common}><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>;
+    return <svg {...common}><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg>;
+  };
+
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
       <AdminGuard>
-        <div className="max-w-5xl mx-auto px-4 py-10">
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
+        <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
+          <AdminSidebar />
+          <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
             <h1 className="text-xl font-bold text-black dark:text-white">Manage Products</h1>
             <div className="flex gap-2">
               <button
@@ -250,8 +278,22 @@ export default function AdminProductsPage() {
             </div>
           </div>
 
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            {statCards.map((card) => (
+              <div key={card.key} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex items-center gap-3">
+                <div className={"w-11 h-11 rounded-xl flex items-center justify-center shrink-0 " + card.bg + " " + card.fg}>
+                  {cardIcon(card.key)}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg font-bold text-black dark:text-white leading-tight">{loading ? "..." : stats[card.key as keyof typeof stats]}</p>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{card.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
           {showCsvImport && (
-            <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-8">
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 mb-6">
               <p className="text-sm font-semibold text-black dark:text-white mb-2">Bulk Import from CSV</p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
                 Your CSV needs these columns: <strong>name, price, category</strong> (required), and optionally
@@ -287,7 +329,7 @@ export default function AdminProductsPage() {
           )}
 
           {showForm && (
-            <form onSubmit={handleAdd} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-8 space-y-4">
+            <form onSubmit={handleAdd} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 mb-6 space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Product Name</label>
                 <input required placeholder="e.g. Sony WH-1000XM5" value={name} onChange={(e) => setName(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
@@ -414,7 +456,7 @@ export default function AdminProductsPage() {
           ) : (
             <div className="space-y-3">
               {products.map((p) => (
-                <div key={p.id} className="flex items-center gap-4 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                <div key={p.id} className="flex items-center gap-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4">
                   <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded shrink-0 overflow-hidden">
                     {p.image_url && <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />}
                   </div>
@@ -438,6 +480,7 @@ export default function AdminProductsPage() {
               ))}
             </div>
           )}
+          </div>
         </div>
       </AdminGuard>
       <Footer />
