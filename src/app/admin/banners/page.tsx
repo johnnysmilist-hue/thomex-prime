@@ -146,7 +146,7 @@ export default function AdminBannersPage() {
   );
 
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
       <AdminGuard>
         <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
@@ -171,7 +171,7 @@ export default function AdminBannersPage() {
 
                 <div className="space-y-6 mb-10">
                   {slides.map((slide) => (
-                    <div key={slide.id} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5">
+                    <div key={slide.id} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
                       {renderBannerFields(slide, true)}
                     </div>
                   ))}
@@ -180,7 +180,7 @@ export default function AdminBannersPage() {
                 <h2 className="text-sm font-bold text-black dark:text-white mb-4">Side Tiles</h2>
                 <div className="space-y-6 mb-10">
                   {sideTiles.map((tile) => (
-                    <div key={tile.id} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5">
+                    <div key={tile.id} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
                       <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-4">{slotLabels[tile.slot] || tile.slot}</p>
                       {renderBannerFields(tile, false)}
                     </div>
@@ -190,7 +190,7 @@ export default function AdminBannersPage() {
                 <h2 className="text-sm font-bold text-black dark:text-white mb-4">Bottom Tiles</h2>
                 <div className="space-y-6">
                   {bottomTiles.map((tile) => (
-                    <div key={tile.id} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5">
+                    <div key={tile.id} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
                       <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-4">{slotLabels[tile.slot] || tile.slot}</p>
                       {renderBannerFields(tile, false)}
                     </div>
