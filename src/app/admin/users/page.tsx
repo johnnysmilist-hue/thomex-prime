@@ -40,8 +40,12 @@ export default function AdminUsersPage() {
     load();
   }, []);
 
+  const totalOrders = customers.reduce((sum, c) => sum + c.orderCount, 0);
+  const totalRevenue = customers.reduce((sum, c) => sum + c.totalSpent, 0);
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
       <AdminGuard>
         <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
@@ -49,19 +53,55 @@ export default function AdminUsersPage() {
 
           <div className="flex-1">
             <h1 className="text-xl font-bold mb-2 text-black dark:text-white">Customers</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               Everyone who has placed an order, ranked by total spend.
             </p>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg font-bold text-black dark:text-white leading-tight">{loading ? "..." : customers.length}</p>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">Total Customers</p>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg font-bold text-black dark:text-white leading-tight">{loading ? "..." : "$" + totalRevenue.toFixed(2)}</p>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">Total Revenue</p>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg font-bold text-black dark:text-white leading-tight">{loading ? "..." : "$" + avgOrderValue.toFixed(2)}</p>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">Avg Order Value</p>
+                </div>
+              </div>
+            </div>
 
             {loading ? (
               <p className="text-sm text-gray-400">Loading customers...</p>
             ) : customers.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-gray-400">No customers yet — this fills in as orders come through checkout.</p>
             ) : (
-              <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 dark:bg-gray-900 text-left">
+                    <tr className="bg-gray-50 dark:bg-gray-800 text-left">
                       <th className="px-4 py-2 font-semibold text-black dark:text-white">Name</th>
                       <th className="px-4 py-2 font-semibold text-black dark:text-white">Phone</th>
                       <th className="px-4 py-2 font-semibold text-black dark:text-white">Orders</th>
