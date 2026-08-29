@@ -70,7 +70,7 @@ function getGreeting() {
 function QuickAction({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
    return (
     
-      href={href}
+    <a  href={href}
       className="flex items-center gap-3 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 hover:border-brand transition-colors"
     >
       <div className="w-9 h-9 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">{icon}</div>
