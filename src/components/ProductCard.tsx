@@ -79,9 +79,9 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="mb-2" />
       )}
 
-      <button
+       <button
         onClick={() =>
-          addToCart({ id: product.id, name: product.name, price: product.price })
+          addToCart({ id: product.id, name: product.name, price: product.price, imageUrl: product.imageUrl })
         }
         disabled={outOfStock}
         className="mt-auto w-full bg-black dark:bg-brand text-white text-sm py-2 rounded-full hover:bg-brand transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:hover:bg-gray-300 dark:disabled:hover:bg-gray-700"
