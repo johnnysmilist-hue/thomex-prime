@@ -289,7 +289,7 @@ export default function CheckoutPage() {
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
             Save this code to track your order status anytime.
           </p>
-          <a href={"/track?code=" + orderCode} className="inline-block bg-brand text-white px-6 py-2 rounded-md font-semibold">
+          <a href="/track-order" className="inline-block bg-brand text-white px-6 py-2 rounded-md font-semibold">
             Track This Order
           </a>
         </div>
