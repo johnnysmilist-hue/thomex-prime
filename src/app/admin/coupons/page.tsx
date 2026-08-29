@@ -97,17 +97,58 @@ export default function AdminCouponsPage() {
     setCoupons((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const isExpired = (c: Coupon) => Boolean(c.expires_at && new Date(c.expires_at) < new Date());
+
+  const stats = {
+    Total: coupons.length,
+    Active: coupons.filter((c) => c.active && !isExpired(c)).length,
+    Disabled: coupons.filter((c) => !c.active).length,
+    Expired: coupons.filter((c) => isExpired(c)).length,
+    Redemptions: coupons.reduce((sum, c) => sum + c.uses_count, 0),
+  };
+
+  const statCards = [
+    { key: "Total", label: "Total Coupons", bg: "bg-blue-50 dark:bg-blue-500/10", fg: "text-blue-600 dark:text-blue-400" },
+    { key: "Active", label: "Active", bg: "bg-green-50 dark:bg-green-500/10", fg: "text-green-600 dark:text-green-400" },
+    { key: "Disabled", label: "Disabled", bg: "bg-gray-100 dark:bg-gray-500/10", fg: "text-gray-500 dark:text-gray-400" },
+    { key: "Expired", label: "Expired", bg: "bg-orange-50 dark:bg-orange-500/10", fg: "text-orange-600 dark:text-orange-400" },
+    { key: "Redemptions", label: "Total Redemptions", bg: "bg-purple-50 dark:bg-purple-500/10", fg: "text-purple-600 dark:text-purple-400" },
+  ];
+
+  const cardIcon = (key: string) => {
+    const common = { xmlns: "http://www.w3.org/2000/svg", width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+    if (key === "Total") return <svg {...common}><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" /><path d="M13 5v2" /><path d="M13 17v2" /><path d="M13 11v2" /></svg>;
+    if (key === "Active") return <svg {...common}><path d="M20 6 9 17l-5-5" /></svg>;
+    if (key === "Disabled") return <svg {...common}><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg>;
+    if (key === "Expired") return <svg {...common}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>;
+    return <svg {...common}><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.99 6.57 2.61" /><polyline points="21 3 21 9 15 9" /></svg>;
+  };
+
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
       <AdminGuard>
         <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
           <AdminSidebar />
 
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold mb-8 text-black dark:text-white">Coupons</h1>
+            <h1 className="text-xl font-bold mb-6 text-black dark:text-white">Coupons</h1>
 
-            <form onSubmit={handleCreate} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-8 space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+              {statCards.map((card) => (
+                <div key={card.key} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex items-center gap-3">
+                  <div className={"w-11 h-11 rounded-xl flex items-center justify-center shrink-0 " + card.bg + " " + card.fg}>
+                    {cardIcon(card.key)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-lg font-bold text-black dark:text-white leading-tight">{loading ? "..." : stats[card.key as keyof typeof stats]}</p>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{card.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <form onSubmit={handleCreate} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 mb-8 space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-bold text-black dark:text-white">{editingId ? "Edit Coupon" : "New Coupon"}</p>
                 {editingId && (
@@ -206,7 +247,7 @@ export default function AdminCouponsPage() {
             ) : (
               <div className="space-y-2">
                 {coupons.map((c) => (
-                  <div key={c.id} className="flex items-center justify-between border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3">
+                  <div key={c.id} className="flex items-center justify-between bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl px-4 py-3">
                     <div>
                       <p className="text-sm font-bold text-black dark:text-white">
                         {c.code}{" "}
