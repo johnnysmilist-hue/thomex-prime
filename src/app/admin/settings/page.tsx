@@ -54,7 +54,7 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
       <AdminGuard>
         <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
@@ -62,14 +62,14 @@ export default function AdminSettingsPage() {
 
           <div className="flex-1 max-w-xl">
             <h1 className="text-xl font-bold mb-2 text-black dark:text-white">Store Settings</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               These details are used across your site — contact info, checkout, and more.
             </p>
 
             {loading || !settings ? (
               <p className="text-sm text-gray-400">Loading settings...</p>
             ) : (
-              <form onSubmit={handleSave} className="space-y-4">
+              <form onSubmit={handleSave} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Store Name</label>
                   <input value={settings.store_name} onChange={(e) => updateField("store_name", e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
