@@ -80,21 +80,26 @@ export default function AdminBrandsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
       <AdminGuard>
         <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
           <AdminSidebar />
 
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold mb-2 text-black dark:text-white">Brands</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-xl font-bold text-black dark:text-white">Brands</h1>
+              <span className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold px-2.5 py-1 rounded-full">
+                {loading ? "..." : brands.length}
+              </span>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               These show up in the &quot;Shop By Top Brands&quot; strip on your homepage. Clicking a logo takes shoppers to
               the shop page filtered to that brand — make sure the name here matches the Brand field you use on your
               products exactly (e.g. &quot;Apple&quot;, not &quot;apple&quot; or &quot;Apple Inc&quot;).
             </p>
 
-            <form onSubmit={handleCreate} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-8 space-y-4">
+            <form onSubmit={handleCreate} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 mb-6 space-y-4">
               <p className="text-sm font-bold text-black dark:text-white">Add Brand</p>
 
               <div>
@@ -104,7 +109,7 @@ export default function AdminBrandsPage() {
                   placeholder="e.g. Apple"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full sm:w-80 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm"
+                  className="w-full sm:w-80 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm"
                 />
               </div>
 
@@ -112,7 +117,7 @@ export default function AdminBrandsPage() {
                 <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Logo Image</label>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="text-sm text-gray-600 dark:text-gray-300" />
                 {logoPreview && (
-                  <div className="mt-3 w-32 h-16 border border-gray-200 dark:border-gray-800 rounded-md flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                  <div className="mt-3 w-32 h-16 border border-gray-100 dark:border-gray-800 rounded-lg flex items-center justify-center bg-gray-50 dark:bg-gray-800">
                     <img src={logoPreview} alt="Preview" className="max-h-10 max-w-full object-contain" />
                   </div>
                 )}
@@ -132,7 +137,7 @@ export default function AdminBrandsPage() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {brands.map((b) => (
-                  <div key={b.id} className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 flex flex-col items-center gap-3">
+                  <div key={b.id} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex flex-col items-center gap-3">
                     <div className="h-10 flex items-center">
                       <img src={b.logo_url} alt={b.name} className="max-h-10 max-w-full object-contain" />
                     </div>
