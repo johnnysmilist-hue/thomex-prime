@@ -78,6 +78,31 @@ export default function AdminStoresPage() {
     return "text-yellow-600 dark:text-yellow-400";
   };
 
+  const counts = {
+    Total: stores.length,
+    Pending: stores.filter((s) => s.status === "Pending").length,
+    Approved: stores.filter((s) => s.status === "Approved").length,
+    Suspended: stores.filter((s) => s.status === "Suspended").length,
+    Rejected: stores.filter((s) => s.status === "Rejected").length,
+  };
+
+  const statCards = [
+    { key: "Total", label: "Total Vendors", bg: "bg-blue-50 dark:bg-blue-500/10", fg: "text-blue-600 dark:text-blue-400" },
+    { key: "Pending", label: "Pending Review", bg: "bg-yellow-50 dark:bg-yellow-500/10", fg: "text-yellow-600 dark:text-yellow-400" },
+    { key: "Approved", label: "Approved", bg: "bg-green-50 dark:bg-green-500/10", fg: "text-green-600 dark:text-green-400" },
+    { key: "Suspended", label: "Suspended", bg: "bg-orange-50 dark:bg-orange-500/10", fg: "text-orange-600 dark:text-orange-400" },
+    { key: "Rejected", label: "Rejected", bg: "bg-red-50 dark:bg-red-500/10", fg: "text-red-600 dark:text-red-400" },
+  ];
+
+  const cardIcon = (key: string) => {
+    const common = { xmlns: "http://www.w3.org/2000/svg", width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+    if (key === "Total") return <svg {...common}><path d="M3 21h18" /><path d="M5 21V7l8-4v18" /><path d="M19 21V11l-6-4" /></svg>;
+    if (key === "Pending") return <svg {...common}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>;
+    if (key === "Approved") return <svg {...common}><path d="M20 6 9 17l-5-5" /></svg>;
+    if (key === "Suspended") return <svg {...common}><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>;
+    return <svg {...common}><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>;
+  };
+
   const visible = stores.filter((s) => {
     const matchesTab = tab === "All" || s.status === tab;
     const matchesSearch =
@@ -88,7 +113,7 @@ export default function AdminStoresPage() {
   });
 
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
       <AdminGuard>
         <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
@@ -99,7 +124,21 @@ export default function AdminStoresPage() {
               Review documents, approve, suspend, or feature vendors. Click a vendor to see their sales stats, set commission, and leave private notes.
             </p>
 
-            <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+              {statCards.map((card) => (
+                <div key={card.key} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex items-center gap-3">
+                  <div className={"w-11 h-11 rounded-xl flex items-center justify-center shrink-0 " + card.bg + " " + card.fg}>
+                    {cardIcon(card.key)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-lg font-bold text-black dark:text-white leading-tight">{loading ? "..." : counts[card.key as keyof typeof counts]}</p>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{card.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex items-center justify-between flex-wrap gap-3 mb-6">
               <div className="flex gap-1 border border-gray-200 dark:border-gray-800 rounded-md p-1">
                 {tabs.map((t) => (
                   <button
@@ -120,7 +159,7 @@ export default function AdminStoresPage() {
                 placeholder="Search by name or email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm w-full sm:w-64"
+                className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-3 py-2 text-sm w-full sm:w-64"
               />
             </div>
 
@@ -131,7 +170,7 @@ export default function AdminStoresPage() {
             ) : (
               <div className="space-y-3">
                 {visible.map((store) => (
-                  <div key={store.id} className="border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+                  <div key={store.id} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4">
                     <div className="flex items-center justify-between flex-wrap gap-3">
                       <a href={"/admin/stores/" + store.id} className="min-w-0">
                         <p className="text-sm font-bold text-black dark:text-white flex items-center gap-1.5 hover:text-brand">
