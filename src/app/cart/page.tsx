@@ -146,8 +146,12 @@ export default function CartPage() {
             <div className="divide-y divide-gray-100 dark:divide-gray-800 border-t border-b border-gray-100 dark:border-gray-800 mb-4">
               {items.map((item) => (
                 <div key={item.id} className="flex gap-3 py-4">
-                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center text-gray-400 text-[10px] shrink-0">
-                    Image
+                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded overflow-hidden shrink-0">
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px]">Image</div>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-black dark:text-white line-clamp-2 mb-1">{item.name}</p>
