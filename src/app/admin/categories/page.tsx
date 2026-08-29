@@ -93,7 +93,7 @@ export default function AdminCategoriesPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
       <AdminGuard>
         <div className="max-w-5xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
@@ -105,12 +105,37 @@ export default function AdminCategoriesPage() {
               Manage categories, their images, and subcategories shown in the shop and menu.
             </p>
 
-            <div className="flex gap-2 mb-8">
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg font-bold text-black dark:text-white leading-tight">{loading ? "..." : categories.length}</p>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">Categories</p>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-lg font-bold text-black dark:text-white leading-tight">{loading ? "..." : subcategories.length}</p>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">Subcategories</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex gap-2 mb-6">
               <input
                 placeholder="New category name"
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
-                className="flex-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm"
+                className="flex-1 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm"
               />
               <button onClick={handleAddCategory} className="bg-brand text-white px-5 py-2 rounded-md text-sm font-semibold shrink-0">
                 + Add Category
@@ -124,7 +149,7 @@ export default function AdminCategoriesPage() {
                 {categories.map((cat) => {
                   const subs = subcategories.filter((s) => s.category_id === cat.id);
                   return (
-                    <div key={cat.id} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5">
+                    <div key={cat.id} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
                       <div className="flex items-center gap-4 mb-4">
                         <div className="w-14 h-14 rounded-full bg-gray-100 dark:bg-gray-900 overflow-hidden shrink-0 flex items-center justify-center text-gray-400 text-xs">
                           {cat.image_url ? <img src={cat.image_url} alt={cat.name} className="w-full h-full object-cover" /> : cat.name.charAt(0)}
