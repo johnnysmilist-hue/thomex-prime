@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import VendorGuard from "@/components/VendorGuard";
+import VendorSidebar from "@/components/VendorSidebar";
 import { supabase } from "@/lib/supabaseClient";
 import { addProduct, deleteProduct, uploadProductImage, DbProduct } from "@/lib/supabaseProducts";
 import { categories } from "@/lib/categories";
 
 export default function VendorProductsPage() {
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
       <VendorGuard>
         {(store) => <VendorProducts storeId={store.id} />}
@@ -112,31 +113,53 @@ function VendorProducts({ storeId }: { storeId: string }) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
-      <div className="flex items-center justify-between mb-8 flex-wrap gap-3">
+    <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
+      <VendorSidebar />
+
+      <div className="flex-1 min-w-0">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 className="text-xl font-bold text-black dark:text-white">My Products</h1>
         <button onClick={() => setShowForm(!showForm)} className="bg-brand text-white px-4 py-2 rounded-md text-sm font-semibold">
           {showForm ? "Cancel" : "+ Add Product"}
         </button>
       </div>
 
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4">
+          <p className="text-lg font-bold text-black dark:text-white leading-tight">{loading ? "..." : products.length}</p>
+          <p className="text-[11px] text-gray-500 dark:text-gray-400">Total Products</p>
+        </div>
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4">
+          <p className="text-lg font-bold text-orange-600 dark:text-orange-400 leading-tight">
+            {loading ? "..." : products.filter((p) => p.stock > 0 && p.stock <= 5).length}
+          </p>
+          <p className="text-[11px] text-gray-500 dark:text-gray-400">Low Stock</p>
+        </div>
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4">
+          <p className="text-lg font-bold text-red-600 dark:text-red-400 leading-tight">
+            {loading ? "..." : products.filter((p) => p.stock <= 0).length}
+          </p>
+          <p className="text-[11px] text-gray-500 dark:text-gray-400">Out of Stock</p>
+        </div>
+      </div>
+
       {showForm && (
-        <form onSubmit={handleAdd} className="border border-gray-200 dark:border-gray-800 rounded-lg p-5 mb-8 space-y-3">
-          <input required placeholder="Product name" value={name} onChange={(e) => setName(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+        <form onSubmit={handleAdd} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 mb-6 space-y-3">
+          <input required placeholder="Product name" value={name} onChange={(e) => setName(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
           <div className="grid grid-cols-2 gap-3">
-            <input required type="number" step="0.01" placeholder="Price (KSh)" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-            <input type="number" placeholder="Stock" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+            <input required type="number" step="0.01" placeholder="Price (KSh)" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
+            <input type="number" placeholder="Stock" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
           </div>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm">
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm">
             {categories.map((cat) => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
-          <textarea placeholder="Description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm resize-none" />
+          <textarea placeholder="Description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm resize-none" />
           <div>
             <input type="file" accept="image/*" onChange={handleFileChange} className="text-sm text-black dark:text-white" />
             {uploading && <p className="text-xs text-gray-400 mt-1">Uploading...</p>}
-            {imageUrl && <img src={imageUrl} alt="Preview" className="w-20 h-20 object-cover rounded-md mt-2 border border-gray-200 dark:border-gray-800" />}
+            {imageUrl && <img src={imageUrl} alt="Preview" className="w-20 h-20 object-cover rounded-md mt-2 border border-gray-100 dark:border-gray-800" />}
           </div>
 
           {error && <p className="text-xs text-red-500">{error}</p>}
@@ -154,7 +177,7 @@ function VendorProducts({ storeId }: { storeId: string }) {
       ) : (
         <div className="space-y-3">
           {products.map((p) => (
-            <div key={p.id} className="flex items-center gap-4 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+            <div key={p.id} className="flex items-center gap-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4">
               <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded shrink-0 overflow-hidden">
                 {p.image_url && <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />}
               </div>
@@ -162,12 +185,13 @@ function VendorProducts({ storeId }: { storeId: string }) {
                 <p className="text-sm font-medium text-black dark:text-white truncate">{p.name}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{p.category} • KSh {p.price.toFixed(2)} • Stock: {p.stock}</p>
               </div>
-                            <a href={"/vendor/products/" + p.id + "/edit"} className="text-brand text-xs font-semibold shrink-0">Edit</a>
+              <a href={"/vendor/products/" + p.id + "/edit"} className="text-brand text-xs font-semibold shrink-0">Edit</a>
               <button onClick={() => handleDelete(p.id)} className="text-red-500 text-xs font-semibold shrink-0">Delete</button>
             </div>
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }
