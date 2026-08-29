@@ -15,6 +15,7 @@ type Order = {
   status: string;
   items: OrderItem[];
   total: number;
+  delivery_date: string | null;
   created_at: string;
 };
 
@@ -42,7 +43,7 @@ export default function MyOrdersPage() {
     const load = async () => {
       const { data } = await supabase
         .from("orders")
-        .select("id, order_code, status, items, total, created_at")
+        .select("id, order_code, status, items, total, delivery_date, created_at")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -168,6 +169,9 @@ export default function MyOrdersPage() {
                     </span>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                       On {new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                      {order.delivery_date && (
+                        <> • Expected delivery {new Date(order.delivery_date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}</>
+                      )}
                     </p>
                   </div>
 
