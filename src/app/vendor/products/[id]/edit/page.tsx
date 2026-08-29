@@ -12,7 +12,7 @@ import { categories } from "@/lib/categories";
 
 export default function VendorEditProductPage({ params }: { params: { id: string } }) {
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
       <VendorGuard>
         {(store) => <EditForm productId={params.id} storeId={store.id} />}
