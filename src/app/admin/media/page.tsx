@@ -63,7 +63,7 @@ export default function AdminMediaPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
       <AdminGuard>
         <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
@@ -88,7 +88,7 @@ export default function AdminMediaPage() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {files.map((file) => (
-                  <div key={file.name} className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+                  <div key={file.name} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
                     <div className="h-28 bg-gray-100 dark:bg-gray-900">
                       <img src={file.url} alt={file.name} className="w-full h-full object-cover" />
                     </div>
