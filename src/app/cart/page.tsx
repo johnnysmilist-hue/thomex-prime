@@ -45,8 +45,12 @@ export default function CartPage() {
                       <tr key={item.id} className="border-b border-gray-100 dark:border-gray-800">
                         <td className="py-5">
                           <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-900 rounded-lg flex items-center justify-center text-gray-400 text-[10px] shrink-0">
-                              Image
+                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden shrink-0">
+                              {item.imageUrl ? (
+                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px]">Image</div>
+                              )}
                             </div>
                             <div>
                               <p className="font-semibold text-black dark:text-white">{item.name}</p>
