@@ -368,7 +368,7 @@ export default function AdminDashboard() {
           </div>
           <div className="space-y-2">
             {lowStockProducts.slice(0, 6).map((p) => (
-              
+              <a
                 key={p.id}
                 href={"/admin/products/" + p.id + "/edit"}
                 className="flex items-center justify-between text-sm px-3 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
