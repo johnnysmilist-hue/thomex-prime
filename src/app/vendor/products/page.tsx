@@ -7,7 +7,7 @@ import VendorGuard from "@/components/VendorGuard";
 import VendorSidebar from "@/components/VendorSidebar";
 import { supabase } from "@/lib/supabaseClient";
 import { addProduct, deleteProduct, uploadProductImage, DbProduct } from "@/lib/supabaseProducts";
-import { categories } from "@/lib/categories";
+import { fetchCategories, fetchAllSubcategories, SiteCategory, SiteSubcategory } from "@/lib/supabaseCategories";
 
 export default function VendorProductsPage() {
   return (
@@ -31,7 +31,10 @@ function VendorProducts({ storeId }: { storeId: string }) {
 
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
-  const [category, setCategory] = useState(categories[0]);
+  const [siteCategories, setSiteCategories] = useState<SiteCategory[]>([]);
+  const [siteSubcategories, setSiteSubcategories] = useState<SiteSubcategory[]>([]);
+  const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
   const [description, setDescription] = useState("");
   const [stock, setStock] = useState("0");
   const [imageUrl, setImageUrl] = useState("");
@@ -45,13 +48,28 @@ function VendorProducts({ storeId }: { storeId: string }) {
 
   useEffect(() => {
     loadProducts();
+    fetchCategories().then((r) => {
+      const cats = r.data || [];
+      setSiteCategories(cats);
+      setCategory((prev) => prev || cats[0]?.name || "");
+    });
+    fetchAllSubcategories().then((r) => setSiteSubcategories(r.data || []));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storeId]);
+
+  const selectedCategoryObj = siteCategories.find((c) => c.name === category);
+  const availableSubcategories = siteSubcategories.filter((s) => s.category_id === selectedCategoryObj?.id);
+
+  const handleCategoryChange = (name: string) => {
+    setCategory(name);
+    setSubcategory("");
+  };
 
   const resetForm = () => {
     setName("");
     setPrice("");
-    setCategory(categories[0]);
+    setCategory(siteCategories[0]?.name || "");
+    setSubcategory("");
     setDescription("");
     setStock("0");
     setImageUrl("");
@@ -83,6 +101,7 @@ function VendorProducts({ storeId }: { storeId: string }) {
       review_count: 0,
       discount_percent: null,
       category,
+      subcategory: subcategory || null,
       brand: null,
       color: null,
       description,
@@ -150,9 +169,20 @@ function VendorProducts({ storeId }: { storeId: string }) {
             <input required type="number" step="0.01" placeholder="Price (KSh)" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
             <input type="number" placeholder="Stock" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
           </div>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm">
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
+          <select value={category} onChange={(e) => handleCategoryChange(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm">
+            {siteCategories.map((cat) => (
+              <option key={cat.id} value={cat.name}>{cat.name}</option>
+            ))}
+          </select>
+          <select
+            value={subcategory}
+            onChange={(e) => setSubcategory(e.target.value)}
+            disabled={availableSubcategories.length === 0}
+            className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm disabled:opacity-50"
+          >
+            <option value="">{availableSubcategories.length === 0 ? "No subcategories" : "None"}</option>
+            {availableSubcategories.map((sub) => (
+              <option key={sub.id} value={sub.name}>{sub.name}</option>
             ))}
           </select>
           <textarea placeholder="Description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm resize-none" />
