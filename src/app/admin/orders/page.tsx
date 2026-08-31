@@ -218,7 +218,7 @@ export default function AdminOrdersPage() {
                               <td className="px-4 py-3">
                                 <div className="flex items-center gap-2">
                                   
-                                    href={"/admin/orders/" + order.id + "/invoice"}
+                                   <a href={"/admin/orders/" + order.id + "/invoice"}
                                     className="text-gray-400 hover:text-brand"
                                     title="View invoice"
                                   >
