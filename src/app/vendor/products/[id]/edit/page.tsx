@@ -8,7 +8,7 @@ import VendorGuard from "@/components/VendorGuard";
 import { supabase } from "@/lib/supabaseClient";
 import { updateProduct, uploadProductImage, DbProduct } from "@/lib/supabaseProducts";
 import { fetchAttributes, addAttribute, deleteAttribute, Attribute } from "@/lib/supabaseAttributes";
-import { categories } from "@/lib/categories";
+import { fetchCategories, fetchAllSubcategories, SiteCategory, SiteSubcategory } from "@/lib/supabaseCategories";
 
 export default function VendorEditProductPage({ params }: { params: { id: string } }) {
   return (
@@ -33,7 +33,10 @@ function EditForm({ productId, storeId }: { productId: string; storeId: string }
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [oldPrice, setOldPrice] = useState("");
-  const [category, setCategory] = useState(categories[0]);
+  const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
+  const [siteCategories, setSiteCategories] = useState<SiteCategory[]>([]);
+  const [siteSubcategories, setSiteSubcategories] = useState<SiteSubcategory[]>([]);
   const [description, setDescription] = useState("");
   const [stock, setStock] = useState("0");
   const [imageUrl, setImageUrl] = useState("");
@@ -48,6 +51,9 @@ function EditForm({ productId, storeId }: { productId: string; storeId: string }
 
   useEffect(() => {
     const load = async () => {
+      fetchCategories().then((r) => setSiteCategories(r.data || []));
+      fetchAllSubcategories().then((r) => setSiteSubcategories(r.data || []));
+
       const { data } = await supabase.from("products").select("*").eq("id", productId).single();
       if (!data || (data as DbProduct).store_id !== storeId) {
         setNotOwner(true);
@@ -59,6 +65,7 @@ function EditForm({ productId, storeId }: { productId: string; storeId: string }
       setPrice(String(p.price));
       setOldPrice(p.old_price ? String(p.old_price) : "");
       setCategory(p.category);
+      setSubcategory(p.subcategory || "");
       setDescription(p.description || "");
       setStock(String(p.stock));
       setImageUrl(p.image_url || "");
@@ -69,6 +76,14 @@ function EditForm({ productId, storeId }: { productId: string; storeId: string }
     };
     load();
   }, [productId, storeId]);
+
+  const selectedCategoryObj = siteCategories.find((c) => c.name === category);
+  const availableSubcategories = siteSubcategories.filter((s) => s.category_id === selectedCategoryObj?.id);
+
+  const handleCategoryChange = (name: string) => {
+    setCategory(name);
+    setSubcategory("");
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -103,6 +118,7 @@ function EditForm({ productId, storeId }: { productId: string; storeId: string }
       old_price: oldPrice ? parseFloat(oldPrice) : null,
       discount_percent: oldPrice ? Math.round(((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) * 100) : null,
       category,
+      subcategory: subcategory || null,
       description,
       image_url: imageUrl || null,
       stock: parseInt(stock) || 0,
@@ -168,11 +184,25 @@ function EditForm({ productId, storeId }: { productId: string; storeId: string }
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm">
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
+          <select value={category} onChange={(e) => handleCategoryChange(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm">
+            {siteCategories.map((cat) => (
+              <option key={cat.id} value={cat.name}>{cat.name}</option>
             ))}
           </select>
+          <select
+            value={subcategory}
+            onChange={(e) => setSubcategory(e.target.value)}
+            disabled={availableSubcategories.length === 0}
+            className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm disabled:opacity-50"
+          >
+            <option value="">{availableSubcategories.length === 0 ? "No subcategories" : "None"}</option>
+            {availableSubcategories.map((sub) => (
+              <option key={sub.id} value={sub.name}>{sub.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
           <input type="number" placeholder="Stock" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
         </div>
 
