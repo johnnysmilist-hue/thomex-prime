@@ -68,11 +68,8 @@ function getGreeting() {
 }
 
 function QuickAction({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
-   return (
-    
-    <a  href={href}
-      className="flex items-center gap-3 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 hover:border-brand transition-colors"
-    >
+  return (
+    <a href={href} className="flex items-center gap-3 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 hover:border-brand transition-colors">
       <div className="w-9 h-9 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">{icon}</div>
       <span className="text-sm font-semibold text-black dark:text-white">{label}</span>
     </a>
@@ -253,10 +250,9 @@ export default function AdminDashboard() {
         <p className="text-sm text-gray-500 dark:text-gray-400">Stay on top of your store, monitor sales, and track orders.</p>
       </div>
 
-      {/* Quick actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <QuickAction
-          href="/admin/products/new"
+          href="/admin/products"
           label="Add Product"
           icon={<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>}
         />
@@ -266,9 +262,9 @@ export default function AdminDashboard() {
           icon={<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>}
         />
         <QuickAction
-          href="/admin/messages"
-          label="Messages"
-          icon={<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>}
+          href="/admin/stores"
+          label="Stores"
+          icon={<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 7h20l-1.6 8.2a2 2 0 0 1-2 1.8H5.6a2 2 0 0 1-2-1.8L2 7Z" /><path d="M2 7 4 3h16l2 4" /></svg>}
         />
         <QuickAction
           href="/admin/categories"
@@ -277,7 +273,6 @@ export default function AdminDashboard() {
         />
       </div>
 
-      {/* Hero revenue card */}
       <div className="bg-brand rounded-xl p-6 mb-4 flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -292,7 +287,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Secondary stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <StatCard
           icon={<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /></svg>}
@@ -318,7 +312,6 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Revenue chart with range picker */}
         <div className="lg:col-span-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-bold text-black dark:text-white">Revenue</p>
@@ -357,14 +350,12 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Order status donut */}
         <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5">
           <p className="text-sm font-bold text-black dark:text-white mb-4">Order Status</p>
           {!loading && <StatusDonut counts={statusCounts} total={orders.length} />}
         </div>
       </div>
 
-      {/* Low stock alerts */}
       {!loading && lowStockProducts.length > 0 && (
         <div className="bg-white dark:bg-gray-900 border border-orange-200 dark:border-orange-900/50 rounded-xl p-5 mb-6">
           <div className="flex items-center gap-2 mb-4">
@@ -376,10 +367,10 @@ export default function AdminDashboard() {
             <p className="text-sm font-bold text-black dark:text-white">Low Stock Alerts</p>
           </div>
           <div className="space-y-2">
-             {lowStockProducts.slice(0, 6).map((p) => (
+            {lowStockProducts.slice(0, 6).map((p) => (
               
                 key={p.id}
-               <a href={"/admin/products/" + p.id + "/edit"}
+                href={"/admin/products/" + p.id + "/edit"}
                 className="flex items-center justify-between text-sm px-3 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 <span className="text-black dark:text-white truncate flex-1">{p.name}</span>
@@ -395,7 +386,6 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Recent orders table */}
       <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden mb-6">
         <div className="flex items-center justify-between gap-3 p-5 pb-3 flex-wrap">
           <p className="text-sm font-bold text-black dark:text-white">Recent Orders</p>
