@@ -1,4 +1,3 @@
-
 "use client";
 
 import { ReactNode, useEffect, useRef, useState } from "react";
@@ -206,14 +205,14 @@ export default function AdminLayout({ title, children }: { title: string; childr
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
-      <aside className="hidden md:flex md:flex-col w-60 shrink-0 bg-gray-900 text-gray-300 min-h-screen sticky top-0">
-        <div className="flex items-center gap-2 px-5 py-5 border-b border-gray-800">
-          <div className="w-8 h-8 rounded-md bg-brand flex items-center justify-center text-white font-bold text-sm shrink-0">T</div>
-          <p className="text-white font-bold">Thomex Admin</p>
+    <div className="min-h-screen bg-[#f7f7fb] dark:bg-gray-950 flex gap-4 p-4">
+      <aside className="hidden md:flex md:flex-col w-64 shrink-0 bg-white dark:bg-gray-900 rounded-2xl shadow-sm min-h-[calc(100vh-2rem)] sticky top-4">
+        <div className="flex items-center gap-2 px-5 py-6">
+          <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white font-bold text-sm shrink-0">T</div>
+          <p className="text-black dark:text-white font-bold text-lg">Thomex</p>
         </div>
-        <p className="text-[10px] font-bold text-gray-500 uppercase px-5 pt-4 pb-2">Menu</p>
-        <nav className="flex-1 overflow-y-auto">
+        <p className="text-[10px] font-bold text-gray-400 uppercase px-5 pt-2 pb-2">Menu</p>
+        <nav className="flex-1 overflow-y-auto px-3">
           {links.map((link) => {
             const active = pathname === link.href;
             return (
@@ -222,8 +221,8 @@ export default function AdminLayout({ title, children }: { title: string; childr
                 href={link.href}
                 className={
                   active
-                    ? "flex items-center gap-3 px-5 py-2.5 text-sm bg-brand text-white border-r-2 border-white"
-                    : "flex items-center gap-3 px-5 py-2.5 text-sm hover:bg-gray-800 hover:text-white transition-colors"
+                    ? "flex items-center gap-3 px-4 py-2.5 mb-1 text-sm rounded-xl bg-brand/10 text-brand font-semibold"
+                    : "flex items-center gap-3 px-4 py-2.5 mb-1 text-sm rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 }
               >
                 {link.icon}
@@ -240,7 +239,7 @@ export default function AdminLayout({ title, children }: { title: string; childr
       </aside>
 
       <div className="flex-1 min-w-0">
-        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 md:px-8 py-3 flex items-center justify-between gap-4">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm px-4 md:px-6 py-3 flex items-center justify-between gap-4 mb-4">
           <div className="flex-1 max-w-sm hidden sm:block">
             <div className="relative">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -249,26 +248,26 @@ export default function AdminLayout({ title, children }: { title: string; childr
               </svg>
               <input
                 type="text"
-                placeholder="Search..."
-                className="w-full pl-9 pr-3 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-black dark:text-white focus:outline-none"
+                placeholder="Search Anything"
+                className="w-full pl-9 pr-3 py-2 rounded-full border-0 bg-gray-50 dark:bg-gray-800 text-sm text-black dark:text-white focus:outline-none"
               />
             </div>
           </div>
           <div className="flex items-center gap-3 ml-auto">
             <a href="/" className="text-xs text-gray-500 dark:text-gray-400 hover:text-brand hidden sm:inline">View Store</a>
-            <div className="flex items-center gap-2 pl-3 border-l border-gray-200 dark:border-gray-800">
-              <div className="w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-xs shrink-0">
+            <div className="flex items-center gap-2 pl-3 border-l border-gray-100 dark:border-gray-800">
+              <div className="w-9 h-9 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-xs shrink-0">
                 {username.charAt(0).toUpperCase()}
               </div>
               <div className="hidden sm:block leading-tight">
-                <p className="text-xs font-semibold text-black dark:text-white truncate max-w-[120px]">{username}</p>
+                <p className="text-xs font-semibold text-black dark:text-white truncate max-w-[160px]">{username}</p>
                 <p className="text-[10px] text-gray-400">Admin</p>
               </div>
             </div>
           </div>
         </div>
 
-               <div className="px-4 md:px-8 py-6">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm px-4 md:px-8 py-6">
           <h1 className="text-xl font-bold text-black dark:text-white mb-6">{title}</h1>
           <AdminGuard>{children}</AdminGuard>
         </div>
