@@ -1,10 +1,11 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AdminGuard from "./AdminGuard";
+import CommandPalette from "./CommandPalette";
 
 type NavLink = {
   href: string;
@@ -153,6 +154,7 @@ export default function AdminLayout({ title, children }: { title: string; childr
   const pathname = usePathname();
   const { user } = useAuth();
   const username = user?.user_metadata?.username || user?.email || "Admin";
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
@@ -203,7 +205,10 @@ export default function AdminLayout({ title, children }: { title: string; childr
       <div className="flex-1 min-w-0">
         <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 md:px-8 py-3 flex items-center justify-between gap-4">
           <div className="flex-1 max-w-sm hidden sm:block">
-            <button className="w-full flex items-center gap-2 pl-3 pr-2 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="w-full flex items-center gap-2 pl-3 pr-2 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -231,6 +236,8 @@ export default function AdminLayout({ title, children }: { title: string; childr
           <AdminGuard>{children}</AdminGuard>
         </div>
       </div>
+
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </div>
   );
 }
