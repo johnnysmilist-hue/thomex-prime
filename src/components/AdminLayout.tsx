@@ -1,293 +1,236 @@
 "use client";
 
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AdminGuard from "./AdminGuard";
-import { supabase } from "@/lib/supabaseClient";
 
-const links = [
+type NavLink = {
+  href: string;
+  label: string;
+  icon: ReactNode;
+};
+
+type NavGroup = {
+  label: string;
+  links: NavLink[];
+};
+
+const navGroups: NavGroup[] = [
   {
-    href: "/admin",
-    label: "Dashboard",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="9" rx="1" />
-        <rect x="14" y="3" width="7" height="5" rx="1" />
-        <rect x="14" y="12" width="7" height="9" rx="1" />
-        <rect x="3" y="16" width="7" height="5" rx="1" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/products",
-    label: "Products",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
-        <path d="m3.3 7 8.7 5 8.7-5" />
-        <path d="M12 22V12" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/categories",
-    label: "Categories",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-      </svg>
-    ),
+    label: "Overview",
+    links: [
+      {
+        href: "/admin",
+        label: "Dashboard",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="7" height="9" rx="1" />
+            <rect x="14" y="3" width="7" height="5" rx="1" />
+            <rect x="14" y="12" width="7" height="9" rx="1" />
+            <rect x="3" y="16" width="7" height="5" rx="1" />
+          </svg>
+        ),
+      },
+    ],
   },
   {
-    href: "/admin/orders",
-    label: "Orders",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-        <path d="M3 6h18" />
-        <path d="M16 10a4 4 0 0 1-8 0" />
-      </svg>
-    ),
+    label: "Commerce",
+    links: [
+      {
+        href: "/admin/products",
+        label: "Products",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+            <path d="m3.3 7 8.7 5 8.7-5" />
+            <path d="M12 22V12" />
+          </svg>
+        ),
+      },
+      {
+        href: "/admin/categories",
+        label: "Categories",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+          </svg>
+        ),
+      },
+      {
+        href: "/admin/orders",
+        label: "Orders",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+            <path d="M3 6h18" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+          </svg>
+        ),
+      },
+      {
+        href: "/admin/stores",
+        label: "Stores",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 7h20l-1.6 8.2a2 2 0 0 1-2 1.8H5.6a2 2 0 0 1-2-1.8L2 7Z" />
+            <path d="M2 7 4 3h16l2 4" />
+          </svg>
+        ),
+      },
+    ],
   },
   {
-    href: "/admin/stores",
-    label: "Stores",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 7h20l-1.6 8.2a2 2 0 0 1-2 1.8H5.6a2 2 0 0 1-2-1.8L2 7Z" />
-        <path d="M2 7 4 3h16l2 4" />
-      </svg>
-    ),
+    label: "Content",
+    links: [
+      {
+        href: "/admin/banners",
+        label: "Banners",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="6" width="20" height="12" rx="2" />
+            <path d="M6 12h.01" />
+            <path d="M10 12h8" />
+          </svg>
+        ),
+      },
+      {
+        href: "/admin/media",
+        label: "Media Library",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="9" cy="9" r="2" />
+            <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
+          </svg>
+        ),
+      },
+    ],
   },
   {
-    href: "/admin/banners",
-    label: "Banners",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="2" y="6" width="20" height="12" rx="2" />
-        <path d="M6 12h.01" />
-        <path d="M10 12h8" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/media",
-    label: "Media Library",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" />
-        <circle cx="9" cy="9" r="2" />
-        <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/users",
-    label: "Customers",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
-    ),
-  },
-    {
-    href: "/admin/messages",
-    label: "Messages",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-      </svg>
-    ),
-  },
-    {
-    href: "/admin/faqs",
-    label: "FAQs",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-        <path d="M12 17h.01" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/settings",
-    label: "Settings",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
-      </svg>
-    ),
+    label: "System",
+    links: [
+      {
+        href: "/admin/users",
+        label: "Customers",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        ),
+      },
+      {
+        href: "/admin/messages",
+        label: "Messages",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
+        ),
+      },
+      {
+        href: "/admin/settings",
+        label: "Settings",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+          </svg>
+        ),
+      },
+    ],
   },
 ];
 
-type Toast = { id: number; name: string; message: string };
-
 export default function AdminLayout({ title, children }: { title: string; children: ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { user } = useAuth();
   const username = user?.user_metadata?.username || user?.email || "Admin";
 
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [toast, setToast] = useState<Toast | null>(null);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const playBeep = () => {
-    try {
-      const Ctx = window.AudioContext || (window as any).webkitAudioContext;
-      const ctx = new Ctx();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 720;
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.35);
-    } catch {
-      // audio not available, fail silently
-    }
-  };
-
-  const refreshUnreadCount = async () => {
-    const { count } = await supabase
-      .from("conversations")
-      .select("id", { count: "exact", head: true })
-      .eq("unread_by_admin", true);
-    setUnreadCount(count || 0);
-  };
-
-  useEffect(() => {
-    refreshUnreadCount();
-
-    const convoChannel = supabase
-      .channel("admin_layout_conversations")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "conversations" },
-        () => refreshUnreadCount()
-      )
-      .subscribe();
-
-    const msgChannel = supabase
-      .channel("admin_layout_new_messages")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "chat_messages" },
-        (payload) => {
-          const msg = payload.new as { sender_type: string; sender_name: string | null; message: string };
-          if (msg.sender_type !== "customer") return;
-
-          playBeep();
-          if (toastTimer.current) clearTimeout(toastTimer.current);
-          const id = Date.now();
-          setToast({ id, name: msg.sender_name || "Customer", message: msg.message });
-          toastTimer.current = setTimeout(() => setToast(null), 5000);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(convoChannel);
-      supabase.removeChannel(msgChannel);
-    };
-  }, []);
-
   return (
-    <div className="min-h-screen bg-[#f7f7fb] dark:bg-gray-950 flex gap-4 p-4">
-      <aside className="hidden md:flex md:flex-col w-64 shrink-0 bg-white dark:bg-gray-900 rounded-2xl shadow-sm min-h-[calc(100vh-2rem)] sticky top-4">
-        <div className="flex items-center gap-2 px-5 py-6">
-          <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white font-bold text-sm shrink-0">T</div>
-          <p className="text-black dark:text-white font-bold text-lg">Thomex</p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
+      <aside className="hidden md:flex md:flex-col w-64 shrink-0 bg-[#0b0b0d] text-gray-400 min-h-screen sticky top-0">
+        <div className="flex items-center gap-2.5 px-5 py-5 border-b border-white/5">
+          <div className="w-8 h-8 rounded-md bg-brand flex items-center justify-center text-white font-bold text-sm shrink-0">T</div>
+          <p className="text-white font-bold tracking-tight">Thomex Admin</p>
         </div>
-        <p className="text-[10px] font-bold text-gray-400 uppercase px-5 pt-2 pb-2">Menu</p>
-        <nav className="flex-1 overflow-y-auto px-3">
-          {links.map((link) => {
-            const active = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={
-                  active
-                    ? "flex items-center gap-3 px-4 py-2.5 mb-1 text-sm rounded-xl bg-brand/10 text-brand font-semibold"
-                    : "flex items-center gap-3 px-4 py-2.5 mb-1 text-sm rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                }
-              >
-                {link.icon}
-                <span className="flex-1">{link.label}</span>
-                {link.href === "/admin/messages" && unreadCount > 0 && (
-                  <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
+
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+          {navGroups.map((group) => (
+            <div key={group.label}>
+              <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wider px-3 pb-2">{group.label}</p>
+              <div className="space-y-0.5">
+                {group.links.map((link) => {
+                  const active = pathname === link.href;
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={
+                        active
+                          ? "flex items-center gap-3 px-3 py-2 text-sm rounded-md bg-brand text-white font-medium"
+                          : "flex items-center gap-3 px-3 py-2 text-sm rounded-md text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
+                      }
+                    >
+                      {link.icon}
+                      <span>{link.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
+
+        <div className="px-3 py-4 border-t border-white/5">
+          <a href="/" className="flex items-center gap-3 px-3 py-2 text-sm rounded-md text-gray-500 hover:bg-white/5 hover:text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+              <polyline points="9 22 9 12 15 12 15 22" />
+            </svg>
+            View Store
+          </a>
+        </div>
       </aside>
 
       <div className="flex-1 min-w-0">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm px-4 md:px-6 py-3 flex items-center justify-between gap-4 mb-4">
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 md:px-8 py-3 flex items-center justify-between gap-4">
           <div className="flex-1 max-w-sm hidden sm:block">
-            <div className="relative">
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <button className="w-full flex items-center gap-2 pl-3 pr-2 py-2 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
-              <input
-                type="text"
-                placeholder="Search Anything"
-                className="w-full pl-9 pr-3 py-2 rounded-full border-0 bg-gray-50 dark:bg-gray-800 text-sm text-black dark:text-white focus:outline-none"
-              />
-            </div>
+              <span className="flex-1 text-left">Search...</span>
+              <span className="text-[10px] font-semibold border border-gray-300 dark:border-gray-600 rounded px-1.5 py-0.5 text-gray-400 shrink-0">⌘K</span>
+            </button>
           </div>
           <div className="flex items-center gap-3 ml-auto">
             <a href="/" className="text-xs text-gray-500 dark:text-gray-400 hover:text-brand hidden sm:inline">View Store</a>
-            <div className="flex items-center gap-2 pl-3 border-l border-gray-100 dark:border-gray-800">
-              <div className="w-9 h-9 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-xs shrink-0">
+            <div className="flex items-center gap-2 pl-3 border-l border-gray-200 dark:border-gray-800">
+              <div className="w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-xs shrink-0">
                 {username.charAt(0).toUpperCase()}
               </div>
               <div className="hidden sm:block leading-tight">
-                <p className="text-xs font-semibold text-black dark:text-white truncate max-w-[160px]">{username}</p>
+                <p className="text-xs font-semibold text-black dark:text-white truncate max-w-[120px]">{username}</p>
                 <p className="text-[10px] text-gray-400">Admin</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm px-4 md:px-8 py-6">
+        <div className="px-4 md:px-8 py-6">
           <h1 className="text-xl font-bold text-black dark:text-white mb-6">{title}</h1>
           <AdminGuard>{children}</AdminGuard>
         </div>
       </div>
-
-      {toast && (
-        <button
-          onClick={() => {
-            setToast(null);
-            router.push("/admin/messages");
-          }}
-          className="fixed bottom-5 right-5 z-[60] w-80 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl rounded-xl p-4 text-left animate-in fade-in slide-in-from-bottom-2"
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-2 h-2 rounded-full bg-brand" />
-            <p className="text-xs font-bold text-black dark:text-white">New message from {toast.name}</p>
-          </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{toast.message}</p>
-        </button>
-      )}
     </div>
   );
 }
