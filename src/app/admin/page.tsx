@@ -376,10 +376,10 @@ export default function AdminDashboard() {
             <p className="text-sm font-bold text-black dark:text-white">Low Stock Alerts</p>
           </div>
           <div className="space-y-2">
-            {lowStockProducts.slice(0, 6).map((p) => (
+             {lowStockProducts.slice(0, 6).map((p) => (
               
                 key={p.id}
-                href={"/admin/products/" + p.id + "/edit"}
+               <a href={"/admin/products/" + p.id + "/edit"}
                 className="flex items-center justify-between text-sm px-3 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
               >
                 <span className="text-black dark:text-white truncate flex-1">{p.name}</span>
