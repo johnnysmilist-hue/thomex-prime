@@ -48,8 +48,8 @@ function StatusBadge({ status }: { status: string }) {
 
 function StatCard({ icon, iconBg, iconColor, value, label }: { icon: React.ReactNode; iconBg: string; iconColor: string; value: string; label: string }) {
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5 flex items-center gap-4">
-      <div className={"w-12 h-12 rounded-lg flex items-center justify-center shrink-0 " + iconBg + " " + iconColor}>
+    <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 flex items-center gap-4">
+      <div className={"w-14 h-14 rounded-full flex items-center justify-center shrink-0 " + iconBg + " " + iconColor}>
         {icon}
       </div>
       <div className="min-w-0">
@@ -69,7 +69,7 @@ function getGreeting() {
 
 function QuickAction({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
   return (
-    <a href={href} className="flex items-center gap-3 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 hover:border-brand transition-colors">
+    <a href={href} className="flex items-center gap-3 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 hover:border-brand transition-colors">
       <div className="w-9 h-9 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">{icon}</div>
       <span className="text-sm font-semibold text-black dark:text-white">{label}</span>
     </a>
@@ -312,7 +312,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5">
+        <div className="lg:col-span-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-bold text-black dark:text-white">Revenue</p>
             <div className="flex gap-1">
@@ -350,7 +350,7 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5">
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
           <p className="text-sm font-bold text-black dark:text-white mb-4">Order Status</p>
           {!loading && <StatusDonut counts={statusCounts} total={orders.length} />}
         </div>
@@ -386,7 +386,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden mb-6">
+      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden mb-6">
         <div className="flex items-center justify-between gap-3 p-5 pb-3 flex-wrap">
           <p className="text-sm font-bold text-black dark:text-white">Recent Orders</p>
           <div className="flex items-center gap-2">
@@ -466,7 +466,7 @@ export default function AdminDashboard() {
       </div>
 
       {!loading && topProducts.length > 0 && (
-        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5">
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
           <p className="text-sm font-bold text-black dark:text-white mb-4">Top Selling Products</p>
           <div className="space-y-3">
             {topProducts.map((p, i) => (
