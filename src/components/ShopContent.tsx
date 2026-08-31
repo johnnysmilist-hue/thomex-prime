@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
 import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
-import { categories } from "@/lib/categories";
+import { fetchCategories, SiteCategory } from "@/lib/supabaseCategories";
 
 const discountOptions = [10, 20, 30, 40, 50];
 
@@ -16,6 +16,7 @@ export default function ShopContent() {
   const initialStore = searchParams.get("store");
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [siteCategories, setSiteCategories] = useState<SiteCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState("featured");
 
@@ -32,7 +33,16 @@ export default function ShopContent() {
       setAllProducts(products);
       setLoading(false);
     });
+    fetchCategories().then((r) => setSiteCategories(r.data || []));
   }, []);
+
+  const subcategoriesForSelected = selectedCategory
+    ? (Array.from(
+        new Set(
+          allProducts.filter((p) => p.category === selectedCategory).map((p) => p.subcategory).filter(Boolean)
+        )
+      ) as string[])
+    : [];
 
   const brands = Array.from(new Set(allProducts.map((p) => p.brand).filter(Boolean))) as string[];
   const colors = Array.from(new Set(allProducts.map((p) => p.color).filter(Boolean))) as string[];
@@ -67,6 +77,11 @@ export default function ShopContent() {
     setSelectedColors((prev) => (prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]));
   };
 
+  const handleSelectCategory = (name: string) => {
+    setSelectedCategory(name);
+    setSelectedSubcategory(null);
+  };
+
   const clearAll = () => {
     setSelectedCategory(null);
     setSelectedSubcategory(null);
@@ -92,20 +107,40 @@ export default function ShopContent() {
       <div>
         <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Category</p>
         <div className="space-y-1.5 max-h-48 overflow-y-auto">
-          {categories.map((cat) => (
-            <label key={cat} className="flex items-center gap-2 text-sm text-black dark:text-white cursor-pointer">
+          {siteCategories.map((cat) => (
+            <label key={cat.id} className="flex items-center gap-2 text-sm text-black dark:text-white cursor-pointer">
               <input
                 type="radio"
                 name="category"
-                checked={selectedCategory === cat}
-                onChange={() => setSelectedCategory(cat)}
+                checked={selectedCategory === cat.name}
+                onChange={() => handleSelectCategory(cat.name)}
                 className="accent-brand"
               />
-              {cat}
+              {cat.name}
             </label>
           ))}
         </div>
       </div>
+
+      {selectedCategory && subcategoriesForSelected.length > 0 && (
+        <div>
+          <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Subcategory</p>
+          <div className="space-y-1.5 max-h-40 overflow-y-auto">
+            {subcategoriesForSelected.map((sub) => (
+              <label key={sub} className="flex items-center gap-2 text-sm text-black dark:text-white cursor-pointer">
+                <input
+                  type="radio"
+                  name="subcategory"
+                  checked={selectedSubcategory === sub}
+                  onChange={() => setSelectedSubcategory(sub)}
+                  className="accent-brand"
+                />
+                {sub}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       {brands.length > 0 && (
         <div>
