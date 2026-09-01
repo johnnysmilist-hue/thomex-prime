@@ -8,7 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { fetchSettings } from "@/lib/supabaseSettings";
 import { validateCoupon, incrementCouponUsage, Coupon } from "@/lib/supabaseCoupons";
-import { createNotification } from "@/lib/supabaseNotifications";
+import { createNotification, ADMIN_RECIPIENT_ID } from "@/lib/supabaseNotifications";
 
 type PaymentMethod = "mpesa" | "cod";
 type MpesaStatus = "idle" | "requesting" | "polling" | "paid" | "failed";
@@ -126,12 +126,19 @@ export default function CheckoutPage() {
     }
   };
 
-  const finishSuccessfulOrder = async (code: string, method: PaymentMethod) => {
+    const finishSuccessfulOrder = async (code: string, method: PaymentMethod) => {
     await sendOrderEmail(code);
+    await createNotification({
+      recipient_type: "admin",
+      recipient_id: ADMIN_RECIPIENT_ID,
+      title: "New order received",
+      body: name + " placed order " + code + " — KSh " + finalTotal.toFixed(2) + " (" + (method === "mpesa" ? "M-Pesa" : "Pay on Delivery") + ")",
+    });
     setOrderCode(code);
     clearCart();
     const url = "https://wa.me/" + whatsappNumber + "?text=" + buildWhatsAppMessage(code, method);
     window.open(url, "_blank");
+  };
   };
 
   const pollPaymentStatus = (orderId: string, code: string) => {
