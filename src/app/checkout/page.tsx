@@ -139,7 +139,6 @@ export default function CheckoutPage() {
     const url = "https://wa.me/" + whatsappNumber + "?text=" + buildWhatsAppMessage(code, method);
     window.open(url, "_blank");
   };
-  };
 
   const pollPaymentStatus = (orderId: string, code: string) => {
     pollAttempts.current = 0;
