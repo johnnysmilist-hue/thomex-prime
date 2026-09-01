@@ -1,11 +1,13 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import AdminGuard from "./AdminGuard";
 import CommandPalette from "./CommandPalette";
+import { fetchNotifications, ADMIN_RECIPIENT_ID } from "@/lib/supabaseNotifications";
+import { supabase } from "@/lib/supabaseClient";
 
 type NavLink = {
   href: string;
@@ -31,6 +33,17 @@ const navGroups: NavGroup[] = [
             <rect x="14" y="3" width="7" height="5" rx="1" />
             <rect x="14" y="12" width="7" height="9" rx="1" />
             <rect x="3" y="16" width="7" height="5" rx="1" />
+          </svg>
+        ),
+      },
+      {
+        href: "/admin/analytics",
+        label: "Analytics",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
           </svg>
         ),
       },
@@ -137,6 +150,16 @@ const navGroups: NavGroup[] = [
         ),
       },
       {
+        href: "/admin/notifications",
+        label: "Notifications",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+          </svg>
+        ),
+      },
+      {
         href: "/admin/settings",
         label: "Settings",
         icon: (
@@ -155,6 +178,28 @@ export default function AdminLayout({ title, children }: { title: string; childr
   const { user } = useAuth();
   const username = user?.user_metadata?.username || user?.email || "Admin";
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const loadUnread = async () => {
+      const { data } = await fetchNotifications("admin", ADMIN_RECIPIENT_ID);
+      setUnreadCount((data || []).filter((n) => !n.read).length);
+    };
+    loadUnread();
+
+    const channel = supabase
+      .channel("admin_layout_notifications")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: "recipient_type=eq.admin" },
+        () => loadUnread()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
@@ -182,7 +227,12 @@ export default function AdminLayout({ title, children }: { title: string; childr
                       }
                     >
                       {link.icon}
-                      <span>{link.label}</span>
+                      <span className="flex-1">{link.label}</span>
+                      {link.href === "/admin/notifications" && unreadCount > 0 && (
+                        <span className="text-[10px] font-bold bg-brand text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                          {unreadCount}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
@@ -219,6 +269,19 @@ export default function AdminLayout({ title, children }: { title: string; childr
           </div>
           <div className="flex items-center gap-3 ml-auto">
             <a href="/" className="text-xs text-gray-500 dark:text-gray-400 hover:text-brand hidden sm:inline">View Store</a>
+            
+              href="/admin/notifications"
+              className="relative w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="Notifications"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+              </svg>
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 border-2 border-white dark:border-gray-900" />
+              )}
+            </a>
             <div className="flex items-center gap-2 pl-3 border-l border-gray-200 dark:border-gray-800">
               <div className="w-8 h-8 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-xs shrink-0">
                 {username.charAt(0).toUpperCase()}
