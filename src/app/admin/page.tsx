@@ -18,23 +18,24 @@ type Order = {
   created_at: string;
 };
 
-const STATUSES = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
+const STATUSES = ["Pending", "Confirmed", "Shipped", "Delivered", "Cancelled", "Returned"];
 const LOW_STOCK_THRESHOLD = 5;
 
 const statusStyles: Record<string, string> = {
   Pending: "bg-yellow-50 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400",
-  Processing: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400",
+  Confirmed: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400",
   Shipped: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400",
   Delivered: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400",
   Cancelled: "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400",
+  Returned: "bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400",
 };
-
 const statusDotColors: Record<string, string> = {
   Pending: "#eab308",
-  Processing: "#3b82f6",
+  Confirmed: "#3b82f6",
   Shipped: "#a855f7",
   Delivered: "#22c55e",
   Cancelled: "#ef4444",
+  Returned: "#f97316",
 };
 
 function useCountUp(target: number, active: boolean, duration = 800) {
