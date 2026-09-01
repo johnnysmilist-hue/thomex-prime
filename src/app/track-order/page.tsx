@@ -21,14 +21,15 @@ type Order = {
   discount_amount: number | null;
 };
 
-const STEPS = ["Pending", "Processing", "Shipped", "Delivered"];
+const STEPS = ["Pending", "Confirmed", "Shipped", "Delivered"];
 
 const statusStyles: Record<string, string> = {
   Pending: "bg-yellow-50 text-yellow-700",
-  Processing: "bg-blue-50 text-blue-700",
+  Confirmed: "bg-blue-50 text-blue-700",
   Shipped: "bg-purple-50 text-purple-700",
   Delivered: "bg-green-50 text-green-700",
   Cancelled: "bg-red-50 text-red-700",
+  Returned: "bg-orange-50 text-orange-700",
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -45,6 +46,14 @@ function ProgressStepper({ status }: { status: string }) {
     return (
       <div className="bg-red-50 border border-red-100 rounded-xl p-4 text-center text-red-700 font-medium">
         This order was cancelled.
+      </div>
+    );
+  }
+
+  if (status === "Returned") {
+    return (
+      <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 text-center text-orange-700 font-medium">
+        This order was returned.
       </div>
     );
   }
