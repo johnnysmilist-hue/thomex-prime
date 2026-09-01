@@ -2,7 +2,7 @@ import { supabase } from "./supabaseClient";
 
 export type Notification = {
   id: string;
-  recipient_type: "customer" | "vendor";
+  recipient_type: "customer" | "vendor" | "admin";
   recipient_id: string;
   title: string;
   body: string;
@@ -11,7 +11,8 @@ export type Notification = {
   created_at: string;
 };
 
-export async function fetchNotifications(recipientType: "customer" | "vendor", recipientId: string) {
+export const ADMIN_RECIPIENT_ID = "admin";
+export async function fetchNotifications(recipientType: "customer" | "vendor" | "admin", recipientId: string) {
   const { data, error } = await supabase
     .from("notifications")
     .select("*")
@@ -23,7 +24,7 @@ export async function fetchNotifications(recipientType: "customer" | "vendor", r
 }
 
 export async function createNotification(notification: {
-  recipient_type: "customer" | "vendor";
+  recipient_type: "customer" | "vendor" | "admin";
   recipient_id: string;
   title: string;
   body: string;
@@ -38,7 +39,7 @@ export async function markNotificationRead(id: string) {
   return { error };
 }
 
-export async function markAllNotificationsRead(recipientType: "customer" | "vendor", recipientId: string) {
+export async function markAllNotificationsRead(recipientType: "customer" | "vendor" | "admin", recipientId: string) {
   const { error } = await supabase
     .from("notifications")
     .update({ read: true })
