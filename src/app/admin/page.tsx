@@ -245,6 +245,8 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
+  const animatedRevenue = useCountUp(totalRevenue, !loading);
+
   useEffect(() => {
     const loadStats = async () => {
       const { data: products } = await fetchProducts();
@@ -394,7 +396,7 @@ export default function AdminDashboard() {
               <Skeleton className="h-8 w-40 bg-white/20" />
             ) : (
               <p className="text-3xl font-bold text-white">
-                KSh {useCountUp(totalRevenue, !loading).toFixed(2)}
+                KSh {animatedRevenue.toFixed(2)}
               </p>
             )}
             <p className="text-white/70 text-xs mt-1">Across {orders.length} order{orders.length !== 1 ? "s" : ""}</p>
