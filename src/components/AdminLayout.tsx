@@ -332,7 +332,7 @@ export default function AdminLayout({ title, children }: { title: string; childr
           <div className="flex items-center gap-3 ml-auto">
             <a href="/" className="text-xs text-gray-500 dark:text-gray-400 hover:text-brand hidden sm:inline">View Store</a>
             
-              href="/admin/notifications"
+             <a href="/admin/notifications"
               className="relative w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label="Notifications"
             >
