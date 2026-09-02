@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
 import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
 import { fetchCategories, SiteCategory } from "@/lib/supabaseCategories";
+import ProductSpecsEditor from "@/components/ProductSpecsEditor";
 
 const discountOptions = [10, 20, 30, 40, 50];
 
@@ -152,6 +153,7 @@ export default function ShopContent() {
             </div>
           )}
 
+          <ProductSpecsEditor productId={THE_ID_VARIABLE} />
           {colors.length > 0 && (
             <div>
               <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Color</p>
