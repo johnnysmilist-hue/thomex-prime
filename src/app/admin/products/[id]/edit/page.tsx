@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
 import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
 import { fetchCategories, SiteCategory } from "@/lib/supabaseCategories";
-import ProductSpecsEditor from "@/components/ProductSpecsEditor";
+
 
 const discountOptions = [10, 20, 30, 40, 50];
 
