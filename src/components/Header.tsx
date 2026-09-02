@@ -103,15 +103,7 @@ export default function Header() {
             />
           </form>
 
-          <button onClick={() => setMobileMenuOpen(true)} className="shrink-0 w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-black dark:text-white" aria-label="Open menu">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
-
-             {mounted && (
+                 {mounted && (
             <button
               onClick={() => setChatOpen(true)}
               aria-label="Open chat"
@@ -131,6 +123,14 @@ export default function Header() {
               <NotificationBell />
             </div>
           )}
+
+          <button onClick={() => setMobileMenuOpen(true)} className="shrink-0 w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center text-black dark:text-white" aria-label="Open menu">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
 
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute top-full left-12 right-12 mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 py-1">
