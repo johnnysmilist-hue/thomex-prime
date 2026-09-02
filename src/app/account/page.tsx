@@ -17,11 +17,22 @@ import {
 
 type Tab = "personal" | "address" | "payment" | "password";
 
-const tabs: { key: Tab; label: string }[] = [
-  { key: "personal", label: "Personal Information" },
-  { key: "address", label: "Manage Address" },
-  { key: "payment", label: "Payment Method" },
-  { key: "password", label: "Password Manager" },
+const icon = (name: string) => {
+  const common = { xmlns: "http://www.w3.org/2000/svg", width: 17, height: 17, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  if (name === "personal") return <svg {...common}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
+  if (name === "orders") return <svg {...common}><path d="M20 7h-3a2 2 0 0 1-2-2V2" /><path d="M9 22h9a2 2 0 0 0 2-2V7l-5-5H9a2 2 0 0 0-2 2v3" /><path d="M3 12h6" /><path d="M3 16h6" /><path d="M3 8h2" /></svg>;
+  if (name === "address") return <svg {...common}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>;
+  if (name === "payment") return <svg {...common}><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>;
+  if (name === "password") return <svg {...common}><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>;
+  if (name === "logout") return <svg {...common}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>;
+  return null;
+};
+
+const tabs: { key: Tab; label: string; icon: string }[] = [
+  { key: "personal", label: "Personal Information", icon: "personal" },
+  { key: "address", label: "Manage Address", icon: "address" },
+  { key: "payment", label: "Payment Method", icon: "payment" },
+  { key: "password", label: "Password Manager", icon: "password" },
 ];
 
 export default function AccountPage() {
@@ -57,44 +68,68 @@ export default function AccountPage() {
     );
   }
 
+  const username = user.user_metadata?.username || user.email?.split("@")[0] || "Customer";
+  const memberSince = user.created_at
+    ? new Date(user.created_at).toLocaleDateString("en-GB", { month: "long", year: "numeric" })
+    : null;
+
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
-      <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">
-        <aside className="w-full md:w-64 shrink-0 space-y-3">
-          {tabs.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={
-                "w-full text-left px-5 py-4 rounded-lg text-sm font-semibold transition-colors " +
-                (tab === t.key
-                  ? "bg-amber-400 text-black"
-                  : "bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800")
-              }
-            >
-              {t.label}
-            </button>
-          ))}
-          <a
-            href="/account/orders"
-            className="block w-full text-left px-5 py-4 rounded-lg text-sm font-semibold bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800"
-          >
-            My Orders
-          </a>
-          <button
-            onClick={handleSignOut}
-            className="w-full text-left px-5 py-4 rounded-lg text-sm font-semibold bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
-          >
-            Logout
-          </button>
-        </aside>
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="relative rounded-2xl overflow-hidden mb-6 bg-gradient-to-r from-brand-dark via-brand to-brand-light">
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, white 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+          <div className="relative px-6 py-8 flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-white/15 backdrop-blur border-2 border-white/30 flex items-center justify-center text-white font-bold text-2xl shrink-0">
+              {username.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <p className="text-white font-bold text-lg truncate">{username}</p>
+              <p className="text-white/80 text-sm truncate">{user.email}</p>
+              {memberSince && <p className="text-white/60 text-xs mt-0.5">Member since {memberSince}</p>}
+            </div>
+          </div>
+        </div>
 
-        <div className="flex-1 min-w-0">
-          {tab === "personal" && <PersonalInfoTab userId={user.id} email={user.email || ""} username={user.user_metadata?.username || ""} />}
-          {tab === "address" && <AddressTab userId={user.id} />}
-          {tab === "payment" && <PaymentTab userId={user.id} />}
-          {tab === "password" && <PasswordTab />}
+        <div className="flex flex-col md:flex-row gap-6">
+          <aside className="w-full md:w-64 shrink-0 space-y-2">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={
+                  "w-full flex items-center gap-3 text-left px-5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-150 " +
+                  (tab === t.key
+                    ? "bg-brand text-white shadow-md shadow-brand/30 -translate-y-0.5"
+                    : "bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-black dark:text-white hover:border-brand/40 hover:-translate-y-0.5 hover:shadow-sm")
+                }
+              >
+                <span className={tab === t.key ? "text-white" : "text-brand"}>{icon(t.icon)}</span>
+                {t.label}
+              </button>
+            ))}
+            <a
+              href="/account/orders"
+              className="w-full flex items-center gap-3 text-left px-5 py-3.5 rounded-xl text-sm font-semibold bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-black dark:text-white hover:border-brand/40 hover:-translate-y-0.5 hover:shadow-sm transition-all duration-150"
+            >
+              <span className="text-brand">{icon("orders")}</span>
+              My Orders
+            </a>
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-3 text-left px-5 py-3.5 rounded-xl text-sm font-semibold bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 hover:-translate-y-0.5 transition-all duration-150"
+            >
+              {icon("logout")}
+              Logout
+            </button>
+          </aside>
+
+          <div className="flex-1 min-w-0">
+            {tab === "personal" && <PersonalInfoTab userId={user.id} email={user.email || ""} username={user.user_metadata?.username || ""} />}
+            {tab === "address" && <AddressTab userId={user.id} />}
+            {tab === "payment" && <PaymentTab userId={user.id} />}
+            {tab === "password" && <PasswordTab />}
+          </div>
         </div>
       </div>
       <Footer />
@@ -103,7 +138,16 @@ export default function AccountPage() {
 }
 
 function Card({ children }: { children: React.ReactNode }) {
-  return <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5">{children}</div>;
+  return <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 shadow-sm">{children}</div>;
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="text-lg font-bold text-black dark:text-white mb-4 flex items-center gap-2">
+      <span className="w-1.5 h-5 rounded-full bg-brand inline-block" />
+      {children}
+    </h2>
+  );
 }
 
 function PersonalInfoTab({ userId, email, username }: { userId: string; email: string; username: string }) {
@@ -122,7 +166,7 @@ function PersonalInfoTab({ userId, email, username }: { userId: string; email: s
 
   return (
     <Card>
-      <h2 className="text-lg font-bold text-black dark:text-white mb-4">Personal Information</h2>
+      <SectionTitle>Personal Information</SectionTitle>
       <form onSubmit={handleSave} className="space-y-4 max-w-md">
         <div>
           <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Full Name</label>
@@ -130,7 +174,7 @@ function PersonalInfoTab({ userId, email, username }: { userId: string; email: s
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm"
+            className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand"
           />
         </div>
         <div>
@@ -139,10 +183,10 @@ function PersonalInfoTab({ userId, email, username }: { userId: string; email: s
             type="email"
             value={email}
             disabled
-            className="w-full border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-500 rounded-lg px-4 py-2 text-sm cursor-not-allowed"
+            className="w-full border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-500 rounded-lg px-4 py-2.5 text-sm cursor-not-allowed"
           />
         </div>
-        <button type="submit" disabled={saving} className="bg-amber-400 text-black px-5 py-2 rounded-lg text-sm font-bold disabled:opacity-60">
+        <button type="submit" disabled={saving} className="bg-brand hover:bg-brand-dark transition-colors text-white px-6 py-2.5 rounded-lg text-sm font-bold disabled:opacity-60">
           {saving ? "Saving..." : "Save Changes"}
         </button>
         {saved && <span className="ml-3 text-xs text-green-600 dark:text-green-400">Saved</span>}
@@ -207,11 +251,13 @@ function AddressTab({ userId }: { userId: string }) {
     load();
   };
 
+  const inputClass = "border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand";
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold text-black dark:text-white">Manage Address</h2>
-        <button onClick={() => setShowForm(!showForm)} className="bg-amber-400 text-black px-4 py-2 rounded-lg text-sm font-bold">
+        <SectionTitle>Manage Address</SectionTitle>
+        <button onClick={() => setShowForm(!showForm)} className="bg-brand hover:bg-brand-dark transition-colors text-white px-4 py-2 rounded-lg text-sm font-bold">
           {showForm ? "Cancel" : "+ Add Address"}
         </button>
       </div>
@@ -220,17 +266,17 @@ function AddressTab({ userId }: { userId: string }) {
         <Card>
           <form onSubmit={handleAdd} className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <select value={label} onChange={(e) => setLabel(e.target.value)} className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm">
+              <select value={label} onChange={(e) => setLabel(e.target.value)} className={inputClass}>
                 <option>Home</option>
                 <option>Work</option>
                 <option>Other</option>
               </select>
-              <input required placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
+              <input required placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} className={inputClass} />
             </div>
-            <input required placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
-            <input required placeholder="Address" value={addressLine} onChange={(e) => setAddressLine(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
-            <input required placeholder="Town / City" value={city} onChange={(e) => setCity(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
-            <button type="submit" disabled={saving} className="bg-amber-400 text-black px-5 py-2 rounded-lg text-sm font-bold disabled:opacity-60">
+            <input required placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} className={"w-full " + inputClass} />
+            <input required placeholder="Address" value={addressLine} onChange={(e) => setAddressLine(e.target.value)} className={"w-full " + inputClass} />
+            <input required placeholder="Town / City" value={city} onChange={(e) => setCity(e.target.value)} className={"w-full " + inputClass} />
+            <button type="submit" disabled={saving} className="bg-brand hover:bg-brand-dark transition-colors text-white px-6 py-2.5 rounded-lg text-sm font-bold disabled:opacity-60">
               {saving ? "Saving..." : "Save Address"}
             </button>
           </form>
@@ -250,7 +296,7 @@ function AddressTab({ userId }: { userId: string }) {
               <div>
                 <p className="text-sm font-bold text-black dark:text-white flex items-center gap-2">
                   {a.label}
-                  {a.is_default && <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">DEFAULT</span>}
+                  {a.is_default && <span className="text-[10px] bg-brand/10 text-brand px-2 py-0.5 rounded-full font-bold">DEFAULT</span>}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{a.full_name} • {a.phone}</p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">{a.address_line}, {a.city}</p>
@@ -348,9 +394,11 @@ function PaymentTab({ userId }: { userId: string }) {
     return <span className="font-bold text-gray-500">Card</span>;
   };
 
+  const inputClass = "w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand";
+
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-bold text-black dark:text-white">Payment Method</h2>
+      <SectionTitle>Payment Method</SectionTitle>
 
       <Card>
         <div className="flex items-center justify-between py-1">
@@ -378,7 +426,9 @@ function PaymentTab({ userId }: { userId: string }) {
           <Card key={m.id}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                {cardIcon(m.brand)}
+                <div className="w-10 h-7 rounded bg-gradient-to-br from-brand-dark to-brand flex items-center justify-center">
+                  {cardIcon(m.brand)}
+                </div>
                 <span className="text-sm text-black dark:text-white tracking-widest">
                   •••• •••• •••• {m.last4}
                 </span>
@@ -392,7 +442,7 @@ function PaymentTab({ userId }: { userId: string }) {
 
       <Card>
         <button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2 text-sm font-semibold text-black dark:text-white">
-          <span className={"w-4 h-4 rounded-full border-2 border-gray-300 " + (showForm ? "bg-amber-400 border-amber-400" : "")} />
+          <span className={"w-4 h-4 rounded-full border-2 " + (showForm ? "bg-brand border-brand" : "border-gray-300")} />
           Add New Credit/Debit Card
         </button>
 
@@ -400,30 +450,30 @@ function PaymentTab({ userId }: { userId: string }) {
           <form onSubmit={handleAddCard} className="mt-4 space-y-3">
             <div>
               <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Card Holder Name *</label>
-              <input required placeholder="Ex. John Doe" value={cardholderName} onChange={(e) => setCardholderName(e.target.value)} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
+              <input required placeholder="Ex. John Doe" value={cardholderName} onChange={(e) => setCardholderName(e.target.value)} className={inputClass} />
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Card Number *</label>
-              <input required placeholder="0000 0000 0000 0000" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} maxLength={19} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
+              <input required placeholder="0000 0000 0000 0000" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} maxLength={19} className={inputClass} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Expiry Date *</label>
-                <input required placeholder="MM/YY" value={expiry} onChange={(e) => setExpiry(e.target.value)} maxLength={5} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
+                <input required placeholder="MM/YY" value={expiry} onChange={(e) => setExpiry(e.target.value)} maxLength={5} className={inputClass} />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">CVV *</label>
-                <input required type="password" placeholder="000" value={cvv} onChange={(e) => setCvv(e.target.value)} maxLength={4} className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm" />
+                <input required type="password" placeholder="000" value={cvv} onChange={(e) => setCvv(e.target.value)} maxLength={4} className={inputClass} />
               </div>
             </div>
             <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-              <input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} className="accent-amber-400" />
+              <input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} className="accent-brand" />
               Save card for future payments
             </label>
 
             {error && <p className="text-xs text-red-500">{error}</p>}
 
-            <button type="submit" disabled={saving} className="bg-[#3a2418] text-white px-6 py-2.5 rounded-lg text-sm font-bold disabled:opacity-60">
+            <button type="submit" disabled={saving} className="bg-brand hover:bg-brand-dark transition-colors text-white px-6 py-2.5 rounded-lg text-sm font-bold disabled:opacity-60">
               {saving ? "Adding..." : "Add Card"}
             </button>
           </form>
@@ -473,31 +523,23 @@ function PasswordTab() {
     setTimeout(() => setSuccess(false), 3000);
   };
 
+  const inputClass = "w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand";
+
   return (
     <Card>
-      <h2 className="text-lg font-bold text-black dark:text-white mb-4">Password Manager</h2>
+      <SectionTitle>Password Manager</SectionTitle>
       <form onSubmit={handleSave} className="space-y-4 max-w-md">
         <div>
           <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">New Password</label>
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm"
-          />
+          <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={inputClass} />
         </div>
         <div>
           <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Confirm New Password</label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2 text-sm"
-          />
+          <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClass} />
         </div>
         {error && <p className="text-xs text-red-500">{error}</p>}
         {success && <p className="text-xs text-green-600 dark:text-green-400">Password updated successfully.</p>}
-        <button type="submit" disabled={saving} className="bg-amber-400 text-black px-5 py-2 rounded-lg text-sm font-bold disabled:opacity-60">
+        <button type="submit" disabled={saving} className="bg-brand hover:bg-brand-dark transition-colors text-white px-6 py-2.5 rounded-lg text-sm font-bold disabled:opacity-60">
           {saving ? "Updating..." : "Update Password"}
         </button>
       </form>
