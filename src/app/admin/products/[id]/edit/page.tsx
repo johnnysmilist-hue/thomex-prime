@@ -153,7 +153,6 @@ export default function ShopContent() {
             </div>
           )}
 
-          <ProductSpecsEditor productId={THE_ID_VARIABLE} />
           {colors.length > 0 && (
             <div>
               <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Color</p>
