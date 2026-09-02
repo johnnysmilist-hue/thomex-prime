@@ -13,6 +13,14 @@ import { createNotification, ADMIN_RECIPIENT_ID } from "@/lib/supabaseNotificati
 type PaymentMethod = "mpesa" | "cod";
 type MpesaStatus = "idle" | "requesting" | "polling" | "paid" | "failed";
 
+function StepBadge({ n }: { n: number }) {
+  return (
+    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand text-white text-xs font-bold shrink-0">
+      {n}
+    </span>
+  );
+}
+
 export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
   const { user } = useAuth();
@@ -126,7 +134,7 @@ export default function CheckoutPage() {
     }
   };
 
-    const finishSuccessfulOrder = async (code: string, method: PaymentMethod) => {
+  const finishSuccessfulOrder = async (code: string, method: PaymentMethod) => {
     await sendOrderEmail(code);
     await createNotification({
       recipient_type: "admin",
@@ -308,7 +316,17 @@ export default function CheckoutPage() {
     <main className="min-h-screen bg-white dark:bg-gray-950">
       <Header />
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <h1 className="text-xl font-bold mb-6 text-black dark:text-white">Checkout</h1>
+        <div className="flex items-center justify-between mb-1">
+          <h1 className="text-xl font-bold text-black dark:text-white">Checkout</h1>
+          <span className="flex items-center gap-1.5 text-xs text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Secure Checkout
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Complete your purchase securely.</p>
 
         {items.length === 0 ? (
           <div className="text-center py-16">
@@ -319,115 +337,169 @@ export default function CheckoutPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <form onSubmit={handlePlaceOrder} className="space-y-4">
-              <h2 className="text-sm font-bold text-black dark:text-white">Delivery Details</h2>
-              <input
-                type="text"
-                required
-                placeholder="Full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm focus:outline-none focus:border-brand"
-              />
-              <input
-                type="tel"
-                required
-                placeholder="Phone number (for delivery & M-Pesa)"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm focus:outline-none focus:border-brand"
-              />
-              <input
-                type="email"
-                placeholder="Email (optional, for order confirmation)"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm focus:outline-none focus:border-brand"
-              />
-              <textarea
-                required
-                placeholder="Delivery address"
-                rows={3}
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm focus:outline-none focus:border-brand resize-none"
-              />
-              <textarea
-                placeholder="Order notes (optional)"
-                rows={2}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm focus:outline-none focus:border-brand resize-none"
-              />
-
-              <div className="border border-gray-200 dark:border-gray-800 rounded-md p-4 space-y-3">
-                <p className="text-sm font-semibold text-black dark:text-white">Payment Method</p>
-
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    checked={paymentMethod === "mpesa"}
-                    onChange={() => {
-                      setPaymentMethod("mpesa");
-                      setMpesaStatus("idle");
-                      setMpesaError("");
-                    }}
-                    className="accent-brand mt-1"
-                  />
-                  <span>
-                    <span className="block text-sm font-medium text-black dark:text-white">M-Pesa</span>
-                    <span className="block text-xs text-gray-500 dark:text-gray-400">
-                      You'll get a prompt on your phone to enter your M-Pesa PIN.
-                    </span>
-                  </span>
-                </label>
-
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    checked={paymentMethod === "cod"}
-                    onChange={() => {
-                      setPaymentMethod("cod");
-                      setMpesaStatus("idle");
-                      setMpesaError("");
-                    }}
-                    className="accent-brand mt-1"
-                  />
-                  <span>
-                    <span className="block text-sm font-medium text-black dark:text-white">Pay on Delivery</span>
-                    <span className="block text-xs text-gray-500 dark:text-gray-400">Cash or M-Pesa when your order arrives.</span>
-                  </span>
-                </label>
-
-                {paymentMethod === "mpesa" && mpesaStatus === "polling" && (
-                  <div className="bg-brand/5 border border-brand/20 rounded-md px-3 py-2.5 flex items-center gap-2.5">
-                    <svg className="animate-spin h-4 w-4 text-brand shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            <form onSubmit={handlePlaceOrder} className="space-y-6">
+              {/* Section 1: Contact + Shipping */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <StepBadge n={1} />
+                  <h2 className="text-sm font-bold text-black dark:text-white">Contact & Shipping</h2>
+                </div>
+                <div className="space-y-3 pl-8">
+                  <div className="relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
                     </svg>
-                    <span className="text-xs text-black dark:text-white">Check your phone and enter your M-Pesa PIN to complete payment...</span>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Full name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md text-sm focus:outline-none focus:border-brand"
+                    />
                   </div>
-                )}
-
-                {paymentMethod === "mpesa" && mpesaStatus === "failed" && (
-                  <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-md px-3 py-2.5">
-                    <p className="text-xs text-red-600 dark:text-red-400 mb-2">{mpesaError}</p>
-                    <button type="button" onClick={handleRetryMpesa} className="text-xs font-semibold text-brand">
-                      Try again
-                    </button>
+                  <div className="relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" />
+                    </svg>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="Phone number (for delivery & M-Pesa)"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md text-sm focus:outline-none focus:border-brand"
+                    />
                   </div>
-                )}
+                  <div className="relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <rect x="2" y="4" width="20" height="16" rx="2" />
+                      <path d="m22 7-10 5L2 7" />
+                    </svg>
+                    <input
+                      type="email"
+                      placeholder="Email (optional, for order confirmation)"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md text-sm focus:outline-none focus:border-brand"
+                    />
+                  </div>
+                  <div className="relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-3 text-gray-400">
+                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <textarea
+                      required
+                      placeholder="Delivery address"
+                      rows={3}
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md text-sm focus:outline-none focus:border-brand resize-none"
+                    />
+                  </div>
+                  <textarea
+                    placeholder="Order notes (optional)"
+                    rows={2}
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md text-sm focus:outline-none focus:border-brand resize-none"
+                  />
+                </div>
               </div>
 
-              {error && <p className="text-xs text-red-500">{error}</p>}
+              {/* Section 2: Payment Method */}
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <StepBadge n={2} />
+                  <h2 className="text-sm font-bold text-black dark:text-white">Payment Method</h2>
+                </div>
+
+                <div className="pl-8 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymentMethod("mpesa");
+                        setMpesaStatus("idle");
+                        setMpesaError("");
+                      }}
+                      className={
+                        "flex flex-col items-center gap-2 border rounded-lg p-4 transition-colors " +
+                        (paymentMethod === "mpesa"
+                          ? "border-brand ring-1 ring-brand bg-brand/5"
+                          : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800")
+                      }
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                        <rect x="5" y="2" width="14" height="20" rx="2" />
+                        <line x1="12" y1="18" x2="12.01" y2="18" />
+                      </svg>
+                      <span className="text-xs font-semibold text-black dark:text-white">M-Pesa</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymentMethod("cod");
+                        setMpesaStatus("idle");
+                        setMpesaError("");
+                      }}
+                      className={
+                        "flex flex-col items-center gap-2 border rounded-lg p-4 transition-colors " +
+                        (paymentMethod === "cod"
+                          ? "border-brand ring-1 ring-brand bg-brand/5"
+                          : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800")
+                      }
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 dark:text-gray-300">
+                        <rect x="1" y="7" width="15" height="13" rx="2" />
+                        <path d="M16 8h4l3 3v5h-7V8Z" />
+                        <circle cx="5.5" cy="18.5" r="2.5" />
+                        <circle cx="18.5" cy="18.5" r="2.5" />
+                      </svg>
+                      <span className="text-xs font-semibold text-black dark:text-white">Pay on Delivery</span>
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {paymentMethod === "mpesa"
+                      ? "You'll get a prompt on your phone to enter your M-Pesa PIN."
+                      : "Cash or M-Pesa when your order arrives."}
+                  </p>
+
+                  {paymentMethod === "mpesa" && mpesaStatus === "polling" && (
+                    <div className="bg-brand/5 border border-brand/20 rounded-md px-3 py-2.5 flex items-center gap-2.5">
+                      <svg className="animate-spin h-4 w-4 text-brand shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      <span className="text-xs text-black dark:text-white">Check your phone and enter your M-Pesa PIN to complete payment...</span>
+                    </div>
+                  )}
+
+                  {paymentMethod === "mpesa" && mpesaStatus === "failed" && (
+                    <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 rounded-md px-3 py-2.5">
+                      <p className="text-xs text-red-600 dark:text-red-400 mb-2">{mpesaError}</p>
+                      <button type="button" onClick={handleRetryMpesa} className="text-xs font-semibold text-brand">
+                        Try again
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {error && <p className="text-xs text-red-500 pl-8">{error}</p>}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-green-600 text-white py-3 rounded-md font-semibold hover:bg-green-700 transition-colors disabled:opacity-60"
+                className="w-full bg-green-600 text-white py-3 rounded-md font-semibold hover:bg-green-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
               >
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
                 {loading
                   ? mpesaStatus === "polling"
                     ? "Waiting for M-Pesa..."
@@ -436,71 +508,116 @@ export default function CheckoutPage() {
                   ? "Pay with M-Pesa"
                   : "Place Order"}
               </button>
+              <p className="text-center text-[11px] text-gray-400 flex items-center justify-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                Your data is safe and encrypted
+              </p>
             </form>
 
             <div>
-              <h2 className="text-sm font-bold mb-4 text-black dark:text-white">Order Summary</h2>
-              <div className="space-y-3 mb-4">
-                {items.map((item) => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-gray-600 dark:text-gray-300">
-                      {item.name} x{item.qty}
-                    </span>
-                    <span className="text-black dark:text-white font-medium">
-                      ${(item.price * item.qty).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
+                <p className="text-sm font-bold mb-4 text-black dark:text-white">Order Summary</p>
+                <div className="space-y-3 mb-4 max-h-72 overflow-y-auto pr-1">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-3">
+                      <div className="w-14 h-14 rounded-md bg-gray-100 dark:bg-gray-800 overflow-hidden shrink-0">
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 text-[9px]">Image</div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-black dark:text-white font-medium truncate">{item.name}</p>
+                        <p className="text-xs text-gray-400">Qty: {item.qty}</p>
+                      </div>
+                      <p className="text-sm text-black dark:text-white font-semibold shrink-0">
+                        ${(item.price * item.qty).toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
 
-              <div className="border-t border-gray-200 dark:border-gray-800 pt-4 mb-4">
-                {appliedCoupon ? (
-                  <div className="flex items-center justify-between bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-md px-3 py-2">
-                    <span className="text-xs font-semibold text-green-700 dark:text-green-400">
-                      {appliedCoupon.code} applied (-${discountAmount.toFixed(2)})
-                    </span>
-                    <button type="button" onClick={handleRemoveCoupon} className="text-xs text-red-500 font-semibold">
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Coupon code"
-                        value={couponInput}
-                        onChange={(e) => setCouponInput(e.target.value)}
-                        className="flex-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm uppercase focus:outline-none focus:border-brand"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleApplyCoupon}
-                        disabled={checkingCoupon}
-                        className="bg-gray-900 dark:bg-white dark:text-black text-white px-4 py-2 rounded-md text-sm font-semibold disabled:opacity-60"
-                      >
-                        {checkingCoupon ? "..." : "Apply"}
+                <div className="border-t border-gray-100 dark:border-gray-800 pt-4 mb-4">
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-900 rounded-md px-3 py-2">
+                      <span className="text-xs font-semibold text-green-700 dark:text-green-400">
+                        {appliedCoupon.code} applied (-${discountAmount.toFixed(2)})
+                      </span>
+                      <button type="button" onClick={handleRemoveCoupon} className="text-xs text-red-500 font-semibold">
+                        Remove
                       </button>
                     </div>
-                    {couponError && <p className="text-xs text-red-500 mt-1.5">{couponError}</p>}
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 dark:text-gray-400">Subtotal</span>
-                  <span className="text-black dark:text-white">${totalPrice.toFixed(2)}</span>
+                  ) : (
+                    <div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Coupon code"
+                          value={couponInput}
+                          onChange={(e) => setCouponInput(e.target.value)}
+                          className="flex-1 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm uppercase focus:outline-none focus:border-brand"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyCoupon}
+                          disabled={checkingCoupon}
+                          className="bg-gray-900 dark:bg-white dark:text-black text-white px-4 py-2 rounded-md text-sm font-semibold disabled:opacity-60"
+                        >
+                          {checkingCoupon ? "..." : "Apply"}
+                        </button>
+                      </div>
+                      {couponError && <p className="text-xs text-red-500 mt-1.5">{couponError}</p>}
+                    </div>
+                  )}
                 </div>
-                {discountAmount > 0 && (
+
+                <div className="space-y-2 mb-5">
                   <div className="flex justify-between text-sm">
-                    <span className="text-green-600 dark:text-green-400">Discount</span>
-                    <span className="text-green-600 dark:text-green-400">-${discountAmount.toFixed(2)}</span>
+                    <span className="text-gray-500 dark:text-gray-400">Subtotal</span>
+                    <span className="text-black dark:text-white">${totalPrice.toFixed(2)}</span>
                   </div>
-                )}
-                <div className="border-t border-gray-200 dark:border-gray-800 pt-2 flex justify-between">
-                  <span className="font-bold text-black dark:text-white">Total</span>
-                  <span className="font-bold text-brand">${finalTotal.toFixed(2)}</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500 dark:text-gray-400">Shipping</span>
+                    <span className="text-green-600 dark:text-green-400 font-medium">Free</span>
+                  </div>
+                  {discountAmount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-600 dark:text-green-400">Discount</span>
+                      <span className="text-green-600 dark:text-green-400">-${discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="border-t border-gray-200 dark:border-gray-800 pt-2 flex justify-between">
+                    <span className="font-bold text-black dark:text-white">Total</span>
+                    <span className="font-bold text-brand text-lg">${finalTotal.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 pt-4 border-t border-gray-100 dark:border-gray-800 text-center">
+                  <div className="flex flex-col items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                    </svg>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400">Secure Checkout</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
+                      <rect x="1" y="3" width="15" height="13" rx="2" />
+                      <path d="M16 8h4l3 3v5h-7V8Z" />
+                      <circle cx="5.5" cy="18.5" r="2.5" />
+                      <circle cx="18.5" cy="18.5" r="2.5" />
+                    </svg>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400">Fast Delivery</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
+                      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                      <path d="M3 3v5h5" />
+                    </svg>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400">Easy Returns</span>
+                  </div>
                 </div>
               </div>
             </div>
