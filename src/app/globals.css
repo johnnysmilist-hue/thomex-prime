@@ -24,3 +24,9 @@ body {
     transform: translateY(0);
   }
 }
+
+@media (max-width: 767px) {
+  html {
+    font-size: 93.75%; /* 15px instead of the default 16px */
+  }
+}
