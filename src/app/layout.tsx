@@ -8,6 +8,7 @@ import { CurrencyProvider } from "@/context/CurrencyContext";
 import { RecentlyViewedProvider } from "@/context/RecentlyViewedContext";
 import MobileNav from "@/components/MobileNav";
 import ChatWidget from "@/components/ChatWidget";
+import { ChatProvider } from "@/context/ChatContext";
 
 export const metadata: Metadata = {
   title: "Thomex - Tech & Electronics Store",
@@ -27,10 +28,12 @@ export default function RootLayout({
             <CurrencyProvider>
               <CartProvider>
                 <WishlistProvider>
-                  <RecentlyViewedProvider>
-                    {children}
-                    <MobileNav />
-                    <ChatWidget />
+                   <RecentlyViewedProvider>
+                    <ChatProvider>
+                      {children}
+                      <MobileNav />
+                      <ChatWidget />
+                    </ChatProvider>
                   </RecentlyViewedProvider>
                 </WishlistProvider>
               </CartProvider>
