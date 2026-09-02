@@ -28,7 +28,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const lowStock = product.stock !== undefined && product.stock > 0 && product.stock <= LOW_STOCK_THRESHOLD;
 
   return (
-    <div className="h-full flex flex-col border border-transparent bg-white dark:bg-gray-900 rounded-lg p-4 hover:shadow-md transition-shadow relative overflow-hidden">
+       <div className="h-full flex flex-col border border-transparent bg-white dark:bg-gray-900 rounded-lg p-2.5 sm:p-4 hover:shadow-md transition-shadow relative overflow-hidden">
       {product.discountPercent && (
         <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
           -{product.discountPercent}%
@@ -48,24 +48,24 @@ export default function ProductCard({ product }: { product: Product }) {
       </button>
 
       <Link href={"/product/" + product.id}>
-        <div className="h-32 bg-gray-100 dark:bg-gray-800 rounded mb-3 flex items-center justify-center text-gray-400 text-xs overflow-hidden">
+         <div className="h-24 sm:h-32 bg-gray-100 dark:bg-gray-800 rounded mb-2 sm:mb-3 flex items-center justify-center text-gray-400 text-xs overflow-hidden">
           {product.imageUrl ? (
             <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
           ) : (
             "Image"
           )}
         </div>
-        <h3 className="text-sm font-medium mb-1 line-clamp-2 text-black dark:text-white min-h-[2.5rem]">{product.name}</h3>
+        <h3 className="text-xs sm:text-sm font-medium mb-1 line-clamp-2 text-black dark:text-white min-h-[2rem] sm:min-h-[2.5rem]">{product.name}</h3>
       </Link>
 
-      <div className="flex items-center gap-1 text-xs text-yellow-500 mb-2">
+      <div className="flex items-center gap-1 text-[10px] sm:text-xs text-yellow-500 mb-1.5 sm:mb-2">
         {"★".repeat(Math.round(product.rating))}
         {"☆".repeat(5 - Math.round(product.rating))}
         <span className="text-gray-400 ml-1">({product.reviewCount})</span>
       </div>
 
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mb-1 min-w-0">
-        <span className="text-brand font-bold text-sm truncate max-w-full">{format(product.price)}</span>
+       <span className="text-brand font-bold text-xs sm:text-sm truncate max-w-full">{format(product.price)}</span>
         {product.oldPrice && (
           <span className="text-gray-400 text-[10px] line-through truncate max-w-full">{format(product.oldPrice)}</span>
         )}
@@ -84,7 +84,7 @@ export default function ProductCard({ product }: { product: Product }) {
           addToCart({ id: product.id, name: product.name, price: product.price, imageUrl: product.imageUrl })
         }
         disabled={outOfStock}
-        className="mt-auto w-full bg-black dark:bg-brand text-white text-sm py-2 rounded-full hover:bg-brand transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:hover:bg-gray-300 dark:disabled:hover:bg-gray-700"
+        className="mt-auto w-full bg-black dark:bg-brand text-white text-xs sm:text-sm py-1.5 sm:py-2 rounded-full hover:bg-brand transition-colors disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed disabled:hover:bg-gray-300 dark:disabled:hover:bg-gray-700"
       >
         {outOfStock ? "Out of Stock" : "Add to Cart"}
       </button>
