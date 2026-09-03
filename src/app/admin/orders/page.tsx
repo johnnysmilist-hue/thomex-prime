@@ -133,8 +133,9 @@ export default function AdminOrdersPage() {
     loadOrders();
   }, []);
 
-  const updateStatus = async (id: string, status: string) => {
+   const updateStatus = async (id: string, status: string) => {
     await supabase.from("orders").update({ status }).eq("id", id);
+    await supabase.from("order_status_history").insert({ order_id: id, status });
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
 
     const order = orders.find((o) => o.id === id);
