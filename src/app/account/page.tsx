@@ -102,20 +102,8 @@ export default function AccountPage() {
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
-            <aside className="w-full md:w-64 shrink-0 space-y-2">
-            <div className="md:hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 flex items-center gap-3 mb-1">
-              <div className="w-12 h-12 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-lg shrink-0">
-                {username.charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-black dark:text-white truncate">{username}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-                <div className="flex items-center gap-3 mt-1 text-[11px] text-gray-400">
-                  {memberSince && <span>Since {memberSince}</span>}
-                  <span>{orderCount === null ? "..." : orderCount} order{orderCount === 1 ? "" : "s"}</span>
-                </div>
-              </div>
-            </div>
+           <aside className="w-full md:w-64 shrink-0 space-y-2">
+            {tabs.map((t) => (
 
             {tabs.map((t) => (
               <button
