@@ -103,7 +103,6 @@ export default function AccountPage() {
 
         <div className="flex flex-col md:flex-row gap-6">
            <aside className="w-full md:w-64 shrink-0 space-y-2">
-            {tabs.map((t) => (
 
             {tabs.map((t) => (
               <button
