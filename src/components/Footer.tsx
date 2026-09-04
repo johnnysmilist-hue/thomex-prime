@@ -15,9 +15,10 @@ export default function Footer() {
             <li><a href="/shop">Deals & Offers</a></li>
           </ul>
         </div>
-        <div>
+         <div>
           <h4 className="font-semibold mb-2 sm:mb-3">Customer Care</h4>
           <ul className="space-y-1.5 sm:space-y-2 text-gray-300">
+            <li><a href="/about">About Us</a></li>
             <li><a href="/contact">Contact Us</a></li>
             <li><a href="/track-order">Track Your Order</a></li>
             <li><a href="/returns">Returns & Refunds</a></li>
