@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { fetchSettings } from "@/lib/supabaseSettings";
 import { validateCoupon, incrementCouponUsage, Coupon } from "@/lib/supabaseCoupons";
 import { createNotification, ADMIN_RECIPIENT_ID } from "@/lib/supabaseNotifications";
+import { fetchShippingRates, ShippingRate } from "@/lib/supabaseShipping";
 
 type PaymentMethod = "mpesa" | "cod";
 type MpesaStatus = "idle" | "requesting" | "polling" | "paid" | "failed";
@@ -28,12 +29,16 @@ export default function CheckoutPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
+  const [county, setCounty] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [orderCode, setOrderCode] = useState("");
   const [error, setError] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("254781102057");
   const [adminEmail, setAdminEmail] = useState("");
+
+  const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
+  const shippingFee = shippingRates.find((r) => r.county === county)?.fee || 0;
 
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
@@ -47,12 +52,15 @@ export default function CheckoutPage() {
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollAttempts = useRef(0);
 
-  const finalTotal = Math.max(totalPrice - discountAmount, 0);
+  const finalTotal = Math.max(totalPrice + shippingFee - discountAmount, 0);
 
   useEffect(() => {
     fetchSettings().then((r) => {
       if (r.data?.whatsapp_number) setWhatsappNumber(r.data.whatsapp_number);
       if (r.data?.support_email) setAdminEmail(r.data.support_email);
+    });
+    fetchShippingRates().then((r) => {
+      setShippingRates((r.data as ShippingRate[]) || []);
     });
     return () => {
       if (pollTimer.current) clearInterval(pollTimer.current);
@@ -95,13 +103,15 @@ export default function CheckoutPage() {
     msg += "Order Code: " + code + "%0A";
     msg += "Name: " + encodeURIComponent(name) + "%0A";
     msg += "Phone: " + encodeURIComponent(phone) + "%0A";
+    msg += "County: " + encodeURIComponent(county) + "%0A";
     msg += "Address: " + encodeURIComponent(address) + "%0A%0A";
     msg += "Items:%0A";
     items.forEach((item) => {
       msg += "- " + encodeURIComponent(item.name) + " x" + item.qty + " ($" + (item.price * item.qty).toFixed(2) + ")%0A";
     });
+    msg += "%0AShipping: $" + shippingFee.toFixed(2) + "%0A";
     if (appliedCoupon) {
-      msg += "%0ACoupon: " + appliedCoupon.code + " (-$" + discountAmount.toFixed(2) + ")%0A";
+      msg += "Coupon: " + appliedCoupon.code + " (-$" + discountAmount.toFixed(2) + ")%0A";
     }
     msg += "%0ATotal: $" + finalTotal.toFixed(2) + "%0A";
     msg += "Payment: " + (method === "mpesa" ? "Paid via M-Pesa" : "Pay on Delivery") + "%0A";
@@ -214,6 +224,12 @@ export default function CheckoutPage() {
     e.preventDefault();
     setError("");
     setMpesaError("");
+
+    if (!county) {
+      setError("Please select your delivery county.");
+      return;
+    }
+
     setLoading(true);
 
     const code = generateOrderCode();
@@ -225,6 +241,8 @@ export default function CheckoutPage() {
         customer_name: name,
         phone: phone,
         address: address,
+        county: county,
+        shipping_fee: shippingFee,
         items: items,
         total: finalTotal,
         notes: notes || null,
@@ -385,14 +403,38 @@ export default function CheckoutPage() {
                       className="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md text-sm focus:outline-none focus:border-brand"
                     />
                   </div>
+
                   <div className="relative">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-3 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                       <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
                       <circle cx="12" cy="10" r="3" />
                     </svg>
+                    <select
+                      required
+                      value={county}
+                      onChange={(e) => setCounty(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md text-sm focus:outline-none focus:border-brand appearance-none"
+                    >
+                      <option value="">Select your county</option>
+                      {shippingRates.map((r) => (
+                        <option key={r.id} value={r.county}>{r.county}</option>
+                      ))}
+                    </select>
+                  </div>
+                  {county && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 pl-1">
+                      Shipping to {county}: <strong>KSh {shippingFee.toFixed(2)}</strong>
+                    </p>
+                  )}
+
+                  <div className="relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-3 text-gray-400">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
                     <textarea
                       required
-                      placeholder="Delivery address"
+                      placeholder="Delivery address (street, building, landmark)"
                       rows={3}
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
@@ -580,8 +622,10 @@ export default function CheckoutPage() {
                     <span className="text-black dark:text-white">${totalPrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">Shipping</span>
-                    <span className="text-green-600 dark:text-green-400 font-medium">Free</span>
+                    <span className="text-gray-500 dark:text-gray-400">Shipping{county ? " (" + county + ")" : ""}</span>
+                    <span className="text-black dark:text-white">
+                      {county ? "$" + shippingFee.toFixed(2) : "Select county"}
+                    </span>
                   </div>
                   {discountAmount > 0 && (
                     <div className="flex justify-between text-sm">
@@ -609,7 +653,7 @@ export default function CheckoutPage() {
                       <circle cx="5.5" cy="18.5" r="2.5" />
                       <circle cx="18.5" cy="18.5" r="2.5" />
                     </svg>
-                    <span className="text-[10px] text-gray-500 dark:text-gray-400">Fast Delivery</span>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400">Nationwide Delivery</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
