@@ -49,7 +49,7 @@ const navGroups: NavGroup[] = [
       },
     ],
   },
-        ],
+    
   },
   {
     label: "Commerce",
