@@ -50,7 +50,6 @@ const navGroups: NavGroup[] = [
     ],
   },
     
-  },
   {
     label: "Commerce",
     links: [
