@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { fetchSettings } from "@/lib/supabaseSettings";
 import { validateCoupon, incrementCouponUsage, Coupon } from "@/lib/supabaseCoupons";
 import { createNotification, ADMIN_RECIPIENT_ID } from "@/lib/supabaseNotifications";
-import { fetchShippingRates, ShippingRate } from "@/lib/supabaseShipping";
+import { fetchShippingRates, ShippingRate, fetchCountryRates, CountryRate } from "@/lib/supabaseShipping";
 
 type PaymentMethod = "mpesa" | "cod";
 type MpesaStatus = "idle" | "requesting" | "polling" | "paid" | "failed";
@@ -29,6 +29,7 @@ export default function CheckoutPage() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
+  const [country, setCountry] = useState("Kenya");
   const [county, setCounty] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,13 @@ export default function CheckoutPage() {
   const [adminEmail, setAdminEmail] = useState("");
 
   const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
-  const shippingFee = shippingRates.find((r) => r.county === county)?.fee || 0;
+  const [countryRates, setCountryRates] = useState<CountryRate[]>([]);
+
+  const isKenya = country === "Kenya";
+  const shippingFee = isKenya
+    ? shippingRates.find((r) => r.county === county)?.fee || 0
+    : countryRates.find((r) => r.country === country)?.fee || 0;
+  const locationSelected = isKenya ? !!county : !!country;
 
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
@@ -59,9 +66,8 @@ export default function CheckoutPage() {
       if (r.data?.whatsapp_number) setWhatsappNumber(r.data.whatsapp_number);
       if (r.data?.support_email) setAdminEmail(r.data.support_email);
     });
-    fetchShippingRates().then((r) => {
-      setShippingRates((r.data as ShippingRate[]) || []);
-    });
+    fetchShippingRates().then((r) => setShippingRates((r.data as ShippingRate[]) || []));
+    fetchCountryRates().then((r) => setCountryRates((r.data as CountryRate[]) || []));
     return () => {
       if (pollTimer.current) clearInterval(pollTimer.current);
     };
@@ -103,7 +109,8 @@ export default function CheckoutPage() {
     msg += "Order Code: " + code + "%0A";
     msg += "Name: " + encodeURIComponent(name) + "%0A";
     msg += "Phone: " + encodeURIComponent(phone) + "%0A";
-    msg += "County: " + encodeURIComponent(county) + "%0A";
+    msg += "Country: " + encodeURIComponent(country) + "%0A";
+    if (isKenya) msg += "County: " + encodeURIComponent(county) + "%0A";
     msg += "Address: " + encodeURIComponent(address) + "%0A%0A";
     msg += "Items:%0A";
     items.forEach((item) => {
@@ -225,8 +232,12 @@ export default function CheckoutPage() {
     setError("");
     setMpesaError("");
 
-    if (!county) {
+    if (isKenya && !county) {
       setError("Please select your delivery county.");
+      return;
+    }
+    if (!isKenya && !country) {
+      setError("Please select your delivery country.");
       return;
     }
 
@@ -241,7 +252,8 @@ export default function CheckoutPage() {
         customer_name: name,
         phone: phone,
         address: address,
-        county: county,
+        country: country,
+        county: isKenya ? county : null,
         shipping_fee: shippingFee,
         items: items,
         total: finalTotal,
@@ -406,24 +418,49 @@ export default function CheckoutPage() {
 
                   <div className="relative">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                      <circle cx="12" cy="10" r="3" />
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="2" y1="12" x2="22" y2="12" />
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z" />
                     </svg>
                     <select
                       required
-                      value={county}
-                      onChange={(e) => setCounty(e.target.value)}
+                      value={country}
+                      onChange={(e) => {
+                        setCountry(e.target.value);
+                        setCounty("");
+                      }}
                       className="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md text-sm focus:outline-none focus:border-brand appearance-none"
                     >
-                      <option value="">Select your county</option>
-                      {shippingRates.map((r) => (
-                        <option key={r.id} value={r.county}>{r.county}</option>
+                      <option value="Kenya">Kenya</option>
+                      {countryRates.map((r) => (
+                        <option key={r.id} value={r.country}>{r.country}</option>
                       ))}
                     </select>
                   </div>
-                  {county && (
+
+                  {isKenya && (
+                    <div className="relative">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      <select
+                        required
+                        value={county}
+                        onChange={(e) => setCounty(e.target.value)}
+                        className="w-full pl-9 pr-4 py-2.5 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md text-sm focus:outline-none focus:border-brand appearance-none"
+                      >
+                        <option value="">Select your county</option>
+                        {shippingRates.map((r) => (
+                          <option key={r.id} value={r.county}>{r.county}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {locationSelected && (
                     <p className="text-xs text-gray-500 dark:text-gray-400 pl-1">
-                      Shipping to {county}: <strong>KSh {shippingFee.toFixed(2)}</strong>
+                      Shipping to {isKenya ? county : country}: <strong>KSh {shippingFee.toFixed(2)}</strong>
                     </p>
                   )}
 
@@ -509,6 +546,12 @@ export default function CheckoutPage() {
                       ? "You'll get a prompt on your phone to enter your M-Pesa PIN."
                       : "Cash or M-Pesa when your order arrives."}
                   </p>
+
+                  {!isKenya && paymentMethod === "cod" && (
+                    <p className="text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900 rounded-md px-3 py-2">
+                      Pay on Delivery may not be available for international orders — we'll confirm with you after checkout.
+                    </p>
+                  )}
 
                   {paymentMethod === "mpesa" && mpesaStatus === "polling" && (
                     <div className="bg-brand/5 border border-brand/20 rounded-md px-3 py-2.5 flex items-center gap-2.5">
@@ -622,9 +665,11 @@ export default function CheckoutPage() {
                     <span className="text-black dark:text-white">${totalPrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 dark:text-gray-400">Shipping{county ? " (" + county + ")" : ""}</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Shipping{locationSelected ? " (" + (isKenya ? county : country) + ")" : ""}
+                    </span>
                     <span className="text-black dark:text-white">
-                      {county ? "$" + shippingFee.toFixed(2) : "Select county"}
+                      {locationSelected ? "$" + shippingFee.toFixed(2) : "Select location"}
                     </span>
                   </div>
                   {discountAmount > 0 && (
@@ -648,12 +693,11 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
-                      <rect x="1" y="3" width="15" height="13" rx="2" />
-                      <path d="M16 8h4l3 3v5h-7V8Z" />
-                      <circle cx="5.5" cy="18.5" r="2.5" />
-                      <circle cx="18.5" cy="18.5" r="2.5" />
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="2" y1="12" x2="22" y2="12" />
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z" />
                     </svg>
-                    <span className="text-[10px] text-gray-500 dark:text-gray-400">Nationwide Delivery</span>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400">Worldwide Delivery</span>
                   </div>
                   <div className="flex flex-col items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
