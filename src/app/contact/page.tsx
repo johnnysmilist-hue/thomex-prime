@@ -121,7 +121,7 @@ export default function ContactPage() {
               <p className="text-sm font-bold text-black dark:text-white mb-3">Follow Us</p>
               <div className="flex gap-2">
                 {["facebook", "instagram", "twitter", "youtube"].map((platform) => (
-                  
+                  <a
                     key={platform}
                     href="#"
                     aria-label={platform}
