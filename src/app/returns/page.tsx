@@ -125,7 +125,7 @@ export default function ReturnsPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               
-                href={"https://wa.me/" + whatsapp.replace(/\D/g, "")}
+              <a  href={"https://wa.me/" + whatsapp.replace(/\D/g, "")}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 bg-green-600 text-white px-5 py-2.5 rounded-md font-semibold text-sm hover:bg-green-700 transition-colors"
