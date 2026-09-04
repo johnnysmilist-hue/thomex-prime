@@ -47,8 +47,6 @@ const navGroups: NavGroup[] = [
           </svg>
         ),
       },
-    ],
-  },
     
   {
     label: "Commerce",
