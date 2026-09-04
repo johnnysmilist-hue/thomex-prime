@@ -47,12 +47,8 @@ const navGroups: NavGroup[] = [
           </svg>
         ),
       },
-    
-  {
-    label: "Commerce",
-    links: [
-      {
-        href: "/admin/products",
+    ],
+  },
   {
     label: "Commerce",
     links: [
@@ -90,7 +86,7 @@ const navGroups: NavGroup[] = [
           </svg>
         ),
       },
-           {
+      {
         href: "/admin/stores",
         label: "Stores",
         icon: (
