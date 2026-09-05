@@ -16,6 +16,7 @@ import FeaturedSellers from "@/components/FeaturedSellers";
 import Footer from "@/components/Footer";
 import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
 import TrustStrip from "@/components/TrustStrip";
+import FlashSaleSection from "@/components/FlashSaleSection";
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -40,6 +41,7 @@ export default function Home() {
       </div>
       <TrustStrip />
       <Categories />
+      <FlashSaleSection />
 
       <FlashSale />
       <RecentlyViewed />
