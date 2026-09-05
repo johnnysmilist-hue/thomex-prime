@@ -131,7 +131,7 @@ export default function PrivacyPage() {
             <p className="text-sm font-semibold text-black dark:text-white mb-1">Questions about your data?</p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">We're happy to explain anything in more detail.</p>
             
-              href="/contact"
+            <a  href="/contact"
               className="inline-block bg-brand text-white px-6 py-2.5 rounded-md font-semibold text-sm hover:bg-brand-dark transition-colors"
             >
               Contact Us
