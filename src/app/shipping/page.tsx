@@ -30,13 +30,14 @@ export default function ShippingPage() {
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-8 space-y-8">
           {/* Quick facts */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 text-center">
+              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 text-center">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand mx-auto mb-2">
-                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                <circle cx="12" cy="10" r="3" />
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z" />
               </svg>
-              <p className="text-sm font-bold text-black dark:text-white">Nationwide</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">We deliver across Kenya</p>
+              <p className="text-sm font-bold text-black dark:text-white">Kenya & Worldwide</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Nationwide plus select international destinations</p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 text-center">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand mx-auto mb-2">
@@ -60,16 +61,20 @@ export default function ShippingPage() {
           <div>
             <h2 className="text-lg font-bold text-black dark:text-white mb-2">Where We Deliver</h2>
             <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-              We deliver to all counties across Kenya. Delivery times can vary slightly depending on your location —
-              major towns and cities are typically faster, while more remote areas may take a little longer.
+              We deliver to all counties across Kenya, as well as a growing list of international destinations.
+              Select your country at checkout to see the delivery fee for your location. Within Kenya, delivery
+              times can vary slightly — major towns and cities are typically faster, while more remote areas may
+              take a little longer. International orders generally take longer to arrive than domestic ones.
             </p>
+          </div>
           </div>
 
           <div>
             <h2 className="text-lg font-bold text-black dark:text-white mb-2">Delivery Timeframe</h2>
             <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-              Most orders arrive within <strong>3 to 7 business days</strong> of being placed, depending on your
-              location and product availability. You'll see your order's real-time status on our{" "}
+              Orders within Kenya typically arrive within <strong>3 to 7 business days</strong> of being placed.
+              International delivery times vary by destination and are generally longer — we'll keep you updated
+              on progress. You'll see your order's real-time status on our{" "}
               <a href="/track-order" className="text-brand font-semibold">Track Order</a> page once it's confirmed.
             </p>
           </div>
