@@ -43,6 +43,27 @@ export default function Footer() {
             </button>
           </div>
         </div>
+       </div>
+      <div className="border-t border-white/10 max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <span className="text-[10px] text-gray-400 uppercase tracking-wide">We Accept</span>
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5 bg-white/10 rounded-md px-3 py-1.5 text-xs font-bold text-green-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2" />
+              <line x1="12" y1="18" x2="12.01" y2="18" />
+            </svg>
+            M-Pesa
+          </span>
+          <span className="flex items-center gap-1.5 bg-white/10 rounded-md px-3 py-1.5 text-xs font-bold text-gray-200">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="1" y="7" width="15" height="13" rx="2" />
+              <path d="M16 8h4l3 3v5h-7V8Z" />
+              <circle cx="5.5" cy="18.5" r="2.5" />
+              <circle cx="18.5" cy="18.5" r="2.5" />
+            </svg>
+            Pay on Delivery
+          </span>
+        </div>
       </div>
       <div className="border-t border-white/10 text-center text-[10px] sm:text-xs text-gray-400 py-4 px-4">
         © 2026 Thomex. All Rights Reserved.
