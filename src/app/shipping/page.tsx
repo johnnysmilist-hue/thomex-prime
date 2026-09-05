@@ -57,7 +57,7 @@ export default function ShippingPage() {
               <p className="text-xs text-gray-500 dark:text-gray-400">Based on your location</p>
             </div>
           </div>
-        </div>
+      
           <div>
             <h2 className="text-lg font-bold text-black dark:text-white mb-2">Where We Deliver</h2>
             <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -66,7 +66,6 @@ export default function ShippingPage() {
               times can vary slightly — major towns and cities are typically faster, while more remote areas may
               take a little longer. International orders generally take longer to arrive than domestic ones.
             </p>
-          </div>
           </div>
 
           <div>
