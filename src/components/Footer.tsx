@@ -1,4 +1,34 @@
+"use client";
+
+import { useState } from "react";
+import { subscribeToNewsletter } from "@/lib/supabaseNewsletter";
+
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+
+    setStatus("saving");
+    const { error } = await subscribeToNewsletter(email.trim());
+
+    if (error) {
+      // Postgres unique violation code = already subscribed, treat as success
+      if (error.code === "23505") {
+        setStatus("done");
+        setEmail("");
+        return;
+      }
+      setStatus("error");
+      return;
+    }
+
+    setStatus("done");
+    setEmail("");
+  };
+
   return (
     <footer className="bg-brand-dark dark:bg-black text-white mt-10">
       <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-8 text-xs sm:text-sm">
@@ -32,16 +62,36 @@ export default function Footer() {
         <div className="col-span-2 sm:col-span-1">
           <h4 className="font-semibold mb-2 sm:mb-3">Stay Updated</h4>
           <p className="text-gray-300 mb-3">Get special offers and the latest tech deals.</p>
-          <div className="flex">
-            <input
-              type="email"
-              placeholder="Your email"
-              className="flex-1 min-w-0 px-3 py-2 rounded-l-md text-black text-xs sm:text-sm focus:outline-none"
-            />
-            <button className="bg-brand px-3 sm:px-4 rounded-r-md text-xs sm:text-sm font-semibold shrink-0">
-              Subscribe
-            </button>
-          </div>
+
+          {status === "done" ? (
+            <p className="text-sm text-green-400 font-semibold flex items-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              You're subscribed!
+            </p>
+          ) : (
+            <form onSubmit={handleSubscribe} className="flex">
+              <input
+                type="email"
+                required
+                placeholder="Your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="flex-1 min-w-0 px-3 py-2 rounded-l-md text-black text-xs sm:text-sm focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={status === "saving"}
+                className="bg-brand px-3 sm:px-4 rounded-r-md text-xs sm:text-sm font-semibold shrink-0 disabled:opacity-60"
+              >
+                {status === "saving" ? "..." : "Subscribe"}
+              </button>
+            </form>
+          )}
+          {status === "error" && (
+            <p className="text-xs text-red-300 mt-1.5">Something went wrong — please try again.</p>
+          )}
         </div>
        </div>
       <div className="border-t border-white/10 max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-center gap-3">
