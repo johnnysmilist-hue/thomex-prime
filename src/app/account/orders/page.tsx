@@ -175,9 +175,17 @@ export default function MyOrdersPage() {
                     </p>
                   </div>
 
-                  <Link href={"/track?code=" + order.order_code} className="text-brand text-xs font-semibold shrink-0">
-                    See details
-                  </Link>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <Link href={"/track?code=" + order.order_code} className="text-brand text-xs font-semibold">
+                      See details
+                    </Link>
+                    <Link href={"/account/orders/" + order.id + "/receipt"} className="text-gray-500 dark:text-gray-400 text-xs font-semibold flex items-center gap-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
+                      </svg>
+                      Receipt
+                    </Link>
+                  </div>
                 </div>
               );
             })}
