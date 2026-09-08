@@ -133,11 +133,8 @@ export default function ReceiptPage() {
           {/* Header band */}
           <div className="bg-brand text-white px-8 py-6 flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-14 h-14 rounded-lg bg-white/15 backdrop-blur flex items-center justify-center font-black text-2xl shrink-0">T</div>
-              <div>
-                <p className="text-2xl font-black tracking-tight leading-none">{storeName.toUpperCase()}</p>
-                <p className="text-[11px] text-white/80 font-semibold uppercase tracking-wide mt-1">Electronics &amp; Home Appliances</p>
-              </div>
+              <img src="/logo-dark.png" alt={storeName} className="h-10 w-auto shrink-0" />
+              <p className="text-[11px] text-white/80 font-semibold uppercase tracking-wide border-l border-white/30 pl-3">Electronics &amp; Home Appliances</p>
             </div>
             <div className="text-right text-xs text-white/90 space-y-1">
               {hotline && (
