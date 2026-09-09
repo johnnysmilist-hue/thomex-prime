@@ -1,104 +1,156 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import VendorGuard from "@/components/VendorGuard";
 import VendorSidebar from "@/components/VendorSidebar";
-import { fetchVendorMessages, sendVendorMessage, markMessagesRead, VendorMessage } from "@/lib/supabaseMessages";
+import { supabase } from "@/lib/supabaseClient";
 
-export default function VendorMessagesPage() {
+type OrderItem = { id?: string; name?: string; price?: number; qty?: number };
+
+type Order = {
+  id: string;
+  order_code: string;
+  customer_name: string;
+  status: string;
+  items: OrderItem[];
+  created_at: string;
+};
+
+type VendorOrder = {
+  order: Order;
+  myItems: OrderItem[];
+  mySubtotal: number;
+};
+
+const statusStyles: Record<string, string> = {
+  Pending: "bg-yellow-50 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400",
+  Confirmed: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400",
+  Shipped: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400",
+  Delivered: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400",
+  Cancelled: "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400",
+  Returned: "bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400",
+};
+
+function StatusBadge({ status }: { status: string }) {
+  const style = statusStyles[status] || "bg-gray-100 text-gray-700";
+  return (
+    <span className={"inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold " + style}>
+      {status}
+    </span>
+  );
+}
+
+export default function VendorOrdersPage() {
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
-      <VendorGuard>{(store) => <VendorThread storeId={store.id} />}</VendorGuard>
+      <VendorGuard>{(store) => <VendorOrdersList storeId={store.id} />}</VendorGuard>
       <Footer />
     </main>
   );
 }
 
-function VendorThread({ storeId }: { storeId: string }) {
-  const [messages, setMessages] = useState<VendorMessage[]>([]);
-  const [body, setBody] = useState("");
+function VendorOrdersList({ storeId }: { storeId: string }) {
+  const [vendorOrders, setVendorOrders] = useState<VendorOrder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  const load = async () => {
-    const { data } = await fetchVendorMessages(storeId);
-    setMessages(data || []);
-    setLoading(false);
-    await markMessagesRead(storeId, "vendor");
-  };
 
   useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+
+      const { data: myProducts } = await supabase
+        .from("products")
+        .select("id")
+        .eq("store_id", storeId);
+
+      const myProductIds = new Set((myProducts || []).map((p) => p.id));
+
+      if (myProductIds.size === 0) {
+        setVendorOrders([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data: allOrders } = await supabase
+        .from("orders")
+        .select("id, order_code, customer_name, status, items, created_at")
+        .order("created_at", { ascending: false });
+
+      const matched: VendorOrder[] = [];
+      (allOrders as Order[] || []).forEach((order) => {
+        const myItems = (order.items || []).filter((item) => item.id && myProductIds.has(item.id));
+        if (myItems.length > 0) {
+          const mySubtotal = myItems.reduce((sum, i) => sum + (i.price || 0) * (i.qty || 0), 0);
+          matched.push({ order, myItems, mySubtotal });
+        }
+      });
+
+      setVendorOrders(matched);
+      setLoading(false);
+    };
     load();
-    const interval = setInterval(load, 15000);
-    return () => clearInterval(interval);
   }, [storeId]);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length]);
-
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!body.trim()) return;
-    setSending(true);
-    const { data } = await sendVendorMessage(storeId, "vendor", body.trim());
-    if (data) setMessages((prev) => [...prev, data]);
-    setBody("");
-    setSending(false);
-  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
       <VendorSidebar />
 
-      <div className="flex-1 min-w-0 max-w-2xl">
-        <h1 className="text-xl font-bold mb-1 text-black dark:text-white">Messages with Thomex Admin</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Ask questions about payouts, policies, or your account.</p>
+      <div className="flex-1 min-w-0">
+        <h1 className="text-xl font-bold mb-1 text-black dark:text-white">Orders</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          Orders containing your products. You only see your own items and totals — not other sellers' products in the same order.
+        </p>
 
-        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl flex flex-col h-[60vh]">
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
           {loading ? (
-            <p className="text-sm text-gray-400">Loading conversation...</p>
-          ) : messages.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-8">
-              No messages yet — say hello to the Thomex team below.
-            </p>
+            <p className="text-sm text-gray-400 p-6">Loading orders...</p>
+          ) : vendorOrders.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400 p-6">No orders yet — this fills in as customers buy your products.</p>
           ) : (
-            messages.map((m) => (
-              <div key={m.id} className={"flex " + (m.sender === "vendor" ? "justify-end" : "justify-start")}>
-                <div
-                  className={
-                    "max-w-[75%] rounded-lg px-3 py-2 text-sm " +
-                    (m.sender === "vendor"
-                      ? "bg-brand text-white"
-                      : "bg-gray-100 dark:bg-gray-800 text-black dark:text-white")
-                  }
-                >
-                  {m.sender === "admin" && <p className="text-[10px] font-bold opacity-70 mb-0.5">Thomex Admin</p>}
-                  <p>{m.body}</p>
-                </div>
-              </div>
-            ))
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[11px] text-gray-400 uppercase border-b border-gray-100 dark:border-gray-800">
+                    <th className="px-4 py-3 font-semibold">Order</th>
+                    <th className="px-4 py-3 font-semibold">Customer</th>
+                    <th className="px-4 py-3 font-semibold">Your Items</th>
+                    <th className="px-4 py-3 font-semibold">Your Subtotal</th>
+                    <th className="px-4 py-3 font-semibold">Date</th>
+                    <th className="px-4 py-3 font-semibold">Status</th>
+                    <th className="px-4 py-3 font-semibold">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vendorOrders.map(({ order, myItems, mySubtotal }) => (
+                    <tr key={order.id} className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                      <td className="px-4 py-3 font-semibold text-brand">#{order.order_code}</td>
+                      <td className="px-4 py-3 text-black dark:text-white whitespace-nowrap">{order.customer_name}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                        {myItems.map((i) => i.name + " ×" + i.qty).join(", ")}
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-black dark:text-white whitespace-nowrap">
+                        ${mySubtotal.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        {new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                      </td>
+                      <td className="px-4 py-3"><StatusBadge status={order.status} /></td>
+                      <td className="px-4 py-3">
+                        
+                          href={"/vendor/orders/" + order.id + "/invoice"}
+                          className="text-brand text-xs font-semibold hover:underline"
+                        >
+                          View Invoice
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-          <div ref={bottomRef} />
-          </div>
-
-          <form onSubmit={handleSend} className="border-t border-gray-100 dark:border-gray-800 p-3 flex gap-2">
-            <input
-              type="text"
-              placeholder="Type a message..."
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              className="flex-1 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand"
-            />
-            <button type="submit" disabled={sending || !body.trim()} className="bg-brand text-white px-4 py-2 rounded-md text-sm font-semibold disabled:opacity-60">
-              Send
-            </button>
-          </form>
         </div>
       </div>
     </div>
