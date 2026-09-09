@@ -139,7 +139,7 @@ function VendorOrdersList({ storeId }: { storeId: string }) {
                       <td className="px-4 py-3"><StatusBadge status={order.status} /></td>
                       <td className="px-4 py-3">
                         
-                          href={"/vendor/orders/" + order.id + "/invoice"}
+                        <a  href={"/vendor/orders/" + order.id + "/invoice"}
                           className="text-brand text-xs font-semibold hover:underline"
                         >
                           View Invoice
