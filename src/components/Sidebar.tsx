@@ -17,12 +17,12 @@ export default function Sidebar() {
   const hoveredCategory = categories.find((c) => c.id === hoveredId);
 
   return (
-    <aside className="hidden md:block md:w-56 shrink-0 relative">
-      <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden h-full">
+     <aside className="hidden md:flex md:flex-col md:w-56 shrink-0 relative">
+      <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden flex-1 flex flex-col">
         <a href="/shop" className="block px-4 py-2.5 text-sm font-semibold text-black dark:text-white border-b border-gray-100 dark:border-gray-800 hover:text-brand">
           All Products
         </a>
-        <ul className="text-sm divide-y divide-gray-100 dark:divide-gray-800">
+         <ul className="text-sm divide-y divide-gray-100 dark:divide-gray-800 flex-1">
           {categories.map((cat) => (
             <li key={cat.id} onMouseEnter={() => setHoveredId(cat.id)} onMouseLeave={() => setHoveredId(null)}>
               
