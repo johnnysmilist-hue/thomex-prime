@@ -39,7 +39,6 @@ export default function Home() {
         <Sidebar />
         <Hero />
       </div>
-      <TrustStrip />
       <Categories />
       <FlashSaleSection />
 
