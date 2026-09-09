@@ -14,64 +14,98 @@ export default function MobileNav() {
 
   const isActive = (path: string) => pathname === path;
 
-  return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 flex items-center justify-around py-2 px-1">
-      <Link href="/" className={isActive("/") ? "flex flex-col items-center gap-0.5 text-brand" : "flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400"}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  const items = [
+    {
+      href: "/",
+      label: "Home",
+      active: isActive("/"),
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
-        <span className="text-[10px] font-medium">Home</span>
-      </Link>
-
-      <Link href="/categories" className={isActive("/categories") ? "flex flex-col items-center gap-0.5 text-brand" : "flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400"}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      ),
+      badge: null as number | null,
+    },
+    {
+      href: "/categories",
+      label: "Categories",
+      active: isActive("/categories"),
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="3" width="7" height="7" rx="1" />
           <rect x="14" y="3" width="7" height="7" rx="1" />
           <rect x="14" y="14" width="7" height="7" rx="1" />
           <rect x="3" y="14" width="7" height="7" rx="1" />
         </svg>
-        <span className="text-[10px] font-medium">Categories</span>
-      </Link>
-
-      <Link href="/wishlist" className={isActive("/wishlist") ? "flex flex-col items-center gap-0.5 text-brand relative" : "flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400 relative"}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      ),
+      badge: null as number | null,
+    },
+    {
+      href: "/wishlist",
+      label: "Wishlist",
+      active: isActive("/wishlist"),
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
         </svg>
-        {wishlistItems.length > 0 && (
-          <span className="absolute -top-1 right-2 bg-red-500 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center">{wishlistItems.length}</span>
-        )}
-        <span className="text-[10px] font-medium">Wishlist</span>
-      </Link>
-
-      <Link href="/cart" className={isActive("/cart") ? "flex flex-col items-center gap-0.5 text-brand relative" : "flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400 relative"}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      ),
+      badge: wishlistItems.length > 0 ? wishlistItems.length : null,
+    },
+    {
+      href: "/cart",
+      label: "Cart",
+      active: isActive("/cart"),
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="8" cy="21" r="1" />
           <circle cx="19" cy="21" r="1" />
           <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
         </svg>
-        {totalItems > 0 && (
-          <span className="absolute -top-1 right-2 bg-brand text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center">{totalItems}</span>
-        )}
-        <span className="text-[10px] font-medium">Cart</span>
-      </Link>
+      ),
+      badge: totalItems > 0 ? totalItems : null,
+    },
+    {
+      href: user ? "/account" : "/signin",
+      label: "Account",
+      active: isActive("/account") || isActive("/signin"),
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      ),
+      badge: null as number | null,
+    },
+  ];
 
-            <Link href={user ? "/account" : "/signin"} className={isActive("/account") || isActive("/signin") ? "flex flex-col items-center gap-0.5 text-brand" : "flex flex-col items-center gap-0.5 text-gray-500 dark:text-gray-400"}>
-        <div className="relative">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          {user && (
-            <span className="absolute -bottom-0.5 -right-1 bg-brand text-white rounded-full w-3.5 h-3.5 flex items-center justify-center border-2 border-white dark:border-gray-950">
-              <svg xmlns="http://www.w3.org/2000/svg" width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+  return (
+    <nav className="md:hidden fixed bottom-4 left-4 right-4 z-50">
+      <div className="bg-black dark:bg-gray-900 rounded-full shadow-xl border border-white/5 flex items-center justify-between px-2 py-2">
+        {items.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={
+              item.active
+                ? "flex items-center gap-1.5 bg-white text-black rounded-full pl-3 pr-4 py-2 transition-all duration-200"
+                : "relative flex items-center justify-center w-10 h-10 rounded-full text-gray-400 hover:text-white transition-colors"
+            }
+          >
+            <span className="relative shrink-0">
+              {item.icon}
+              {item.badge !== null && !item.active && (
+                <span className="absolute -top-1.5 -right-1.5 bg-brand text-white rounded-full w-3.5 h-3.5 text-[8px] font-bold flex items-center justify-center">
+                  {item.badge > 9 ? "9+" : item.badge}
+                </span>
+              )}
             </span>
-          )}
-        </div>
-        <span className="text-[10px] font-medium">Account</span>
-      </Link>
+            {item.active && (
+              <span className="text-xs font-semibold whitespace-nowrap">{item.label}</span>
+            )}
+          </Link>
+        ))}
+      </div>
     </nav>
   );
 }
