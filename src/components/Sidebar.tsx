@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { fetchCategories, fetchAllSubcategories, SiteCategory, SiteSubcategory } from "@/lib/supabaseCategories";
 
+const VISIBLE_COUNT = 10;
+
 export default function Sidebar() {
   const [categories, setCategories] = useState<SiteCategory[]>([]);
   const [subcategories, setSubcategories] = useState<SiteSubcategory[]>([]);
@@ -15,18 +17,20 @@ export default function Sidebar() {
 
   const hoveredSubs = subcategories.filter((s) => s.category_id === hoveredId);
   const hoveredCategory = categories.find((c) => c.id === hoveredId);
+  const visibleCategories = categories.slice(0, VISIBLE_COUNT);
+  const hasMore = categories.length > VISIBLE_COUNT;
 
   return (
-     <aside className="hidden md:flex md:flex-col md:w-56 shrink-0 relative">
-      <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden flex-1 flex flex-col">
+    <aside className="hidden md:block md:w-56 shrink-0 relative">
+      <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
         <a href="/shop" className="block px-4 py-2.5 text-sm font-semibold text-black dark:text-white border-b border-gray-100 dark:border-gray-800 hover:text-brand">
           All Products
         </a>
-         <ul className="text-sm divide-y divide-gray-100 dark:divide-gray-800 flex-1">
-          {categories.map((cat) => (
+        <ul className="text-sm divide-y divide-gray-100 dark:divide-gray-800">
+          {visibleCategories.map((cat) => (
             <li key={cat.id} onMouseEnter={() => setHoveredId(cat.id)} onMouseLeave={() => setHoveredId(null)}>
               
-               <a href={"/shop?category=" + encodeURIComponent(cat.name)}
+                href={"/shop?category=" + encodeURIComponent(cat.name)}
                 className={
                   hoveredId === cat.id
                     ? "flex items-center gap-2 py-2 px-4 text-brand bg-brand/5"
@@ -39,6 +43,18 @@ export default function Sidebar() {
             </li>
           ))}
         </ul>
+        {hasMore && (
+          
+            href="/categories"
+            className="flex items-center justify-center gap-1.5 py-2.5 px-4 text-xs font-semibold text-brand border-t border-gray-100 dark:border-gray-800 hover:bg-brand/5"
+          >
+            See More Categories
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </a>
+        )}
       </div>
 
       {hoveredId && hoveredSubs.length > 0 && (
@@ -50,7 +66,7 @@ export default function Sidebar() {
           <p className="text-sm font-bold text-black dark:text-white mb-4">{hoveredCategory?.name}</p>
           <div className="grid grid-cols-2 gap-3">
             {hoveredSubs.map((sub) => (
-              <a
+              
                 key={sub.id}
                 href={"/shop?category=" + encodeURIComponent(hoveredCategory?.name || "")}
                 className="text-sm text-gray-700 dark:text-gray-300 hover:text-brand"
