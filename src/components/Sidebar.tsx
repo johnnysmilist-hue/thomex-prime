@@ -68,7 +68,7 @@ export default function Sidebar() {
             {hoveredSubs.map((sub) => (
               
                 key={sub.id}
-               <a href={"/shop?category=" + encodeURIComponent(hoveredCategory?.name || "")}
+                href={"/shop?category=" + encodeURIComponent(hoveredCategory?.name || "")}
                 className="text-sm text-gray-700 dark:text-gray-300 hover:text-brand"
               >
                 {sub.name}
