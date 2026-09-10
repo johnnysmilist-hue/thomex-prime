@@ -30,7 +30,7 @@ export default function Sidebar() {
           {visibleCategories.map((cat) => (
             <li key={cat.id} onMouseEnter={() => setHoveredId(cat.id)} onMouseLeave={() => setHoveredId(null)}>
               
-               <a href={"/shop?category=" + encodeURIComponent(cat.name)}
+                href={"/shop?category=" + encodeURIComponent(cat.name)}
                 className={
                   hoveredId === cat.id
                     ? "flex items-center gap-2 py-2 px-4 text-brand bg-brand/5"
@@ -45,7 +45,7 @@ export default function Sidebar() {
         </ul>
         {hasMore && (
           
-           <a href="/categories"
+            href="/categories"
             className="flex items-center justify-center gap-1.5 py-2.5 px-4 text-xs font-semibold text-brand border-t border-gray-100 dark:border-gray-800 hover:bg-brand/5"
           >
             See More Categories
