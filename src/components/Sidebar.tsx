@@ -45,7 +45,7 @@ export default function Sidebar() {
         </ul>
         {hasMore && (
           
-            href="/categories"
+           <a href="/categories"
             className="flex items-center justify-center gap-1.5 py-2.5 px-4 text-xs font-semibold text-brand border-t border-gray-100 dark:border-gray-800 hover:bg-brand/5"
           >
             See More Categories
