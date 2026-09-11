@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import AdminGuard from "@/components/AdminGuard";
-import AdminSidebar from "@/components/AdminSidebar";
+import AdminLayout from "@/components/AdminLayout";
 import { fetchCoupons, addCoupon, updateCoupon, toggleCoupon, deleteCoupon, Coupon } from "@/lib/supabaseCoupons";
 
 export default function AdminCouponsPage() {
@@ -125,15 +122,7 @@ export default function AdminCouponsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Header />
-      <AdminGuard>
-        <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
-          <AdminSidebar />
-
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold mb-6 text-black dark:text-white">Coupons</h1>
-
+    <AdminLayout title="Coupons">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
               {statCards.map((card) => (
                 <div key={card.key} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex items-center gap-3">
@@ -279,10 +268,6 @@ export default function AdminCouponsPage() {
                 ))}
               </div>
             )}
-          </div>
-        </div>
-      </AdminGuard>
-      <Footer />
-    </main>
+    </AdminLayout>
   );
 }
