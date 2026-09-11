@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/lib/supabaseClient";
 import { createNotification } from "@/lib/supabaseNotifications";
+import { fetchOfficers, assignOfficerToOrder, DeliveryOfficer } from "@/lib/supabaseDeliveryOfficers";
 
 type Order = {
   id: string;
@@ -18,15 +19,18 @@ type Order = {
   user_id: string | null;
   payment_method: string | null;
   delivery_date: string | null;
+  assigned_officer_id: string | null;
   created_at: string;
 };
 
-const statuses = ["Pending", "Confirmed", "Shipped", "Delivered", "Cancelled", "Returned"];
+const statuses = ["Pending", "Confirmed", "Shipped", "Assigned", "Out for Delivery", "Delivered", "Cancelled", "Returned"];
 
 const statusPill: Record<string, string> = {
   Pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400",
   Confirmed: "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
   Shipped: "bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400",
+  Assigned: "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400",
+  "Out for Delivery": "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400",
   Delivered: "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400",
   Cancelled: "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400",
   Returned: "bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400",
@@ -53,6 +57,7 @@ const cardIcon = (key: string) => {
 
 function useCountUp(target: number, active: boolean, duration = 700) {
   const [value, setValue] = useState(0);
+
   useEffect(() => {
     if (!active) {
       setValue(0);
@@ -60,16 +65,19 @@ function useCountUp(target: number, active: boolean, duration = 700) {
     }
     let start: number | null = null;
     let raf: number;
+
     const step = (ts: number) => {
       if (start === null) start = ts;
       const progress = Math.min((ts - start) / duration, 1);
       setValue(target * progress);
       if (progress < 1) raf = requestAnimationFrame(step);
     };
+
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [target, active]);
+
   return value;
 }
 
@@ -79,7 +87,10 @@ function Skeleton({ className }: { className: string }) {
 
 function FadeIn({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
-    <div className={"opacity-0 animate-[fadeInUp_0.5s_ease-out_forwards] " + className} style={{ animationDelay: delay + "ms" }}>
+    <div
+      className={"opacity-0 animate-[fadeInUp_0.5s_ease-out_forwards] " + className}
+      style={{ animationDelay: delay + "ms" }}
+    >
       {children}
     </div>
   );
@@ -87,6 +98,7 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
 
 function AnimatedStatCard({ card, value, loading }: { card: (typeof statCards)[number]; value: number; loading: boolean }) {
   const animated = useCountUp(value, !loading);
+
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <div className={"w-11 h-11 rounded-xl flex items-center justify-center shrink-0 " + card.bg + " " + card.fg}>
@@ -110,6 +122,7 @@ export default function AdminOrdersPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [officers, setOfficers] = useState<DeliveryOfficer[]>([]);
 
   const loadOrders = async () => {
     setLoading(true);
@@ -120,9 +133,17 @@ export default function AdminOrdersPage() {
 
   useEffect(() => {
     loadOrders();
+    fetchOfficers().then((r) => setOfficers((r.data || []).filter((o) => o.active)));
   }, []);
 
-  const updateStatus = async (id: string, status: string) => {
+  const handleAssignOfficer = async (orderId: string, officerId: string) => {
+    await assignOfficerToOrder(orderId, officerId || null);
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, assigned_officer_id: officerId || null, status: officerId ? "Assigned" : o.status } : o))
+    );
+  };
+
+   const updateStatus = async (id: string, status: string) => {
     await supabase.from("orders").update({ status }).eq("id", id);
     await supabase.from("order_status_history").insert({ order_id: id, status });
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
@@ -160,160 +181,173 @@ export default function AdminOrdersPage() {
 
   return (
     <AdminLayout title="Orders">
-      <FadeIn delay={0} className="mb-6">
-        <p className="text-sm text-gray-500 dark:text-gray-400">Manage every order across your store.</p>
-      </FadeIn>
+            <FadeIn delay={0} className="flex items-center justify-between mb-6 flex-wrap gap-2">
+              <h1 className="text-xl font-bold text-black dark:text-white">Orders — List View</h1>
+            </FadeIn>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-        {statCards.map((card, i) => (
-          <FadeIn key={card.key} delay={50 + i * 40}>
-            <AnimatedStatCard card={card} value={counts[card.key] || 0} loading={loading} />
-          </FadeIn>
-        ))}
-      </div>
-
-      <FadeIn delay={300}>
-        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
-          <div className="flex items-center gap-3 flex-wrap p-4 border-b border-gray-100 dark:border-gray-800">
-            <div className="relative flex-1 min-w-[200px]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search for order ID, customer, order status..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-brand transition-colors"
-              />
-            </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-3 py-2 text-sm"
-            >
-              <option value="All">All Statuses</option>
-              {statuses.map((s) => (
-                <option key={s} value={s}>{s}</option>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+              {statCards.map((card, i) => (
+                <FadeIn key={card.key} delay={50 + i * 40}>
+                  <AnimatedStatCard card={card} value={counts[card.key] || 0} loading={loading} />
+                </FadeIn>
               ))}
-            </select>
-          </div>
+            </div>
 
-          {loading ? (
-            <div className="p-4 space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4">
-                  <Skeleton className="h-4 w-16" />
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-16" />
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-5 w-16 rounded-full ml-auto" />
+            <FadeIn delay={300}>
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
+                <div className="flex items-center gap-3 flex-wrap p-4 border-b border-gray-100 dark:border-gray-800">
+                  <div className="relative flex-1 min-w-[200px]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input
+                      type="text"
+                      placeholder="Search for order ID, customer, order status..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-brand transition-colors"
+                    />
+                  </div>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-3 py-2 text-sm"
+                  >
+                    <option value="All">All Statuses</option>
+                    {statuses.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                 </div>
-              ))}
-            </div>
-          ) : visible.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 p-6">No orders match this view.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-[11px] text-gray-400 uppercase border-b border-gray-100 dark:border-gray-800">
-                    <th className="px-4 py-3 font-semibold">Order ID</th>
-                    <th className="px-4 py-3 font-semibold">Customer</th>
-                    <th className="px-4 py-3 font-semibold">Product</th>
-                    <th className="px-4 py-3 font-semibold">Amount</th>
-                    <th className="px-4 py-3 font-semibold">Order Date</th>
-                    <th className="px-4 py-3 font-semibold">Delivery Date</th>
-                    <th className="px-4 py-3 font-semibold">Payment</th>
-                    <th className="px-4 py-3 font-semibold">Status</th>
-                    <th className="px-4 py-3 font-semibold">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visible.map((order) => {
-                    const firstItem = order.items?.[0];
-                    const extra = (order.items?.length || 1) - 1;
-                    return (
-                      <>
-                        <tr key={order.id} className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                          <td className="px-4 py-3 font-semibold text-brand">#{order.order_code}</td>
-                          <td className="px-4 py-3 text-black dark:text-white whitespace-nowrap">{order.customer_name}</td>
-                          <td className="px-4 py-3 text-gray-600 dark:text-gray-300 max-w-[220px] truncate">
-                            {firstItem?.name || "—"}{extra > 0 ? " +" + extra + " more" : ""}
-                          </td>
-                          <td className="px-4 py-3 text-black dark:text-white font-medium whitespace-nowrap">${order.total.toFixed(2)}</td>
-                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                            {new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <input
-                              type="date"
-                              value={order.delivery_date || ""}
-                              onChange={(e) => updateDeliveryDate(order.id, e.target.value)}
-                              className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-md px-2 py-1 text-xs transition-colors focus:border-brand"
-                            />
-                          </td>
-                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap capitalize">{order.payment_method || "COD"}</td>
-                          <td className="px-4 py-3">
-                            <select
-                              value={order.status}
-                              onChange={(e) => updateStatus(order.id, e.target.value)}
-                              className={"text-[11px] font-bold uppercase rounded-full px-2.5 py-1 border-0 focus:outline-none transition-colors " + (statusPill[order.status] || "bg-gray-100 text-gray-600")}
-                            >
-                              {statuses.map((s) => (
-                                <option key={s} value={s}>{s}</option>
-                              ))}
-                            </select>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              
-                              <a  href={"/admin/orders/" + order.id + "/invoice"}
-                                className="text-gray-400 hover:text-brand transition-colors"
-                                title="View invoice"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                  <polyline points="14 2 14 8 20 8" />
-                                  <line x1="16" y1="13" x2="8" y2="13" />
-                                  <line x1="16" y1="17" x2="8" y2="17" />
-                                </svg>
-                              </a>
-                              <button
-                                onClick={() => setExpanded(expanded === order.id ? null : order.id)}
-                                className="text-gray-400 hover:text-brand text-lg font-bold px-2 transition-colors"
-                                aria-label="Toggle details"
-                              >
-                                ⋯
-                              </button>
-                            </div>
-                          </td>
+
+                {loading ? (
+                  <div className="p-4 space-y-3">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="flex items-center gap-4">
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-5 w-16 rounded-full ml-auto" />
+                      </div>
+                    ))}
+                  </div>
+                ) : visible.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400 p-6">No orders match this view.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-[11px] text-gray-400 uppercase border-b border-gray-100 dark:border-gray-800">
+                          <th className="px-4 py-3 font-semibold">Order ID</th>
+                          <th className="px-4 py-3 font-semibold">Customer</th>
+                          <th className="px-4 py-3 font-semibold">Product</th>
+                          <th className="px-4 py-3 font-semibold">Amount</th>
+                          <th className="px-4 py-3 font-semibold">Order Date</th>
+                          <th className="px-4 py-3 font-semibold">Delivery Date</th>
+                          <th className="px-4 py-3 font-semibold">Payment</th>
+                          <th className="px-4 py-3 font-semibold">Status</th>
+                          <th className="px-4 py-3 font-semibold">Action</th>
                         </tr>
-                        {expanded === order.id && (
-                          <tr className="bg-gray-50 dark:bg-gray-800/50 animate-[fadeInUp_0.25s_ease-out_forwards]">
-                            <td colSpan={9} className="px-4 py-4 text-sm">
-                              <p className="text-gray-600 dark:text-gray-300 mb-1"><strong className="text-black dark:text-white">Phone:</strong> {order.phone}</p>
-                              <p className="text-gray-600 dark:text-gray-300 mb-1"><strong className="text-black dark:text-white">Address:</strong> {order.address}</p>
-                              {order.notes && <p className="text-gray-600 dark:text-gray-300 mb-2"><strong className="text-black dark:text-white">Notes:</strong> {order.notes}</p>}
-                              <p className="font-semibold text-black dark:text-white mb-1">Items:</p>
-                              {order.items.map((item, i) => (
-                                <p key={i} className="text-gray-600 dark:text-gray-300 text-xs">
-                                  {item.name} x{item.qty} — ${(item.price * item.qty).toFixed(2)}
-                                </p>
-                              ))}
-                            </td>
-                          </tr>
-                        )}
-                      </>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </FadeIn>
+                      </thead>
+                      <tbody>
+                        {visible.map((order) => {
+                          const firstItem = order.items?.[0];
+                          const extra = (order.items?.length || 1) - 1;
+                          return (
+                            <>
+                              <tr key={order.id} className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                <td className="px-4 py-3 font-semibold text-brand">#{order.order_code}</td>
+                                <td className="px-4 py-3 text-black dark:text-white whitespace-nowrap">{order.customer_name}</td>
+                                <td className="px-4 py-3 text-gray-600 dark:text-gray-300 max-w-[220px] truncate">
+                                  {firstItem?.name || "—"}{extra > 0 ? " +" + extra + " more" : ""}
+                                </td>
+                                <td className="px-4 py-3 text-black dark:text-white font-medium whitespace-nowrap">${order.total.toFixed(2)}</td>
+                                <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                  {new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  <input
+                                    type="date"
+                                    value={order.delivery_date || ""}
+                                    onChange={(e) => updateDeliveryDate(order.id, e.target.value)}
+                                    className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-md px-2 py-1 text-xs transition-colors focus:border-brand"
+                                  />
+                                </td>
+                                <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap capitalize">{order.payment_method || "COD"}</td>
+                                <td className="px-4 py-3">
+                                  <select
+                                    value={order.status}
+                                    onChange={(e) => updateStatus(order.id, e.target.value)}
+                                    className={"text-[11px] font-bold uppercase rounded-full px-2.5 py-1 border-0 focus:outline-none transition-colors " + (statusPill[order.status] || "bg-gray-100 text-gray-600")}
+                                  >
+                                    {statuses.map((s) => (
+                                      <option key={s} value={s}>{s}</option>
+                                    ))}
+                                  </select>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center gap-2">
+                                    
+                                    <a  href={"/admin/orders/" + order.id + "/invoice"}
+                                      className="text-gray-400 hover:text-brand transition-colors"
+                                      title="View invoice"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                        <polyline points="14 2 14 8 20 8" />
+                                        <line x1="16" y1="13" x2="8" y2="13" />
+                                        <line x1="16" y1="17" x2="8" y2="17" />
+                                      </svg>
+                                    </a>
+                                    <button
+                                      onClick={() => setExpanded(expanded === order.id ? null : order.id)}
+                                      className="text-gray-400 hover:text-brand text-lg font-bold px-2 transition-colors"
+                                      aria-label="Toggle details"
+                                    >
+                                      ⋯
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                              {expanded === order.id && (
+                                <tr className="bg-gray-50 dark:bg-gray-800/50 animate-[fadeInUp_0.25s_ease-out_forwards]">
+                                  <td colSpan={9} className="px-4 py-4 text-sm">
+                                    <p className="text-gray-600 dark:text-gray-300 mb-1"><strong className="text-black dark:text-white">Phone:</strong> {order.phone}</p>
+                                    <p className="text-gray-600 dark:text-gray-300 mb-1"><strong className="text-black dark:text-white">Address:</strong> {order.address}</p>
+                                    {order.notes && <p className="text-gray-600 dark:text-gray-300 mb-2"><strong className="text-black dark:text-white">Notes:</strong> {order.notes}</p>}
+                                    <div className="mb-3">
+                                      <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Assign Delivery Officer</label>
+                                      <select
+                                        value={order.assigned_officer_id || ""}
+                                        onChange={(e) => handleAssignOfficer(order.id, e.target.value)}
+                                        className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-1.5 text-xs"
+                                      >
+                                        <option value="">Unassigned</option>
+                                        {officers.map((o) => (
+                                          <option key={o.id} value={o.id}>{o.name} — {o.phone}</option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                    <p className="font-semibold text-black dark:text-white mb-1">Items:</p>
+                                    {order.items.map((item, i) => (
+                                      <p key={i} className="text-gray-600 dark:text-gray-300 text-xs">
+                                        {item.name} x{item.qty} — ${(item.price * item.qty).toFixed(2)}
+                                      </p>
+                                    ))}
+                                  </td>
+                                </tr>
+                              )}
+                            </>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </FadeIn>
     </AdminLayout>
   );
 }
