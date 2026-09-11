@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import AdminGuard from "@/components/AdminGuard";
-import AdminSidebar from "@/components/AdminSidebar";
+import AdminLayout from "@/components/AdminLayout";
 import { supabase } from "@/lib/supabaseClient";
 import { uploadProductImage } from "@/lib/supabaseProducts";
 
@@ -63,16 +60,9 @@ export default function AdminMediaPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Header />
-      <AdminGuard>
-        <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
-          <AdminSidebar />
-
-          <div className="flex-1">
+    <AdminLayout title="Media Library">
             <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
-              <h1 className="text-xl font-bold text-black dark:text-white">Media Library</h1>
-              <label className="bg-brand text-white px-4 py-2 rounded-md text-sm font-semibold cursor-pointer">
+              <label className="bg-brand text-white px-4 py-2 rounded-md text-sm font-semibold cursor-pointer ml-auto">
                 {uploading ? "Uploading..." : "+ Upload Image"}
                 <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} className="hidden" />
               </label>
@@ -110,10 +100,6 @@ export default function AdminMediaPage() {
                 ))}
               </div>
             )}
-          </div>
-        </div>
-      </AdminGuard>
-      <Footer />
-    </main>
+    </AdminLayout>
   );
 }
