@@ -52,69 +52,71 @@ export default function AdminSettingsPage() {
 
   return (
     <AdminLayout title="Store Settings">
-      <p className="text-sm text-gray-500 dark:text-gray-400 -mt-4 mb-6">
-        These details are used across your site — contact info, checkout, and more.
-      </p>
+      <div className="max-w-xl">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              These details are used across your site — contact info, checkout, and more.
+            </p>
 
-      {loading || !settings ? (
-        <p className="text-sm text-gray-400">Loading settings...</p>
-      ) : (
-        <form onSubmit={handleSave} className="max-w-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Store Name</label>
-            <input value={settings.store_name} onChange={(e) => updateField("store_name", e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-          </div>
+            {loading || !settings ? (
+              <p className="text-sm text-gray-400">Loading settings...</p>
+            ) : (
+              <form onSubmit={handleSave} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Store Name</label>
+                  <input value={settings.store_name} onChange={(e) => updateField("store_name", e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Support Email</label>
-            <input value={settings.support_email || ""} onChange={(e) => updateField("support_email", e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-          </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Support Email</label>
+                  <input value={settings.support_email || ""} onChange={(e) => updateField("support_email", e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">WhatsApp Order Number</label>
-            <input value={settings.whatsapp_number || ""} onChange={(e) => updateField("whatsapp_number", e.target.value)} placeholder="254781102057" className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-          </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">WhatsApp Order Number</label>
+                  <input value={settings.whatsapp_number || ""} onChange={(e) => updateField("whatsapp_number", e.target.value)} placeholder="254781102057" className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Hotline (displayed to customers)</label>
-            <input value={settings.hotline || ""} onChange={(e) => updateField("hotline", e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-          </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Hotline (displayed to customers)</label>
+                  <input value={settings.hotline || ""} onChange={(e) => updateField("hotline", e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Business Address</label>
-            <textarea value={settings.address || ""} onChange={(e) => updateField("address", e.target.value)} rows={2} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm resize-none" />
-          </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Business Address</label>
+                  <textarea value={settings.address || ""} onChange={(e) => updateField("address", e.target.value)} rows={2} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm resize-none" />
+                </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Currency</label>
-              <select value={settings.currency} onChange={(e) => updateField("currency", e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm">
-                <option value="USD">USD ($)</option>
-                <option value="KES">KES (KSh)</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Free Shipping Over</label>
-              <input type="number" value={settings.free_shipping_threshold} onChange={(e) => updateField("free_shipping_threshold", parseFloat(e.target.value))} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-            </div>
-          </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Currency</label>
+                    <select value={settings.currency} onChange={(e) => updateField("currency", e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm">
+                      <option value="USD">USD ($)</option>
+                      <option value="KES">KES (KSh)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Free Shipping Over</label>
+                    <input type="number" value={settings.free_shipping_threshold} onChange={(e) => updateField("free_shipping_threshold", parseFloat(e.target.value))} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
+                  </div>
+                </div>
 
-          <div className="border-t border-gray-200 dark:border-gray-800 pt-4">
-            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Flash Sale Ends</label>
-            <input
-              type="datetime-local"
-              value={flashSaleEndInput}
-              onChange={(e) => setFlashSaleEndInput(e.target.value)}
-              className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm"
-            />
-            <p className="text-[11px] text-gray-400 mt-1">Controls the countdown shown on the homepage Flash Sale section.</p>
-          </div>
+                <div className="border-t border-gray-200 dark:border-gray-800 pt-4">
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Flash Sale Ends</label>
+                  <input
+                    type="datetime-local"
+                    value={flashSaleEndInput}
+                    onChange={(e) => setFlashSaleEndInput(e.target.value)}
+                    className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm"
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1">Controls the countdown shown on the homepage Flash Sale section.</p>
+                </div>
 
-          <button type="submit" disabled={saving} className="bg-brand text-white px-5 py-2 rounded-md text-sm font-semibold disabled:opacity-60">
-            {saving ? "Saving..." : saved ? "Saved!" : "Save Settings"}
-          </button>
-        </form>
-      )}
+                <button type="submit" disabled={saving} className="bg-brand text-white px-5 py-2 rounded-md text-sm font-semibold disabled:opacity-60">
+                  {saving ? "Saving..." : saved ? "Saved!" : "Save Settings"}
+                </button>
+              </form>
+            )}
+      </div>
     </AdminLayout>
   );
 }
