@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import AdminGuard from "@/components/AdminGuard";
-import AdminSidebar from "@/components/AdminSidebar";
+import AdminLayout from "@/components/AdminLayout";
 import { fetchBanners, updateBanner, addBanner, deleteBanner, Banner } from "@/lib/supabaseBanners";
 import { uploadProductImage } from "@/lib/supabaseProducts";
 
@@ -146,14 +143,8 @@ export default function AdminBannersPage() {
   );
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Header />
-      <AdminGuard>
-        <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
-          <AdminSidebar />
-
-          <div className="flex-1 max-w-2xl">
-            <h1 className="text-xl font-bold mb-2 text-black dark:text-white">Homepage Banners</h1>
+    <AdminLayout title="Homepage Banners">
+      <div className="max-w-2xl">
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
               Manage the rotating slideshow, side tiles, and bottom tiles on your homepage.
             </p>
@@ -198,10 +189,7 @@ export default function AdminBannersPage() {
                 </div>
               </>
             )}
-          </div>
-        </div>
-      </AdminGuard>
-      <Footer />
-    </main>
+      </div>
+    </AdminLayout>
   );
 }
