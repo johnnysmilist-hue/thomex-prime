@@ -4,14 +4,22 @@ import { useState, useEffect, ReactNode } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { fetchOfficerByUserId, DeliveryOfficer } from "@/lib/supabaseDeliveryOfficers";
+import { ADMIN_EMAIL } from "@/lib/admin";
 
 export default function DeliveryGuard({ children }: { children: (officer: DeliveryOfficer) => ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const [officer, setOfficer] = useState<DeliveryOfficer | null>(null);
   const [checking, setChecking] = useState(true);
 
+  const isAdmin = user?.email === ADMIN_EMAIL;
+
   useEffect(() => {
     if (!user) {
+      setChecking(false);
+      return;
+    }
+    if (isAdmin) {
+      setOfficer({ id: "ALL", name: "Admin (viewing all)", active: true } as DeliveryOfficer);
       setChecking(false);
       return;
     }
@@ -19,8 +27,8 @@ export default function DeliveryGuard({ children }: { children: (officer: Delive
       setOfficer(r.data);
       setChecking(false);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
-
   if (authLoading || checking) {
     return <div className="max-w-md mx-auto px-4 py-16 text-center text-sm text-gray-400">Loading...</div>;
   }
