@@ -42,17 +42,25 @@ function DeliveryDashboard({ officer }: { officer: DeliveryOfficer }) {
   const [tab, setTab] = useState<"active" | "delivered">("active");
   const [actingId, setActingId] = useState<string | null>(null);
 
+    const isViewingAll = officer.id === "ALL";
+
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
+    let query = supabase
       .from("orders")
-      .select("id, order_code, customer_name, phone, address, status, user_id, picked_up_at, delivered_at, created_at")
-      .eq("assigned_officer_id", officer.id)
+      .select("id, order_code, customer_name, phone, address, status, user_id, picked_up_at, delivered_at, created_at, assigned_officer_id")
       .order("created_at", { ascending: false });
+
+    if (!isViewingAll) {
+      query = query.eq("assigned_officer_id", officer.id);
+    } else {
+      query = query.not("assigned_officer_id", "is", null);
+    }
+
+    const { data } = await query;
     setOrders((data as Order[]) || []);
     setLoading(false);
   };
-
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,7 +88,11 @@ function DeliveryDashboard({ officer }: { officer: DeliveryOfficer }) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       <h1 className="text-xl font-bold mb-1 text-black dark:text-white">Delivery Portal</h1>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Welcome, {officer.name}. Record pickup and delivery for your assigned orders.</p>
+       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+        {isViewingAll
+          ? "Viewing all delivery orders across every officer."
+          : "Welcome, " + officer.name + ". Record pickup and delivery for your assigned orders."}
+      </p>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4">
