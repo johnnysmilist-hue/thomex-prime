@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import AdminGuard from "@/components/AdminGuard";
-import AdminSidebar from "@/components/AdminSidebar";
+import AdminLayout from "@/components/AdminLayout";
 import { fetchBrands, addBrand, deleteBrand, uploadBrandLogo, Brand } from "@/lib/supabaseBrands";
 
 export default function AdminBrandsPage() {
@@ -80,15 +77,8 @@ export default function AdminBrandsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Header />
-      <AdminGuard>
-        <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
-          <AdminSidebar />
-
-          <div className="flex-1 min-w-0">
+    <AdminLayout title="Brands">
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-xl font-bold text-black dark:text-white">Brands</h1>
               <span className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold px-2.5 py-1 rounded-full">
                 {loading ? "..." : brands.length}
               </span>
@@ -149,10 +139,6 @@ export default function AdminBrandsPage() {
                 ))}
               </div>
             )}
-          </div>
-        </div>
-      </AdminGuard>
-      <Footer />
-    </main>
+    </AdminLayout>
   );
 }
