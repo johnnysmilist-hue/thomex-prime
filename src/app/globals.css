@@ -35,4 +35,15 @@ body {
   @page {
     margin: 0.4cm;
   }
+
+  html,
+  body {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .receipt-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }
