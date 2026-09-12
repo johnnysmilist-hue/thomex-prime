@@ -20,6 +20,17 @@ export async function fetchOfficerByUserId(userId: string) {
   return { data: data as DeliveryOfficer | null, error };
 }
 
+// Promotes an existing registered account to a delivery officer. userId must
+// be a real Supabase Auth user id (picked from the registered-users list).
+export async function createOfficerFromUser(userId: string, name: string, phone: string) {
+  const { data, error } = await supabase
+    .from("delivery_officers")
+    .insert({ user_id: userId, name, phone, active: true })
+    .select()
+    .single();
+  return { data: data as DeliveryOfficer | null, error };
+}
+
 export async function toggleOfficerActive(id: string, active: boolean) {
   const { error } = await supabase.from("delivery_officers").update({ active }).eq("id", id);
   return { error };
