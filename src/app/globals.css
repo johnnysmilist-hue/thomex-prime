@@ -42,7 +42,8 @@ body {
     min-height: 0 !important;
   }
 
-  .receipt-card {
+  .receipt-card,
+  .invoice-card {
     break-inside: avoid;
     page-break-inside: avoid;
   }
