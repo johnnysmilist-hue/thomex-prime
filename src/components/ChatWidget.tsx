@@ -132,7 +132,7 @@ export default function ChatWidget() {
       <button
         onClick={handleOpen}
         aria-label="Open chat"
-        className="hidden md:flex fixed bottom-5 right-5 z-50 w-14 h-14 rounded-full bg-brand text-white shadow-xl items-center justify-center"
+        className="hidden md:flex fixed bottom-5 right-5 z-50 w-14 h-14 rounded-full bg-brand text-white shadow-xl items-center justify-center print:hidden"
       >
         {unread && (
           <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white" />
@@ -145,7 +145,7 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="fixed inset-0 md:inset-auto md:bottom-5 md:right-5 z-50">
+    <div className="fixed inset-0 md:inset-auto md:bottom-5 md:right-5 z-50 print:hidden">
       <div className="w-full h-full md:w-96 md:h-[28rem] bg-white dark:bg-gray-900 md:border md:border-gray-200 dark:md:border-gray-800 md:rounded-xl md:shadow-2xl flex flex-col overflow-hidden">
         <div className="bg-black dark:bg-gray-950 text-white px-4 py-3 flex items-center justify-between shrink-0">
           <p className="text-sm font-semibold">Chat with Thomex Support</p>
