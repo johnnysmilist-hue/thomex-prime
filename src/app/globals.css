@@ -30,3 +30,9 @@ body {
     font-size: 93.75%; /* 15px instead of the default 16px */
   }
 }
+
+@media print {
+  @page {
+    margin: 0.4cm;
+  }
+}
