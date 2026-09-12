@@ -1,64 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import AdminGuard from "@/components/AdminGuard";
-import AdminSidebar from "@/components/AdminSidebar";
+import { useState, useEffect, useMemo } from "react";
+import AdminLayout from "@/components/AdminLayout";
+import { fetchProducts, DbProduct } from "@/lib/supabaseProducts";
 import { supabase } from "@/lib/supabaseClient";
-import { createNotification } from "@/lib/supabaseNotifications";
-import { fetchOfficers, assignOfficerToOrder, DeliveryOfficer } from "@/lib/supabaseDeliveryOfficers";
+import { useAuth } from "@/context/AuthContext";
 
+type DayStat = { label: string; revenue: number };
+type ProductStat = { name: string; unitsSold: number; revenue: number };
 type Order = {
   id: string;
   order_code: string;
   customer_name: string;
-  phone: string;
-  address: string;
-  items: { name: string; qty: number; price: number }[];
-  total: number;
   status: string;
-  notes: string | null;
-  user_id: string | null;
-  payment_method: string | null;
-  delivery_date: string | null;
-  assigned_officer_id: string | null;
+  total: number;
+  items: unknown;
   created_at: string;
 };
 
-const statuses = ["Pending", "Confirmed", "Shipped", "Assigned", "Out for Delivery", "Delivered", "Cancelled", "Returned"];
+const STATUSES = ["Pending", "Confirmed", "Shipped", "Delivered", "Cancelled", "Returned"];
+const LOW_STOCK_THRESHOLD = 5;
 
-const statusPill: Record<string, string> = {
-  Pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400",
-  Confirmed: "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
-  Shipped: "bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400",
-  Assigned: "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400",
-  "Out for Delivery": "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400",
-  Delivered: "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400",
-  Cancelled: "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400",
-  Returned: "bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400",
+const statusStyles: Record<string, string> = {
+  Pending: "bg-yellow-50 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400",
+  Confirmed: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400",
+  Shipped: "bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400",
+  Delivered: "bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400",
+  Cancelled: "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400",
+  Returned: "bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400",
+};
+const statusDotColors: Record<string, string> = {
+  Pending: "#eab308",
+  Confirmed: "#3b82f6",
+  Shipped: "#a855f7",
+  Delivered: "#22c55e",
+  Cancelled: "#ef4444",
+  Returned: "#f97316",
 };
 
-const statCards = [
-  { key: "Total", label: "Total Orders", bg: "bg-blue-50 dark:bg-blue-500/10", fg: "text-blue-600 dark:text-blue-400" },
-  { key: "Pending", label: "Pending Orders", bg: "bg-yellow-50 dark:bg-yellow-500/10", fg: "text-yellow-600 dark:text-yellow-400" },
-  { key: "Confirmed", label: "Confirmed Orders", bg: "bg-purple-50 dark:bg-purple-500/10", fg: "text-purple-600 dark:text-purple-400" },
-  { key: "Shipped", label: "Shipped Orders", bg: "bg-cyan-50 dark:bg-cyan-500/10", fg: "text-cyan-600 dark:text-cyan-400" },
-  { key: "Delivered", label: "Delivered Orders", bg: "bg-green-50 dark:bg-green-500/10", fg: "text-green-600 dark:text-green-400" },
-  { key: "Cancelled", label: "Cancelled Orders", bg: "bg-red-50 dark:bg-red-500/10", fg: "text-red-600 dark:text-red-400" },
-];
-
-const cardIcon = (key: string) => {
-  const common = { xmlns: "http://www.w3.org/2000/svg", width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  if (key === "Total") return <svg {...common}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>;
-  if (key === "Pending") return <svg {...common}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>;
-  if (key === "Confirmed") return <svg {...common}><path d="M20 6 9 17l-5-5" /></svg>;
-  if (key === "Shipped") return <svg {...common}><rect x="1" y="3" width="15" height="13" rx="2" /><path d="M16 8h4l3 3v5h-7V8Z" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>;
-  if (key === "Cancelled") return <svg {...common}><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>;
-  return <svg {...common}><rect x="3" y="8" width="18" height="13" rx="2" /><path d="M8 8V6a4 4 0 0 1 8 0v2" /></svg>;
-};
-
-function useCountUp(target: number, active: boolean, duration = 700) {
+function useCountUp(target: number, active: boolean, duration = 800) {
   const [value, setValue] = useState(0);
 
   useEffect(() => {
@@ -99,268 +79,734 @@ function FadeIn({ children, delay = 0, className = "" }: { children: React.React
   );
 }
 
-function AnimatedStatCard({ card, value, loading }: { card: (typeof statCards)[number]; value: number; loading: boolean }) {
+function StatusBadge({ status }: { status: string }) {
+  const style = statusStyles[status] || "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+  return (
+    <span className={"inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold " + style}>
+      {status}
+    </span>
+  );
+}
+
+function StatCard({
+  icon,
+  iconBg,
+  iconColor,
+  value,
+  prefix = "",
+  suffix = "",
+  decimals = 0,
+  label,
+  loading,
+}: {
+  icon: React.ReactNode;
+  iconBg: string;
+  iconColor: string;
+  value: number;
+  prefix?: string;
+  suffix?: string;
+  decimals?: number;
+  label: string;
+  loading: boolean;
+}) {
   const animated = useCountUp(value, !loading);
 
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4 flex items-center gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      <div className={"w-11 h-11 rounded-xl flex items-center justify-center shrink-0 " + card.bg + " " + card.fg}>
-        {cardIcon(card.key)}
+    <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5 flex items-center gap-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      <div className={"w-12 h-12 rounded-lg flex items-center justify-center shrink-0 " + iconBg + " " + iconColor}>
+        {icon}
       </div>
       <div className="min-w-0">
         {loading ? (
-          <Skeleton className="h-5 w-10 mb-1.5" />
+          <Skeleton className="h-5 w-16 mb-1.5" />
         ) : (
-          <p className="text-lg font-bold text-black dark:text-white leading-tight">{Math.round(animated)}</p>
+          <p className="text-lg font-bold text-black dark:text-white truncate">
+            {prefix}
+            {animated.toFixed(decimals)}
+            {suffix}
+          </p>
         )}
-        <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{card.label}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
       </div>
     </div>
   );
 }
 
-export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [officers, setOfficers] = useState<DeliveryOfficer[]>([]);
+function TrendBadge({ pct, invert = false }: { pct: number | null; invert?: boolean }) {
+  if (pct === null) {
+    return <span className="text-[11px] font-semibold text-gray-400 flex items-center gap-1">— steady</span>;
+  }
+  const up = pct > 0;
+  const flat = pct === 0;
+  const good = invert ? !up : up;
+  return (
+    <span
+      className={
+        "text-[11px] font-semibold flex items-center gap-1 " +
+        (flat ? "text-gray-400" : good ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400")
+      }
+    >
+      {flat ? "—" : up ? "↗" : "↘"} {flat ? "steady" : (up ? "+" : "") + pct.toFixed(0) + "%"}
+    </span>
+  );
+}
 
-  const loadOrders = async () => {
-    setLoading(true);
-    const { data } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
-    setOrders((data as Order[]) || []);
-    setLoading(false);
-  };
+function TrendStatCard({
+  icon,
+  iconBg,
+  iconColor,
+  value,
+  display,
+  label,
+  note,
+  pct,
+  invert,
+  loading,
+}: {
+  icon: React.ReactNode;
+  iconBg: string;
+  iconColor: string;
+  value: number;
+  display: string;
+  label: string;
+  note: string;
+  pct: number | null;
+  invert?: boolean;
+  loading: boolean;
+}) {
+  return (
+    <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex items-center justify-between mb-3">
+        <div className={"w-10 h-10 rounded-lg flex items-center justify-center shrink-0 " + iconBg + " " + iconColor}>
+          {icon}
+        </div>
+        {loading ? <Skeleton className="h-4 w-12" /> : <TrendBadge pct={pct} invert={invert} />}
+      </div>
+      {loading ? <Skeleton className="h-7 w-20 mb-2" /> : <p className="text-2xl font-bold text-black dark:text-white leading-tight">{display}</p>}
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{label}</p>
+      {!loading && <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-2">{note}</p>}
+    </div>
+  );
+}
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+function QuickAction({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      className="flex items-center gap-3 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-brand"
+    >
+      <div className="w-9 h-9 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">{icon}</div>
+      <span className="text-sm font-semibold text-black dark:text-white">{label}</span>
+    </a>
+  );
+}
+
+function StatusDonut({ counts, total, loading }: { counts: Record<string, number>; total: number; loading: boolean }) {
+  const [animateIn, setAnimateIn] = useState(false);
 
   useEffect(() => {
-    loadOrders();
-    fetchOfficers().then((r) => setOfficers((r.data || []).filter((o) => o.active)));
-  }, []);
-
-  const handleAssignOfficer = async (orderId: string, officerId: string) => {
-    await assignOfficerToOrder(orderId, officerId || null);
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, assigned_officer_id: officerId || null, status: officerId ? "Assigned" : o.status } : o))
-    );
-  };
-
-   const updateStatus = async (id: string, status: string) => {
-    await supabase.from("orders").update({ status }).eq("id", id);
-    await supabase.from("order_status_history").insert({ order_id: id, status });
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
-
-    const order = orders.find((o) => o.id === id);
-    if (order?.user_id) {
-      await createNotification({
-        recipient_type: "customer",
-        recipient_id: order.user_id,
-        title: "Order " + order.order_code + " updated",
-        body: "Your order is now: " + status,
-        order_id: order.id,
-      });
+    if (!loading && total > 0) {
+      const t = setTimeout(() => setAnimateIn(true), 50);
+      return () => clearTimeout(t);
     }
-  };
+  }, [loading, total]);
 
-  const updateDeliveryDate = async (id: string, date: string) => {
-    await supabase.from("orders").update({ delivery_date: date || null }).eq("id", id);
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, delivery_date: date || null } : o)));
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center gap-6">
+        <Skeleton className="w-40 h-40 rounded-full shrink-0" />
+        <div className="space-y-2">
+          {STATUSES.map((s) => (
+            <Skeleton key={s} className="h-3 w-24" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-  const counts: Record<string, number> = { Total: orders.length };
-  statuses.forEach((s) => { counts[s] = orders.filter((o) => o.status === s).length; });
+  if (total === 0) {
+    return <p className="text-sm text-gray-400 text-center py-8">No orders yet.</p>;
+  }
 
-  const visible = orders.filter((o) => {
-    const matchesStatus = statusFilter === "All" || o.status === statusFilter;
-    const q = search.toLowerCase();
-    const matchesSearch =
-      q === "" ||
-      o.order_code.toLowerCase().includes(q) ||
-      o.customer_name.toLowerCase().includes(q) ||
-      o.status.toLowerCase().includes(q);
-    return matchesStatus && matchesSearch;
-  });
+  const radius = 60;
+  const circumference = 2 * Math.PI * radius;
+  let offsetAccum = 0;
+
+  const segments = STATUSES.map((status) => {
+    const count = counts[status] || 0;
+    const fraction = count / total;
+    const dash = fraction * circumference;
+    const seg = { status, count, dash, offset: offsetAccum };
+    offsetAccum += dash;
+    return seg;
+  }).filter((s) => s.count > 0);
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Header />
-      <AdminGuard>
-        <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">
-          <AdminSidebar />
+    <div className="flex items-center gap-6 flex-wrap">
+      <svg width="160" height="160" viewBox="0 0 160 160" className="shrink-0">
+        <g transform="translate(80,80) rotate(-90)">
+          <circle r={radius} fill="none" stroke="currentColor" className="text-gray-100 dark:text-gray-800" strokeWidth="18" />
+          {segments.map((seg) => (
+            <circle
+              key={seg.status}
+              r={radius}
+              fill="none"
+              stroke={statusDotColors[seg.status]}
+              strokeWidth="18"
+              strokeDasharray={(animateIn ? seg.dash : 0) + " " + circumference}
+              strokeDashoffset={-seg.offset}
+              style={{ transition: "stroke-dasharray 0.9s cubic-bezier(0.4, 0, 0.2, 1)" }}
+            />
+          ))}
+        </g>
+        <text x="80" y="76" textAnchor="middle" className="fill-black dark:fill-white text-2xl font-bold" style={{ fontSize: "26px" }}>
+          {total}
+        </text>
+        <text x="80" y="96" textAnchor="middle" className="fill-gray-400" style={{ fontSize: "11px" }}>
+          orders
+        </text>
+      </svg>
+      <div className="space-y-1.5">
+        {STATUSES.map((status) => (
+          <div key={status} className="flex items-center gap-2 text-xs">
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: statusDotColors[status] }} />
+            <span className="text-gray-600 dark:text-gray-300 w-20">{status}</span>
+            <span className="font-semibold text-black dark:text-white">{counts[status] || 0}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-          <div className="flex-1 min-w-0">
-            <FadeIn delay={0} className="flex items-center justify-between mb-6 flex-wrap gap-2">
-              <h1 className="text-xl font-bold text-black dark:text-white">Orders — List View</h1>
-            </FadeIn>
+export default function AdminDashboard() {
+  const { user } = useAuth();
+  const firstName = (user?.user_metadata?.username || user?.email?.split("@")[0] || "Admin").split(" ")[0];
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-              {statCards.map((card, i) => (
-                <FadeIn key={card.key} delay={50 + i * 40}>
-                  <AnimatedStatCard card={card} value={counts[card.key] || 0} loading={loading} />
-                </FadeIn>
-              ))}
+  const [allProducts, setAllProducts] = useState<DbProduct[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [dailyStats, setDailyStats] = useState<DayStat[]>([]);
+  const [topProducts, setTopProducts] = useState<ProductStat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [rangeDays, setRangeDays] = useState(7);
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const animatedRevenue = useCountUp(totalRevenue, !loading);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      const { data: products } = await fetchProducts();
+      setAllProducts(products || []);
+
+      const { data: ordersData } = await supabase
+        .from("orders")
+        .select("id, order_code, customer_name, status, total, items, created_at")
+        .order("created_at", { ascending: false });
+
+      const allOrders = (ordersData as Order[]) || [];
+      setOrders(allOrders);
+      setPendingCount(allOrders.filter((o) => o.status === "Pending").length);
+
+      let rev = 0;
+      const productMap: Record<string, ProductStat> = {};
+      allOrders.forEach((order) => {
+        rev += order.total || 0;
+        const items = order.items as { name?: string; price?: number; qty?: number }[] | null;
+        if (Array.isArray(items)) {
+          items.forEach((item) => {
+            const key = item.name || "Unknown";
+            if (!productMap[key]) productMap[key] = { name: key, unitsSold: 0, revenue: 0 };
+            productMap[key].unitsSold += item.qty || 0;
+            productMap[key].revenue += (item.price || 0) * (item.qty || 0);
+          });
+        }
+      });
+
+      setTotalRevenue(rev);
+      setTopProducts(Object.values(productMap).sort((a, b) => b.revenue - a.revenue).slice(0, 5));
+      setLoading(false);
+    };
+    loadStats();
+  }, []);
+
+  useEffect(() => {
+    const days: DayStat[] = [];
+    for (let i = rangeDays - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const label =
+        rangeDays <= 7
+          ? d.toLocaleDateString(undefined, { weekday: "short" })
+          : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      days.push({ label, revenue: 0 });
+    }
+
+    orders.forEach((order) => {
+      const orderDate = new Date(order.created_at);
+      const daysAgo = Math.floor((Date.now() - orderDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysAgo >= 0 && daysAgo < rangeDays) {
+        days[rangeDays - 1 - daysAgo].revenue += order.total || 0;
+      }
+    });
+
+    setDailyStats(days);
+  }, [orders, rangeDays]);
+
+  const maxDayRevenue = Math.max(1, ...dailyStats.map((d) => d.revenue));
+
+  const lowStockProducts = useMemo(
+    () => allProducts.filter((p) => p.stock <= LOW_STOCK_THRESHOLD).sort((a, b) => a.stock - b.stock),
+    [allProducts]
+  );
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    orders.forEach((o) => {
+      counts[o.status] = (counts[o.status] || 0) + 1;
+    });
+    return counts;
+  }, [orders]);
+
+  const trends = useMemo(() => {
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const within = (dateStr: string, from: number, to: number) => {
+      const t = new Date(dateStr).getTime();
+      return t >= from && t < to;
+    };
+    const thisWeek = orders.filter((o) => within(o.created_at, now - oneWeek, now));
+    const lastWeek = orders.filter((o) => within(o.created_at, now - 2 * oneWeek, now - oneWeek));
+    const pctChange = (curr: number, prev: number) => (prev === 0 ? (curr === 0 ? 0 : null) : ((curr - prev) / prev) * 100);
+
+    const thisWeekRevenue = thisWeek.reduce((s, o) => s + (o.total || 0), 0);
+    const lastWeekRevenue = lastWeek.reduce((s, o) => s + (o.total || 0), 0);
+    const cancelledThisWeek = thisWeek.filter((o) => o.status === "Cancelled").length;
+    const cancelledLastWeek = lastWeek.filter((o) => o.status === "Cancelled").length;
+    const pendingThisWeek = thisWeek.filter((o) => o.status === "Pending").length;
+    const pendingLastWeek = lastWeek.filter((o) => o.status === "Pending").length;
+
+    return {
+      ordersPct: pctChange(thisWeek.length, lastWeek.length),
+      ordersNote: lastWeek.length + " last week",
+      revenuePct: pctChange(thisWeekRevenue, lastWeekRevenue),
+      revenueNote: "KSh " + lastWeekRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 }) + " last week",
+      pendingPct: pctChange(pendingThisWeek, pendingLastWeek),
+      pendingNote: pendingLastWeek + " last week",
+      cancelledPct: pctChange(cancelledThisWeek, cancelledLastWeek),
+      cancelledCount: cancelledThisWeek,
+      cancelledNote: cancelledLastWeek + " last week",
+    };
+  }, [orders]);
+
+  const filteredOrders = useMemo(() => {
+    return orders
+      .filter((o) => statusFilter === "All" || o.status === statusFilter)
+      .filter((o) => {
+        const q = search.toLowerCase();
+        return !q || o.order_code?.toLowerCase().includes(q) || o.customer_name?.toLowerCase().includes(q);
+      })
+      .slice(0, 8);
+  }, [orders, search, statusFilter]);
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  return (
+    <AdminLayout title="Dashboard">
+      <FadeIn delay={0} className="mb-6 flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-black dark:text-white mb-1">
+            {getGreeting()}, {firstName}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xl leading-relaxed">
+            {loading
+              ? "Loading this week's numbers…"
+              : trends.ordersPct === null
+              ? "Orders are being tracked as they come in."
+              : "Orders are " +
+                (trends.ordersPct > 0 ? "up" : trends.ordersPct < 0 ? "down" : "flat") +
+                " " +
+                Math.abs(trends.ordersPct).toFixed(0) +
+                "% week over week, with " +
+                trends.cancelledCount +
+                " cancellation" +
+                (trends.cancelledCount === 1 ? "" : "s") +
+                " so far this week."}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button className="text-sm font-semibold px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+            Export
+          </button>
+          <a href="/admin/orders" className="text-sm font-semibold px-4 py-2 rounded-lg bg-brand text-white hover:bg-brand-light transition-colors">
+            View orders
+          </a>
+        </div>
+      </FadeIn>
+
+      {/* Quick actions */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <FadeIn delay={50}>
+          <QuickAction
+            href="/admin/products/new"
+            label="Add Product"
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>}
+          />
+        </FadeIn>
+        <FadeIn delay={100}>
+          <QuickAction
+            href="/admin/orders"
+            label="View Orders"
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>}
+          />
+        </FadeIn>
+        <FadeIn delay={150}>
+          <QuickAction
+            href="/admin/messages"
+            label="Messages"
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>}
+          />
+        </FadeIn>
+        <FadeIn delay={200}>
+          <QuickAction
+            href="/admin/categories"
+            label="Categories"
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /></svg>}
+          />
+        </FadeIn>
+      </div>
+
+      {/* Hero revenue card */}
+      <FadeIn delay={100} className="mb-4">
+        <div className="bg-brand rounded-xl p-6 flex items-center justify-between flex-wrap gap-4 transition-transform duration-200 hover:-translate-y-0.5">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-80">
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+              <p className="text-white/80 text-xs font-semibold uppercase tracking-wide">Total Revenue</p>
             </div>
-
-            <FadeIn delay={300}>
-              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl overflow-hidden">
-                <div className="flex items-center gap-3 flex-wrap p-4 border-b border-gray-100 dark:border-gray-800">
-                  <div className="relative flex-1 min-w-[200px]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                      <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder="Search for order ID, customer, order status..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      className="w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-brand transition-colors"
-                    />
-                  </div>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                    className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-3 py-2 text-sm"
-                  >
-                    <option value="All">All Statuses</option>
-                    {statuses.map((s) => (
-                      <option key={s} value={s}>{s}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {loading ? (
-                  <div className="p-4 space-y-3">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <div key={i} className="flex items-center gap-4">
-                        <Skeleton className="h-4 w-16" />
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-4 w-16" />
-                        <Skeleton className="h-4 w-20" />
-                        <Skeleton className="h-5 w-16 rounded-full ml-auto" />
-                      </div>
-                    ))}
-                  </div>
-                ) : visible.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 p-6">No orders match this view.</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-left text-[11px] text-gray-400 uppercase border-b border-gray-100 dark:border-gray-800">
-                          <th className="px-4 py-3 font-semibold">Order ID</th>
-                          <th className="px-4 py-3 font-semibold">Customer</th>
-                          <th className="px-4 py-3 font-semibold">Product</th>
-                          <th className="px-4 py-3 font-semibold">Amount</th>
-                          <th className="px-4 py-3 font-semibold">Order Date</th>
-                          <th className="px-4 py-3 font-semibold">Delivery Date</th>
-                          <th className="px-4 py-3 font-semibold">Payment</th>
-                          <th className="px-4 py-3 font-semibold">Status</th>
-                          <th className="px-4 py-3 font-semibold">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {visible.map((order) => {
-                          const firstItem = order.items?.[0];
-                          const extra = (order.items?.length || 1) - 1;
-                          return (
-                            <>
-                              <tr key={order.id} className="border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                                <td className="px-4 py-3 font-semibold text-brand">#{order.order_code}</td>
-                                <td className="px-4 py-3 text-black dark:text-white whitespace-nowrap">{order.customer_name}</td>
-                                <td className="px-4 py-3 text-gray-600 dark:text-gray-300 max-w-[220px] truncate">
-                                  {firstItem?.name || "—"}{extra > 0 ? " +" + extra + " more" : ""}
-                                </td>
-                                <td className="px-4 py-3 text-black dark:text-white font-medium whitespace-nowrap">${order.total.toFixed(2)}</td>
-                                <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                                  {new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-                                </td>
-                                <td className="px-4 py-3 whitespace-nowrap">
-                                  <input
-                                    type="date"
-                                    value={order.delivery_date || ""}
-                                    onChange={(e) => updateDeliveryDate(order.id, e.target.value)}
-                                    className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-md px-2 py-1 text-xs transition-colors focus:border-brand"
-                                  />
-                                </td>
-                                <td className="px-4 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap capitalize">{order.payment_method || "COD"}</td>
-                                <td className="px-4 py-3">
-                                  <select
-                                    value={order.status}
-                                    onChange={(e) => updateStatus(order.id, e.target.value)}
-                                    className={"text-[11px] font-bold uppercase rounded-full px-2.5 py-1 border-0 focus:outline-none transition-colors " + (statusPill[order.status] || "bg-gray-100 text-gray-600")}
-                                  >
-                                    {statuses.map((s) => (
-                                      <option key={s} value={s}>{s}</option>
-                                    ))}
-                                  </select>
-                                </td>
-                                <td className="px-4 py-3">
-                                  <div className="flex items-center gap-2">
-                                    
-                                    <a  href={"/admin/orders/" + order.id + "/invoice"}
-                                      className="text-gray-400 hover:text-brand transition-colors"
-                                      title="View invoice"
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                        <polyline points="14 2 14 8 20 8" />
-                                        <line x1="16" y1="13" x2="8" y2="13" />
-                                        <line x1="16" y1="17" x2="8" y2="17" />
-                                      </svg>
-                                    </a>
-                                    <button
-                                      onClick={() => setExpanded(expanded === order.id ? null : order.id)}
-                                      className="text-gray-400 hover:text-brand text-lg font-bold px-2 transition-colors"
-                                      aria-label="Toggle details"
-                                    >
-                                      ⋯
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                              {expanded === order.id && (
-                                <tr className="bg-gray-50 dark:bg-gray-800/50 animate-[fadeInUp_0.25s_ease-out_forwards]">
-                                  <td colSpan={9} className="px-4 py-4 text-sm">
-                                    <p className="text-gray-600 dark:text-gray-300 mb-1"><strong className="text-black dark:text-white">Phone:</strong> {order.phone}</p>
-                                    <p className="text-gray-600 dark:text-gray-300 mb-1"><strong className="text-black dark:text-white">Address:</strong> {order.address}</p>
-                                    {order.notes && <p className="text-gray-600 dark:text-gray-300 mb-2"><strong className="text-black dark:text-white">Notes:</strong> {order.notes}</p>}
-                                    <div className="mb-3">
-                                      <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Assign Delivery Officer</label>
-                                      <select
-                                        value={order.assigned_officer_id || ""}
-                                        onChange={(e) => handleAssignOfficer(order.id, e.target.value)}
-                                        className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-1.5 text-xs"
-                                      >
-                                        <option value="">Unassigned</option>
-                                        {officers.map((o) => (
-                                          <option key={o.id} value={o.id}>{o.name} — {o.phone}</option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                    <p className="font-semibold text-black dark:text-white mb-1">Items:</p>
-                                    {order.items.map((item, i) => (
-                                      <p key={i} className="text-gray-600 dark:text-gray-300 text-xs">
-                                        {item.name} x{item.qty} — ${(item.price * item.qty).toFixed(2)}
-                                      </p>
-                                    ))}
-                                  </td>
-                                </tr>
-                              )}
-                            </>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </FadeIn>
+            {loading ? (
+              <Skeleton className="h-8 w-40 bg-white/20" />
+            ) : (
+              <p className="text-3xl font-bold text-white">
+                KSh {animatedRevenue.toFixed(2)}
+              </p>
+            )}
+            <p className="text-white/70 text-xs mt-1">Across {orders.length} order{orders.length !== 1 ? "s" : ""}</p>
           </div>
         </div>
-      </AdminGuard>
-      <Footer />
-    </main>
+      </FadeIn>
+
+      {/* Secondary stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <FadeIn delay={150}>
+          <TrendStatCard
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>}
+            iconBg="bg-purple-50 dark:bg-purple-950/40"
+            iconColor="text-purple-600 dark:text-purple-400"
+            value={orders.length}
+            display={orders.length.toLocaleString()}
+            label="Total Orders"
+            note={trends.ordersNote}
+            pct={trends.ordersPct}
+            loading={loading}
+          />
+        </FadeIn>
+        <FadeIn delay={200}>
+          <TrendStatCard
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>}
+            iconBg="bg-green-50 dark:bg-green-950/40"
+            iconColor="text-green-600 dark:text-green-400"
+            value={totalRevenue}
+            display={"KSh " + totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            label="Revenue"
+            note={trends.revenueNote}
+            pct={trends.revenuePct}
+            loading={loading}
+          />
+        </FadeIn>
+        <FadeIn delay={250}>
+          <TrendStatCard
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>}
+            iconBg="bg-yellow-50 dark:bg-yellow-950/40"
+            iconColor="text-yellow-600 dark:text-yellow-400"
+            value={pendingCount}
+            display={pendingCount.toLocaleString()}
+            label="Pending Orders"
+            note={trends.pendingNote}
+            pct={trends.pendingPct}
+            invert
+            loading={loading}
+          />
+        </FadeIn>
+        <FadeIn delay={300}>
+          <TrendStatCard
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>}
+            iconBg="bg-red-50 dark:bg-red-950/40"
+            iconColor="text-red-600 dark:text-red-400"
+            value={trends.cancelledCount}
+            display={trends.cancelledCount.toLocaleString()}
+            label="Cancelled Orders"
+            note={trends.cancelledNote}
+            pct={trends.cancelledPct}
+            invert
+            loading={loading}
+          />
+        </FadeIn>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Revenue chart with range picker */}
+        <FadeIn delay={300} className="lg:col-span-2">
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5 transition-shadow duration-200 hover:shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-bold text-black dark:text-white">Revenue</p>
+              <div className="flex gap-1">
+                {[7, 30, 90].map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => setRangeDays(d)}
+                    className={
+                      "text-xs px-2.5 py-1 rounded-md font-medium transition-colors " +
+                      (rangeDays === d
+                        ? "bg-brand text-white"
+                        : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800")
+                    }
+                  >
+                    {d}d
+                  </button>
+                ))}
+              </div>
+            </div>
+            {loading ? (
+              <div className="flex items-end gap-1.5 h-40">
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <Skeleton key={i} className={"flex-1 rounded-t-md"} />
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-end gap-1.5 h-40">
+                {dailyStats.map((day, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center justify-end h-full group">
+                    <div
+                      className="w-full bg-brand rounded-t-md transition-all duration-700 ease-out group-hover:bg-brand-dark"
+                      style={{ height: (day.revenue / maxDayRevenue) * 100 + "%", minHeight: day.revenue > 0 ? "4px" : "0px" }}
+                      title={"KSh " + day.revenue.toFixed(2)}
+                    />
+                    {rangeDays <= 14 && (
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-2">{day.label}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </FadeIn>
+
+        {/* Order status breakdown */}
+        <FadeIn delay={350}>
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5 transition-shadow duration-200 hover:shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-bold text-black dark:text-white">Order Status</p>
+              <a href="/admin/orders" className="text-xs font-semibold text-brand hover:underline">View report →</a>
+            </div>
+            {loading ? (
+              <div className="space-y-4">
+                {STATUSES.slice(0, 4).map((s) => (
+                  <div key={s}>
+                    <Skeleton className="h-3 w-16 mb-2" />
+                    <Skeleton className="h-1.5 w-full" />
+                  </div>
+                ))}
+              </div>
+            ) : orders.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-8">No orders yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {STATUSES.map((status) => {
+                  const count = statusCounts[status] || 0;
+                  const pct = Math.round((count / orders.length) * 100);
+                  const maxCount = Math.max(1, ...STATUSES.map((s) => statusCounts[s] || 0));
+                  return (
+                    <div key={status}>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: statusDotColors[status] }} />
+                        <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 flex-1 truncate">{status}</span>
+                        <span className="text-xs font-bold text-black dark:text-white">{count}</span>
+                        <span className="text-[11px] text-gray-400 w-8 text-right">{pct}%</span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700 ease-out"
+                          style={{ width: (count / maxCount) * 100 + "%", backgroundColor: statusDotColors[status] }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </FadeIn>
+      </div>
+
+      {/* Low stock alerts */}
+      {!loading && lowStockProducts.length > 0 && (
+        <FadeIn delay={400} className="mb-6">
+          <div className="bg-white dark:bg-gray-900 border border-orange-200 dark:border-orange-900/50 rounded-xl p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              <p className="text-sm font-bold text-black dark:text-white">Low Stock Alerts</p>
+            </div>
+            <div className="space-y-2">
+              {lowStockProducts.slice(0, 6).map((p) => (
+                <a
+                  key={p.id}
+                  href={"/admin/products/" + p.id + "/edit"}
+                  className="flex items-center justify-between text-sm px-3 py-2 rounded-md transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  <span className="text-black dark:text-white truncate flex-1">{p.name}</span>
+                  <span className={"text-xs font-semibold px-2 py-0.5 rounded-full " + (p.stock === 0 ? "bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400" : "bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400")}>
+                    {p.stock === 0 ? "Out of stock" : p.stock + " left"}
+                  </span>
+                </a>
+              ))}
+            </div>
+            {lowStockProducts.length > 6 && (
+              <p className="text-xs text-gray-400 mt-2">+{lowStockProducts.length - 6} more low on stock</p>
+            )}
+          </div>
+        </FadeIn>
+      )}
+
+      {/* Recent orders table */}
+      <FadeIn delay={450} className="mb-6">
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between gap-3 p-5 pb-3 flex-wrap">
+            <p className="text-sm font-bold text-black dark:text-white">Recent Orders</p>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search orders..."
+                  className="pl-8 pr-3 py-1.5 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs text-black dark:text-white focus:outline-none w-40"
+                />
+              </div>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-2.5 py-1.5 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs text-black dark:text-white focus:outline-none"
+              >
+                <option value="All">All statuses</option>
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <a href="/admin/orders" className="text-xs font-semibold text-brand whitespace-nowrap">View all</a>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 dark:border-gray-800 text-left text-xs text-gray-500 dark:text-gray-400 uppercase">
+                  <th className="px-5 py-2 font-semibold w-8"></th>
+                  <th className="px-2 py-2 font-semibold">Order ID</th>
+                  <th className="px-2 py-2 font-semibold">Customer</th>
+                  <th className="px-2 py-2 font-semibold">Total</th>
+                  <th className="px-2 py-2 font-semibold">Status</th>
+                  <th className="px-2 py-2 font-semibold">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading &&
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <tr key={i} className="border-b border-gray-50 dark:border-gray-800/60">
+                      <td className="px-5 py-3"><Skeleton className="h-4 w-4" /></td>
+                      <td className="px-2 py-3"><Skeleton className="h-4 w-16" /></td>
+                      <td className="px-2 py-3"><Skeleton className="h-4 w-24" /></td>
+                      <td className="px-2 py-3"><Skeleton className="h-4 w-20" /></td>
+                      <td className="px-2 py-3"><Skeleton className="h-5 w-16 rounded-full" /></td>
+                      <td className="px-2 py-3"><Skeleton className="h-4 w-16" /></td>
+                    </tr>
+                  ))}
+                {!loading && filteredOrders.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-8 text-center text-gray-400">No orders found.</td>
+                  </tr>
+                )}
+                {!loading &&
+                  filteredOrders.map((order) => (
+                    <tr key={order.id} className="border-b border-gray-50 dark:border-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+                      <td className="px-5 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(order.id)}
+                          onChange={() => toggleSelect(order.id)}
+                          className="accent-brand"
+                        />
+                      </td>
+                      <td className="px-2 py-3 font-mono text-xs text-gray-600 dark:text-gray-300">{order.order_code}</td>
+                      <td className="px-2 py-3 text-black dark:text-white">{order.customer_name || "—"}</td>
+                      <td className="px-2 py-3 font-semibold text-black dark:text-white">KSh {(order.total || 0).toFixed(2)}</td>
+                      <td className="px-2 py-3"><StatusBadge status={order.status} /></td>
+                      <td className="px-2 py-3 text-gray-500 dark:text-gray-400 text-xs">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </FadeIn>
+
+      {!loading && topProducts.length > 0 && (
+        <FadeIn delay={500}>
+          <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-5 transition-shadow duration-200 hover:shadow-md">
+            <p className="text-sm font-bold text-black dark:text-white mb-4">Top Selling Products</p>
+            <div className="space-y-3">
+              {topProducts.map((p, i) => (
+                <div key={i} className="flex items-center justify-between text-sm">
+                  <span className="text-black dark:text-white truncate flex-1">{p.name}</span>
+                  <span className="text-gray-500 dark:text-gray-400 text-xs mx-3">{p.unitsSold} sold</span>
+                  <span className="text-brand font-semibold">KSh {p.revenue.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FadeIn>
+      )}
+    </AdminLayout>
   );
 }
