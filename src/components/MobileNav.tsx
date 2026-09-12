@@ -80,7 +80,7 @@ export default function MobileNav() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-4 left-4 right-4 z-50">
+    <nav className="md:hidden fixed bottom-4 left-4 right-4 z-50 print:hidden">
        <div className="bg-black dark:bg-gray-900 rounded-full shadow-xl border-2 border-blue-900 flex items-center justify-between px-2 py-2">
         {items.map((item) => (
           <Link
