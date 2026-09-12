@@ -63,7 +63,7 @@ const navGroups: NavGroup[] = [
           </svg>
         ),
       },
-      {
+            {
         href: "/admin/categories",
         label: "Categories",
         icon: (
@@ -72,6 +72,16 @@ const navGroups: NavGroup[] = [
             <rect x="14" y="3" width="7" height="7" rx="1" />
             <rect x="14" y="14" width="7" height="7" rx="1" />
             <rect x="3" y="14" width="7" height="7" rx="1" />
+          </svg>
+        ),
+      },
+      {
+        href: "/admin/brands",
+        label: "Brands",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 8v4l3 2" />
           </svg>
         ),
       },
@@ -108,7 +118,7 @@ const navGroups: NavGroup[] = [
           </svg>
         ),
       },
-      {
+            {
         href: "/admin/shipping",
         label: "Shipping Rates",
         icon: (
@@ -117,6 +127,18 @@ const navGroups: NavGroup[] = [
             <path d="M16 8h4l3 3v5h-7V8Z" />
             <circle cx="5.5" cy="18.5" r="2.5" />
             <circle cx="18.5" cy="18.5" r="2.5" />
+          </svg>
+        ),
+      },
+      {
+        href: "/admin/coupons",
+        label: "Coupons",
+        icon: (
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+            <path d="M13 5v2" />
+            <path d="M13 17v2" />
+            <path d="M13 11v2" />
           </svg>
         ),
       },
