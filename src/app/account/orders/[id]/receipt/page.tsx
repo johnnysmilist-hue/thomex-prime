@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Caveat } from "next/font/google";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { u"use client";
+import { "use client";
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
