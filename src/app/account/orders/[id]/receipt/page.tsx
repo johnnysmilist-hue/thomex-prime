@@ -50,7 +50,7 @@ function Barcode({ code }: { code: string }) {
   );
 }
 
-const Divider = () => <div className="border-t border-dashed border-gray-400 my-3" />;
+const Divider = () => <div className="border-t border-dashed border-gray-400 my-3 print:my-2" />;
 
 export default function ReceiptPage() {
   const params = useParams();
@@ -114,7 +114,7 @@ export default function ReceiptPage() {
   const dateObj = new Date(order.created_at);
 
   return (
-    <main className="min-h-screen bg-gray-100 dark:bg-gray-950 print:bg-white">
+    <main className="min-h-screen print:min-h-0 bg-gray-100 dark:bg-gray-950 print:bg-white">
       <div className="print:hidden">
         <Header />
       </div>
@@ -142,7 +142,7 @@ export default function ReceiptPage() {
         </div>
 
         <div
-          className="bg-white print:shadow-none shadow-lg rounded-sm p-6"
+          className="receipt-card bg-white print:shadow-none shadow-lg rounded-sm p-6 print:p-4"
           style={{ fontFamily: "'Courier New', Courier, monospace" }}
         >
           {/* Top strip */}
