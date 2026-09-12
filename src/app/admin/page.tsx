@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AdminGuard from "@/components/AdminGuard";
+import AdminSidebar from "@/components/AdminSidebar";
 import { supabase } from "@/lib/supabaseClient";
 import { createNotification } from "@/lib/supabaseNotifications";
 import { fetchOfficers, assignOfficerToOrder, DeliveryOfficer } from "@/lib/supabaseDeliveryOfficers";
