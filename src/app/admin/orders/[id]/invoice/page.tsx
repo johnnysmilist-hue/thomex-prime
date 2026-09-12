@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import AdminGuard from "@/components/AdminGuard";
 import { supabase } from "@/lib/supabaseClient";
 import { fetchSettings } from "@/lib/supabaseSettings";
-import { amountInWords } from "@/lib/amountInWords";
 
 type OrderItem = { name?: string; price?: number; qty?: number };
 
@@ -25,6 +24,12 @@ type Order = {
   payment_status: string | null;
 };
 
+const paymentLabel = (method: string | null, status: string | null) => {
+  if (method === "mpesa") return status === "paid" ? "Paid via M-Pesa" : "M-Pesa (pending)";
+  if (method === "cod") return "Cash on delivery";
+  return "—";
+};
+
 export default function InvoicePage() {
   const params = useParams();
   const router = useRouter();
@@ -34,7 +39,6 @@ export default function InvoicePage() {
   const [hotline, setHotline] = useState("+254 700 123 456");
   const [whatsapp, setWhatsapp] = useState("");
   const [supportEmail, setSupportEmail] = useState("");
-  const [storeAddress, setStoreAddress] = useState("");
 
   useEffect(() => {
     const load = async () => {
@@ -48,7 +52,6 @@ export default function InvoicePage() {
       if (r.data?.hotline) setHotline(r.data.hotline);
       if (r.data?.whatsapp_number) setWhatsapp(r.data.whatsapp_number);
       if (r.data?.support_email) setSupportEmail(r.data.support_email);
-      if (r.data?.address) setStoreAddress(r.data.address);
     });
   }, [params.id]);
 
@@ -80,7 +83,7 @@ export default function InvoicePage() {
 
   return (
     <AdminGuard>
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-950 print:bg-white">
+      <div className="min-h-screen print:min-h-0 bg-gray-100 dark:bg-gray-950 print:bg-white">
         <div className="print:hidden bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
           <button onClick={() => router.push("/admin/orders")} className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1.5">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -97,140 +100,121 @@ export default function InvoicePage() {
         </div>
 
         <div className="max-w-3xl mx-auto py-10 px-4 print:py-0 print:px-0">
-          <div className="bg-white print:bg-white rounded-none shadow-sm print:shadow-none border border-gray-200 print:border-0 overflow-hidden">
-            {/* Header band */}
-            <div className="bg-brand text-white px-8 py-6 flex items-start justify-between">
+          <div className="invoice-card relative bg-gradient-to-br from-gray-50 to-white print:bg-white rounded-2xl shadow-sm print:shadow-none overflow-hidden p-8 sm:p-10 print:p-8">
+            {/* Decorative gradient blob, purely visual */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-32 -right-32 w-96 h-96 rounded-full bg-gradient-to-br from-brand-light to-brand-dark opacity-10 print:opacity-5"
+            />
+
+            {/* Header row: logo + INVOICE title */}
+            <div className="relative flex items-start justify-between mb-10">
               <div className="flex items-center gap-3">
                 <img src="/logo-dark.png" alt={storeName} className="h-10 w-auto shrink-0" />
-                <p className="text-[11px] text-white/80 font-semibold uppercase tracking-wide border-l border-white/30 pl-3">Electronics &amp; Home Appliances</p>
+                <div>
+                  <p className="font-extrabold text-gray-900 leading-tight">{storeName}</p>
+                  <p className="text-xs text-gray-500">Electronics &amp; Home Appliances</p>
+                </div>
               </div>
-              <div className="text-right text-xs text-white/90 space-y-1">
-                {hotline && (
-                  <p className="flex items-center justify-end gap-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.01l-2.2 2.21Z"/></svg>
-                    {hotline}
-                  </p>
-                )}
-                {whatsapp && (
-                  <p className="flex items-center justify-end gap-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.39 1.26 4.82L2 22l5.42-1.36a9.9 9.9 0 0 0 4.62 1.14h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2Z"/></svg>
-                    {whatsapp}
-                  </p>
-                )}
-                {supportEmail && <p>{supportEmail}</p>}
-                {storeAddress && <p className="max-w-[200px]">{storeAddress}</p>}
+              <h1 className="text-3xl sm:text-4xl font-black text-brand-dark tracking-tight">INVOICE</h1>
+            </div>
+
+            {/* Billed to / Payment details + Number & Date */}
+            <div className="relative flex flex-col sm:flex-row justify-between gap-6 mb-10">
+              <div>
+                <p className="text-xs font-extrabold tracking-widest text-gray-900 mb-2">BILLED TO</p>
+                <p className="text-sm text-gray-700">{order.customer_name}</p>
+                <p className="text-sm text-gray-700">{order.phone}</p>
+                <p className="text-sm text-gray-700">{order.address}</p>
+
+                <p className="text-xs font-extrabold tracking-widest text-gray-900 mt-6 mb-2">PAYMENT DETAILS</p>
+                <p className="text-sm text-gray-700">{paymentLabel(order.payment_method, order.payment_status)}</p>
+              </div>
+              <div className="text-sm text-gray-600 space-y-1 sm:text-right shrink-0">
+                <p>Number: <span className="font-semibold text-gray-900">{order.order_code}</span></p>
+                <p>Date: <span className="font-semibold text-gray-900">{orderDate.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}</span></p>
               </div>
             </div>
 
-            {/* Title bar */}
-            <div className="bg-gray-900 text-white text-center py-3">
-              <p className="text-lg font-black tracking-[0.2em]">INVOICE</p>
+            {/* Item table */}
+            <div className="relative mb-8">
+              <div className="grid grid-cols-[1fr_50px_80px_90px] sm:grid-cols-[1fr_60px_100px_100px] gap-2 bg-gradient-to-r from-brand-dark to-brand-light text-white text-[11px] sm:text-xs font-bold uppercase tracking-wide rounded-full px-4 sm:px-6 py-3">
+                <span>Item Description</span>
+                <span className="text-center">Qty</span>
+                <span className="text-right">Price</span>
+                <span className="text-right">Total</span>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-sm mt-3 divide-y divide-gray-100 px-4 sm:px-6">
+                {items.map((item, i) => (
+                  <div key={i} className="grid grid-cols-[1fr_50px_80px_90px] sm:grid-cols-[1fr_60px_100px_100px] gap-2 py-3 text-sm text-gray-700">
+                    <span>{item.name}</span>
+                    <span className="text-center">{item.qty}</span>
+                    <span className="text-right">KSh {(item.price || 0).toFixed(2)}</span>
+                    <span className="text-right font-semibold text-gray-900">
+                      KSh {((item.price || 0) * (item.qty || 0)).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="p-8">
-              <div className="grid grid-cols-3 border border-gray-300 mb-0 text-xs">
-                <div className="border-r border-gray-300 px-3 py-2">
-                  <p className="font-bold text-gray-500">ORDER NO.</p>
-                  <p className="text-black font-semibold">{order.order_code}</p>
+            {/* Notes + totals */}
+            <div className="relative flex flex-col sm:flex-row justify-between gap-6 mb-10">
+              {order.notes ? (
+                <div className="max-w-xs">
+                  <p className="text-xs font-extrabold tracking-widest text-gray-900 mb-2">NOTES</p>
+                  <p className="text-xs text-gray-500 leading-relaxed">{order.notes}</p>
                 </div>
-                <div className="border-r border-gray-300 px-3 py-2">
-                  <p className="font-bold text-gray-500">PHONE</p>
-                  <p className="text-black font-semibold">{order.phone}</p>
-                </div>
-                <div className="px-3 py-2">
-                  <p className="font-bold text-gray-500">DATE</p>
-                  <p className="text-black font-semibold">{orderDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</p>
-                </div>
-              </div>
-              <div className="border border-t-0 border-gray-300 px-3 py-2 text-xs">
-                <p className="font-bold text-gray-500">NAME</p>
-                <p className="text-black font-semibold">{order.customer_name}</p>
-              </div>
-              <div className="border border-t-0 border-gray-300 px-3 py-2 text-xs mb-6">
-                <p className="font-bold text-gray-500">ADDRESS</p>
-                <p className="text-black font-semibold">{order.address}</p>
-              </div>
-
-              <table className="w-full text-sm border-collapse mb-2">
-                <thead>
-                  <tr className="bg-brand text-white text-xs uppercase">
-                    <th className="border border-brand-dark py-2 px-2 text-left w-16">Qty</th>
-                    <th className="border border-brand-dark py-2 px-2 text-left">Description</th>
-                    <th className="border border-brand-dark py-2 px-2 text-right w-28">Price</th>
-                    <th className="border border-brand-dark py-2 px-2 text-right w-28">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item, i) => (
-                    <tr key={i}>
-                      <td className="border border-gray-300 py-2 px-2 text-center">{item.qty}</td>
-                      <td className="border border-gray-300 py-2 px-2">{item.name}</td>
-                      <td className="border border-gray-300 py-2 px-2 text-right">KSh {(item.price || 0).toFixed(2)}</td>
-                      <td className="border border-gray-300 py-2 px-2 text-right font-medium">
-                        KSh {((item.price || 0) * (item.qty || 0)).toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                  {Array.from({ length: Math.max(0, 3 - items.length) }).map((_, i) => (
-                    <tr key={"blank-" + i}>
-                      <td className="border border-gray-300 py-3 px-2">&nbsp;</td>
-                      <td className="border border-gray-300 py-3 px-2">&nbsp;</td>
-                      <td className="border border-gray-300 py-3 px-2">&nbsp;</td>
-                      <td className="border border-gray-300 py-3 px-2">&nbsp;</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <div className="flex justify-end mb-6">
-                <div className="w-64">
-                  <div className="flex justify-between text-sm py-1 border-b border-gray-200">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span className="text-black">KSh {subtotal.toFixed(2)}</span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-sm py-1 border-b border-gray-200 text-green-700">
-                      <span>Discount {order.coupon_code ? "(" + order.coupon_code + ")" : ""}</span>
-                      <span>-KSh {discount.toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-base font-black py-2 bg-brand/5 px-2 mt-1">
-                    <span className="text-black">TOTAL</span>
-                    <span className="text-brand">KSh {order.total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-xs text-gray-600 mb-8">
-                <span className="font-bold">Amount in Words:</span> {amountInWords(order.total)} Kenyan Shillings Only
-                <span className="inline-block border-b border-gray-400 ml-1" style={{ minWidth: "60px" }} />
-              </p>
-
-              {order.notes && (
-                <div className="mb-8 text-xs text-gray-600">
-                  <p className="font-bold text-gray-500 mb-1">NOTES</p>
-                  <p>{order.notes}</p>
-                </div>
+              ) : (
+                <div />
               )}
 
-              <div className="bg-gray-50 border border-gray-200 text-xs text-gray-600 px-3 py-2 mb-10 text-center">
-                Goods sold are covered by our Return, Refund &amp; Warranty Policy. Please retain this invoice for any claims.
-              </div>
-
-              <div className="flex justify-between items-end">
-                <div className="text-center">
-                  <div className="border-b border-gray-400 w-40 mb-1" />
-                  <p className="text-xs text-gray-500">Customer&apos;s Signature</p>
+              <div className="bg-white rounded-xl shadow-sm px-6 py-4 w-full sm:w-72 space-y-2 shrink-0">
+                <div className="flex justify-between text-sm">
+                  <span className="font-bold text-gray-900">SUB TOTAL</span>
+                  <span className="text-gray-700">KSh {subtotal.toFixed(2)}</span>
                 </div>
-                <div className="text-center">
-                  <div className="border-b border-gray-400 w-40 mb-1" />
-                  <p className="text-xs text-gray-500">Authorized Signature</p>
+                {discount > 0 && (
+                  <div className="flex justify-between text-sm text-green-700">
+                    <span className="font-bold">DISCOUNT{order.coupon_code ? " (" + order.coupon_code + ")" : ""}</span>
+                    <span>-KSh {discount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-base font-black pt-2 border-t border-gray-200">
+                  <span className="text-gray-900">GRAND TOTAL</span>
+                  <span className="text-brand-dark">KSh {order.total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-brand text-white text-center text-xs font-semibold py-2.5">
-              Thank you for shopping with {storeName}
+            {/* Footer contact bar */}
+            <div className="relative bg-brand-dark text-white rounded-full flex flex-wrap items-center justify-center gap-x-8 gap-y-2 px-6 py-4 text-xs font-medium">
+              {hotline && (
+                <span className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24 11.36 11.36 0 0 0 3.57.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.36 11.36 0 0 0 .57 3.57 1 1 0 0 1-.25 1.01l-2.2 2.21Z"/>
+                  </svg>
+                  {hotline}
+                </span>
+              )}
+              {whatsapp && (
+                <span className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.39 1.26 4.82L2 22l5.42-1.36a9.9 9.9 0 0 0 4.62 1.14h.01c5.46 0 9.9-4.45 9.9-9.91C21.95 6.45 17.5 2 12.04 2Z"/>
+                  </svg>
+                  {whatsapp}
+                </span>
+              )}
+              {supportEmail && (
+                <span className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                  </svg>
+                  {supportEmail}
+                </span>
+              )}
             </div>
           </div>
         </div>
