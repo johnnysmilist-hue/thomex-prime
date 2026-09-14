@@ -23,8 +23,7 @@ type Order = {
   created_at: string;
 };
 
-const statuses = ["Pending", "Confirmed", "Dispatched", "In Transit", "Shipped", "Received", "Ready for Pickup", "Assigned", "Out for Delivery", "Picked Up", "Delivered", "Cancelled", "Returned"];
-
+const statuses = ["Pending", "Confirmed", "Dispatched", "In Transit", "Shipped", "Received", "Ready for Pickup", "Assigned", "Out for Delivery", "Picked Up", "Delivered", "Cancelled", "Returned", "Damaged/Exception"];
 const statusPill: Record<string, string> = {
   Pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400",
   Confirmed: "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
@@ -38,6 +37,7 @@ const statusPill: Record<string, string> = {
   "Out for Delivery": "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400",
   Delivered: "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400",
   Cancelled: "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400",
+  "Damaged/Exception": "bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400",
   Returned: "bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400",
 };
 
