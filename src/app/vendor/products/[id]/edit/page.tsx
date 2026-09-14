@@ -1,267 +1,272 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import VendorGuard from "@/components/VendorGuard";
+import VendorSidebar from "@/components/VendorSidebar";
+import ProductImageGallery from "@/components/ProductImageGallery";
+import { updateProduct, deleteProduct } from "@/lib/supabaseProducts";
+import { fetchCategories, SiteCategory } from "@/lib/supabaseCategories";
+import { fetchBrands, Brand } from "@/lib/supabaseBrands";
 import { supabase } from "@/lib/supabaseClient";
-import { updateProduct, uploadProductImage, DbProduct } from "@/lib/supabaseProducts";
-import { fetchAttributes, addAttribute, deleteAttribute, Attribute } from "@/lib/supabaseAttributes";
-import { fetchCategories, fetchAllSubcategories, SiteCategory, SiteSubcategory } from "@/lib/supabaseCategories";
 
-export default function VendorEditProductPage({ params }: { params: { id: string } }) {
+type DbProductRow = {
+  id: string;
+  name: string;
+  price: number;
+  old_price: number | null;
+  category: string;
+  brand: string | null;
+  description: string | null;
+  image_url: string | null;
+  status: string;
+  stock: number;
+  store_id: string | null;
+  sku: string | null;
+};
+
+export default function EditVendorProductPage() {
   return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
-      <VendorGuard>
-        {(store) => <EditForm productId={params.id} storeId={store.id} />}
-      </VendorGuard>
+      <VendorGuard>{(store) => <EditProductForm storeId={store.id} />}</VendorGuard>
       <Footer />
     </main>
   );
 }
 
-function EditForm({ productId, storeId }: { productId: string; storeId: string }) {
+function EditProductForm({ storeId }: { storeId: string }) {
+  const params = useParams();
   const router = useRouter();
+  const productId = params.id as string;
+
+  const [categories, setCategories] = useState<SiteCategory[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
-  const [notOwner, setNotOwner] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState("");
+  const [notAllowed, setNotAllowed] = useState(false);
 
   const [name, setName] = useState("");
+  const [brand, setBrand] = useState("");
+  const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const [oldPrice, setOldPrice] = useState("");
-  const [category, setCategory] = useState("");
-  const [subcategory, setSubcategory] = useState("");
-  const [siteCategories, setSiteCategories] = useState<SiteCategory[]>([]);
-  const [siteSubcategories, setSiteSubcategories] = useState<SiteSubcategory[]>([]);
+  const [sku, setSku] = useState("");
+  const [stock, setStock] = useState("");
+  const [status, setStatus] = useState("Draft");
   const [description, setDescription] = useState("");
-  const [stock, setStock] = useState("0");
   const [imageUrl, setImageUrl] = useState("");
-
-  const [attributes, setAttributes] = useState<Attribute[]>([]);
-  const [attrName, setAttrName] = useState("");
-  const [attrValue, setAttrValue] = useState("");
-  const [attrPriceMod, setAttrPriceMod] = useState("0");
-  const [attrStock, setAttrStock] = useState("0");
-  const [attrImageUrl, setAttrImageUrl] = useState("");
-  const [attrUploading, setAttrUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const load = async () => {
-      fetchCategories().then((r) => setSiteCategories(r.data || []));
-      fetchAllSubcategories().then((r) => setSiteSubcategories(r.data || []));
+    fetchCategories().then((r) => setCategories(r.data || []));
+    fetchBrands().then((r) => setBrands(r.data || []));
 
+    const load = async () => {
       const { data } = await supabase.from("products").select("*").eq("id", productId).single();
-      if (!data || (data as DbProduct).store_id !== storeId) {
-        setNotOwner(true);
+
+      if (!data || (data as DbProductRow).store_id !== storeId) {
+        setNotAllowed(true);
         setLoading(false);
         return;
       }
-      const p = data as DbProduct;
-      setName(p.name);
-      setPrice(String(p.price));
-      setOldPrice(p.old_price ? String(p.old_price) : "");
-      setCategory(p.category);
-      setSubcategory(p.subcategory || "");
-      setDescription(p.description || "");
-      setStock(String(p.stock));
-      setImageUrl(p.image_url || "");
 
-      const { data: attrs } = await fetchAttributes(productId);
-      setAttributes(attrs || []);
+      const p = data as DbProductRow;
+      setName(p.name);
+      setBrand(p.brand || "");
+      setCategory(p.category);
+      setPrice(String(p.price));
+      setOldPrice(p.old_price !== null ? String(p.old_price) : "");
+      setSku(p.sku || "");
+      setStock(String(p.stock));
+      setStatus(p.status || "Draft");
+      setDescription(p.description || "");
+      setImageUrl(p.image_url || "");
       setLoading(false);
     };
     load();
   }, [productId, storeId]);
 
-  const selectedCategoryObj = siteCategories.find((c) => c.name === category);
-  const availableSubcategories = siteSubcategories.filter((s) => s.category_id === selectedCategoryObj?.id);
-
-  const handleCategoryChange = (name: string) => {
-    setCategory(name);
-    setSubcategory("");
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    const { url, error: uploadError } = await uploadProductImage(file);
-    setUploading(false);
-    if (uploadError || !url) {
-      setError("Image upload failed.");
+  const handleSave = async (newStatus?: "Draft" | "Published") => {
+    setError("");
+    if (!name.trim() || !price || !category) {
+      setError("Name, category, and price are required.");
       return;
     }
-    setImageUrl(url);
-  };
 
-  const handleAttrImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setAttrUploading(true);
-    const { url } = await uploadProductImage(file);
-    setAttrUploading(false);
-    if (url) setAttrImageUrl(url);
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
     setSaving(true);
-    setError("");
-
-    const { error: saveError } = await updateProduct(productId, {
-      name,
+    const { error: dbErr } = await updateProduct(productId, {
+      name: name.trim(),
       price: parseFloat(price),
       old_price: oldPrice ? parseFloat(oldPrice) : null,
-      discount_percent: oldPrice ? Math.round(((parseFloat(oldPrice) - parseFloat(price)) / parseFloat(oldPrice)) * 100) : null,
       category,
-      subcategory: subcategory || null,
-      description,
+      brand: brand || null,
+      description: description || null,
       image_url: imageUrl || null,
-      stock: parseInt(stock) || 0,
-    });
-
+      status: newStatus || status,
+      stock: stock ? parseInt(stock) : 0,
+      sku: sku || null,
+    } as any);
     setSaving(false);
 
-    if (saveError) {
-      setError("Could not save changes. Please try again.");
+    if (dbErr) {
+      setError("Something went wrong saving changes.");
       return;
     }
 
+    if (newStatus) setStatus(newStatus);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Delete this product permanently? This can't be undone.")) return;
+    setDeleting(true);
+    await deleteProduct(productId);
     router.push("/vendor/products");
   };
 
-  const handleAddAttribute = async () => {
-    if (!attrName.trim() || !attrValue.trim()) return;
-    const { data } = await addAttribute({
-      product_id: productId,
-      name: attrName,
-      value: attrValue,
-      price_modifier: parseFloat(attrPriceMod) || 0,
-      stock: parseInt(attrStock) || 0,
-      image_url: attrImageUrl || null,
-    });
-    if (data) {
-      setAttributes((prev) => [...prev, data]);
-      setAttrName("");
-      setAttrValue("");
-      setAttrPriceMod("0");
-      setAttrStock("0");
-      setAttrImageUrl("");
-    }
-  };
-
-  const handleDeleteAttribute = async (id: string) => {
-    await deleteAttribute(id);
-    setAttributes((prev) => prev.filter((a) => a.id !== id));
-  };
+  const inputClass = "w-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 focus:border-brand";
 
   if (loading) {
-    return <div className="max-w-2xl mx-auto px-4 py-10 text-sm text-gray-400">Loading...</div>;
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
+        <VendorSidebar />
+        <div className="flex-1 text-sm text-gray-400">Loading product...</div>
+      </div>
+    );
   }
 
-  if (notOwner) {
+  if (notAllowed) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-10 text-center">
-        <p className="text-sm text-red-500">You don't have permission to edit this product.</p>
+      <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
+        <VendorSidebar />
+        <div className="flex-1 text-center py-16">
+          <p className="text-sm text-gray-500 mb-4">This product doesn't exist or doesn't belong to your store.</p>
+          <a href="/vendor/products" className="text-sm text-brand font-semibold">Back to My Products</a>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
-      <h1 className="text-xl font-bold mb-6 text-black dark:text-white">Edit Product</h1>
+    <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col md:flex-row gap-6">
+      <VendorSidebar />
 
-      <form onSubmit={handleSave} className="space-y-4 mb-10">
-        <input required placeholder="Product name" value={name} onChange={(e) => setName(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-
-        <div className="grid grid-cols-2 gap-3">
-          <input required type="number" step="0.01" placeholder="Price (KSh)" value={price} onChange={(e) => setPrice(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-          <input type="number" step="0.01" placeholder="Old price" value={oldPrice} onChange={(e) => setOldPrice(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <select value={category} onChange={(e) => handleCategoryChange(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm">
-            {siteCategories.map((cat) => (
-              <option key={cat.id} value={cat.name}>{cat.name}</option>
-            ))}
-          </select>
-          <select
-            value={subcategory}
-            onChange={(e) => setSubcategory(e.target.value)}
-            disabled={availableSubcategories.length === 0}
-            className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm disabled:opacity-50"
-          >
-            <option value="">{availableSubcategories.length === 0 ? "No subcategories" : "None"}</option>
-            {availableSubcategories.map((sub) => (
-              <option key={sub.id} value={sub.name}>{sub.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <input type="number" placeholder="Stock" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm" />
-        </div>
-
-        <textarea placeholder="Description" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-4 py-2 text-sm resize-none" />
-
-        <div>
-          <input type="file" accept="image/*" onChange={handleFileChange} className="text-sm text-black dark:text-white mb-2" />
-          {uploading && <p className="text-xs text-gray-400">Uploading...</p>}
-          {imageUrl && <img src={imageUrl} alt="Product" className="w-24 h-24 object-cover rounded-md border border-gray-200 dark:border-gray-800" />}
-        </div>
-
-        {error && <p className="text-xs text-red-500">{error}</p>}
-
-        <button type="submit" disabled={saving} className="bg-brand text-white px-5 py-2 rounded-md text-sm font-semibold disabled:opacity-60">
-          {saving ? "Saving..." : "Save Changes"}
-        </button>
-      </form>
-
-      <div className="border-t border-gray-200 dark:border-gray-800 pt-8">
-        <h2 className="text-lg font-bold mb-4 text-black dark:text-white">Attributes / Variants</h2>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-          Add options like Color: Blue with its own photo — customers will see this image when they pick that option.
-        </p>
-
-        {attributes.length > 0 && (
-          <div className="space-y-2 mb-5">
-            {attributes.map((attr) => (
-              <div key={attr.id} className="flex items-center justify-between border border-gray-200 dark:border-gray-800 rounded-md px-4 py-2 text-sm gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  {attr.image_url && <img src={attr.image_url} alt={attr.value} className="w-8 h-8 rounded object-cover shrink-0" />}
-                  <span className="text-black dark:text-white truncate">
-                    {attr.name}: {attr.value}
-                    {attr.price_modifier !== 0 && (attr.price_modifier > 0 ? ` (+${attr.price_modifier})` : ` (-${Math.abs(attr.price_modifier)})`)}
-                    {" • Stock: " + attr.stock}
-                  </span>
-                </div>
-                <button onClick={() => handleDeleteAttribute(attr.id)} className="text-red-500 text-xs font-semibold shrink-0">Remove</button>
-              </div>
-            ))}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
+          <div>
+            <h1 className="text-xl font-bold text-black dark:text-white">Edit Product</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Status:{" "}
+              <span className={status === "Published" ? "text-green-600 font-semibold" : "text-gray-500 font-semibold"}>
+                {status}
+              </span>
+            </p>
           </div>
-        )}
+          <a href="/vendor/products" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand">← Back to My Products</a>
+        </div>
 
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <input placeholder="Attribute name (e.g. Color)" value={attrName} onChange={(e) => setAttrName(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
-          <input placeholder="Value (e.g. Blue)" value={attrValue} onChange={(e) => setAttrValue(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <ProductImageGallery productId={productId} mainImageUrl={imageUrl} onMainImageChange={setImageUrl} />
+
+              <div className="mt-6">
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Description</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={5}
+                  className={inputClass + " resize-none"}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Product Name</label>
+                <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Brand Name</label>
+                  <select value={brand} onChange={(e) => setBrand(e.target.value)} className={inputClass}>
+                    <option value="">Select brand</option>
+                    {brands.map((b) => (
+                      <option key={b.id} value={b.name}>{b.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Category</label>
+                  <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass}>
+                    <option value="">Select category</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Regular Price</label>
+                  <input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Sale Price (optional)</label>
+                  <input type="number" step="0.01" value={oldPrice} onChange={(e) => setOldPrice(e.target.value)} className={inputClass} />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">SKU</label>
+                <input value={sku} onChange={(e) => setSku(e.target.value)} className={inputClass} />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Quantity in Stock</label>
+                <input type="number" value={stock} onChange={(e) => setStock(e.target.value)} className={inputClass} />
+              </div>
+
+              {error && <p className="text-xs text-red-500">{error}</p>}
+              {saved && <p className="text-xs text-green-600 dark:text-green-400">Saved!</p>}
+
+              <div className="flex gap-3 pt-2">
+                {status !== "Published" ? (
+                  <button
+                    onClick={() => handleSave("Published")}
+                    disabled={saving}
+                    className="flex-1 bg-brand text-white py-2.5 rounded-lg text-sm font-bold disabled:opacity-60"
+                  >
+                    {saving ? "Publishing..." : "Publish Product"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleSave()}
+                    disabled={saving}
+                    className="flex-1 bg-brand text-white py-2.5 rounded-lg text-sm font-bold disabled:opacity-60"
+                  >
+                    {saving ? "Saving..." : "Save Changes"}
+                  </button>
+                )}
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="border border-red-300 text-red-500 px-4 py-2.5 rounded-lg text-sm font-bold disabled:opacity-60"
+                >
+                  {deleting ? "..." : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <input type="number" step="0.01" placeholder="Price adjustment" value={attrPriceMod} onChange={(e) => setAttrPriceMod(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
-          <input type="number" placeholder="Stock" value={attrStock} onChange={(e) => setAttrStock(e.target.value)} className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white rounded-md px-3 py-2 text-sm" />
-        </div>
-        <div className="mb-3">
-          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Image for this option (optional)</label>
-          <input type="file" accept="image/*" onChange={handleAttrImageChange} className="text-sm text-black dark:text-white" />
-          {attrUploading && <p className="text-xs text-gray-400 mt-1">Uploading...</p>}
-          {attrImageUrl && <img src={attrImageUrl} alt="Preview" className="w-16 h-16 object-cover rounded-md mt-2 border border-gray-200 dark:border-gray-800" />}
-        </div>
-        <button onClick={handleAddAttribute} className="border border-brand text-brand px-4 py-2 rounded-md text-sm font-semibold">
-          + Add Attribute
-        </button>
       </div>
     </div>
   );
