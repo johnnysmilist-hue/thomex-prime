@@ -23,13 +23,18 @@ type Order = {
   created_at: string;
 };
 
-const statuses = ["Pending", "Confirmed", "Shipped", "Assigned", "Out for Delivery", "Delivered", "Cancelled", "Returned"];
+const statuses = ["Pending", "Confirmed", "Dispatched", "In Transit", "Shipped", "Received", "Ready for Pickup", "Assigned", "Out for Delivery", "Picked Up", "Delivered", "Cancelled", "Returned"];
 
 const statusPill: Record<string, string> = {
   Pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400",
   Confirmed: "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
   Shipped: "bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400",
   Assigned: "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400",
+  Dispatched: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400",
+  "In Transit": "bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400",
+  Received: "bg-teal-100 text-teal-700 dark:bg-teal-500/10 dark:text-teal-400",
+  "Ready for Pickup": "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400",
+  "Picked Up": "bg-lime-100 text-lime-700 dark:bg-lime-500/10 dark:text-lime-400",
   "Out for Delivery": "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400",
   Delivered: "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400",
   Cancelled: "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400",
