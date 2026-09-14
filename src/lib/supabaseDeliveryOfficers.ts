@@ -7,8 +7,14 @@ export type DeliveryOfficer = {
   name: string;
   phone: string;
   active: boolean;
+  station_id: string | null;
   created_at: string;
 };
+
+export async function setOfficerStation(id: string, stationId: string | null) {
+  const { error } = await supabase.from("delivery_officers").update({ station_id: stationId }).eq("id", id);
+  return { error };
+}
 
 export async function fetchOfficers() {
   const { data, error } = await supabase.from("delivery_officers").select("*").order("created_at", { ascending: false });
