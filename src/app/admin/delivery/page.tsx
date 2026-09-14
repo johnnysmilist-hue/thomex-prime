@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useMemo } from "react";
 import AdminLayout from "@/components/AdminLayout";
-import { fetchOfficers, createOfficerFromUser, toggleOfficerActive, deleteOfficer, DeliveryOfficer } from "@/lib/supabaseDeliveryOfficers";
+import { fetchOfficers, createOfficerFromUser, toggleOfficerActive, deleteOfficer, setOfficerStation, DeliveryOfficer } from "@/lib/supabaseDeliveryOfficers";
 import { fetchRegisteredUsers, RegisteredUser } from "@/lib/supabaseRegisteredUsers";
+import { fetchStations, Station } from "@/lib/supabaseStations";
 
 export default function AdminDeliveryPage() {
   const [officers, setOfficers] = useState<DeliveryOfficer[]>([]);
+  const [stations, setStations] = useState<Station[]>([]);
+  const [savingStationFor, setSavingStationFor] = useState<string | null>(null);
   const [users, setUsers] = useState<RegisteredUser[]>([]);
   const [usersError, setUsersError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -26,10 +29,11 @@ export default function AdminDeliveryPage() {
 
   const load = async () => {
     setLoading(true);
-    const [officersRes, usersRes] = await Promise.all([fetchOfficers(), fetchRegisteredUsers()]);
+    const [officersRes, usersRes, stationsRes] = await Promise.all([fetchOfficers(), fetchRegisteredUsers(), fetchStations()]);
     setOfficers(officersRes.data || []);
     if (usersRes.error) setUsersError(usersRes.error);
     else setUsers(usersRes.data || []);
+    setStations(stationsRes.data || []);
     setLoading(false);
   };
 
@@ -114,6 +118,13 @@ export default function AdminDeliveryPage() {
     resetForm();
     setMode("none");
     load();
+  };
+
+  const handleStationChange = async (officerId: string, stationId: string) => {
+    setSavingStationFor(officerId);
+    await setOfficerStation(officerId, stationId || null);
+    setOfficers((prev) => prev.map((o) => (o.id === officerId ? { ...o, station_id: stationId || null } : o)));
+    setSavingStationFor(null);
   };
 
   const handleToggle = async (officer: DeliveryOfficer) => {
@@ -251,12 +262,26 @@ export default function AdminDeliveryPage() {
       ) : (
         <div className="space-y-2">
           {officers.map((o) => (
-            <div key={o.id} className="flex items-center justify-between bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl px-4 py-3">
+            <div key={o.id} className="flex items-center justify-between flex-wrap gap-3 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl px-4 py-3">
               <div>
                 <p className="text-sm font-bold text-black dark:text-white">{o.name}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{o.phone}</p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div>
+                  <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Station</label>
+                  <select
+                    value={o.station_id || ""}
+                    onChange={(e) => handleStationChange(o.id, e.target.value)}
+                    disabled={savingStationFor === o.id}
+                    className="border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-black dark:text-white rounded-md px-2 py-1.5 text-xs disabled:opacity-60"
+                  >
+                    <option value="">Unassigned</option>
+                    {stations.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
                 <span className={"text-[10px] font-bold px-2 py-1 rounded-full " + (o.active ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400" : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400")}>
                   {o.active ? "ACTIVE" : "DISABLED"}
                 </span>
