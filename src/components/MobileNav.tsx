@@ -81,7 +81,7 @@ export default function MobileNav() {
 
   return (
     <nav className="md:hidden fixed bottom-4 left-4 right-4 z-50 print:hidden">
-       <div className="bg-black dark:bg-gray-900 rounded-full shadow-xl border-2 border-blue-900 flex items-center justify-between px-2 py-2">
+             <div className="bg-white/30 dark:bg-black/30 backdrop-blur-2xl backdrop-saturate-150 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.25)] border border-white/30 dark:border-white/10 flex items-center justify-between px-2 py-2">
         {items.map((item) => (
           <Link
             key={item.href}
