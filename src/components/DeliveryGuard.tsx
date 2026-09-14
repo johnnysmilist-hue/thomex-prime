@@ -19,7 +19,7 @@ export default function DeliveryGuard({ children }: { children: (officer: Delive
       return;
     }
     if (isAdmin) {
-      setOfficer({ id: "ALL", name: "Admin (viewing all)", active: true } as DeliveryOfficer);
+      setOfficer({ id: "ALL", name: "Admin (viewing all)", active: true, station_id: null } as DeliveryOfficer);
       setChecking(false);
       return;
     }
