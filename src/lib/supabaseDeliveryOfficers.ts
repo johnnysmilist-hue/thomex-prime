@@ -37,6 +37,11 @@ export async function createOfficerFromUser(userId: string, name: string, phone:
   return { data: data as DeliveryOfficer | null, error };
 }
 
+export async function updateOfficerPhone(id: string, phone: string) {
+  const { error } = await supabase.from("delivery_officers").update({ phone }).eq("id", id);
+  return { error };
+}
+
 export async function toggleOfficerActive(id: string, active: boolean) {
   const { error } = await supabase.from("delivery_officers").update({ active }).eq("id", id);
   return { error };
