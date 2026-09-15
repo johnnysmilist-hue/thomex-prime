@@ -6,6 +6,12 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
+import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
+import { fetchReviewsByUser, Review } from "@/lib/supabaseReviews";
+import { fetchCoupons, Coupon } from "@/lib/supabaseCoupons";
+import { fetchNotifications, markNotificationRead, Notification } from "@/lib/supabaseNotifications";
+import ProductRow from "@/components/ProductRow";
+import RecentlyViewed from "@/components/RecentlyViewed";
 import { fetchAddresses, addAddress, deleteAddress, setDefaultAddress, Address } from "@/lib/supabaseAddresses";
 import {
   fetchPaymentMethods,
@@ -15,40 +21,40 @@ import {
   PaymentMethod,
 } from "@/lib/supabasePaymentMethods";
 
-type Tab = "personal" | "address" | "payment" | "password";
+type Tab = "dashboard" | "personal" | "address" | "payment" | "reviews" | "vouchers" | "notifications" | "password";
 
 const icon = (name: string) => {
   const common = { xmlns: "http://www.w3.org/2000/svg", width: 17, height: 17, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  if (name === "dashboard") return <svg {...common}><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>;
   if (name === "personal") return <svg {...common}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
   if (name === "orders") return <svg {...common}><path d="M20 7h-3a2 2 0 0 1-2-2V2" /><path d="M9 22h9a2 2 0 0 0 2-2V7l-5-5H9a2 2 0 0 0-2 2v3" /><path d="M3 12h6" /><path d="M3 16h6" /><path d="M3 8h2" /></svg>;
+  if (name === "wishlist") return <svg {...common}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>;
   if (name === "address") return <svg {...common}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>;
   if (name === "payment") return <svg {...common}><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>;
+  if (name === "reviews") return <svg {...common}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>;
+  if (name === "vouchers") return <svg {...common}><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" /><path d="M13 5v2" /><path d="M13 17v2" /><path d="M13 11v2" /></svg>;
+  if (name === "notifications") return <svg {...common}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>;
   if (name === "password") return <svg {...common}><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>;
+  if (name === "support") return <svg {...common}><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>;
   if (name === "logout") return <svg {...common}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>;
   return null;
 };
 
 const tabs: { key: Tab; label: string; icon: string }[] = [
+  { key: "dashboard", label: "Dashboard", icon: "dashboard" },
   { key: "personal", label: "Personal Information", icon: "personal" },
   { key: "address", label: "Manage Address", icon: "address" },
   { key: "payment", label: "Payment Method", icon: "payment" },
+  { key: "reviews", label: "My Reviews", icon: "reviews" },
+  { key: "vouchers", label: "Vouchers / Coupons", icon: "vouchers" },
+  { key: "notifications", label: "Notifications", icon: "notifications" },
   { key: "password", label: "Password Manager", icon: "password" },
 ];
 
 export default function AccountPage() {
   const { user, loading, signOut } = useAuth();
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("personal");
-  const [orderCount, setOrderCount] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("orders")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .then(({ count }) => setOrderCount(count ?? 0));
-  }, [user]);
+  const [tab, setTab] = useState<Tab>("dashboard");
 
   const handleSignOut = async () => {
     await signOut();
@@ -126,6 +132,20 @@ export default function AccountPage() {
               <span className="text-brand">{icon("orders")}</span>
               My Orders
             </a>
+            <a
+              href="/wishlist"
+              className="w-full flex items-center gap-3 text-left px-5 py-3.5 rounded-xl text-sm font-semibold bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-black dark:text-white hover:border-brand/40 hover:-translate-y-0.5 hover:shadow-sm transition-all duration-150"
+            >
+              <span className="text-brand">{icon("wishlist")}</span>
+              Wishlist
+            </a>
+            <a
+              href="/contact"
+              className="w-full flex items-center gap-3 text-left px-5 py-3.5 rounded-xl text-sm font-semibold bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-black dark:text-white hover:border-brand/40 hover:-translate-y-0.5 hover:shadow-sm transition-all duration-150"
+            >
+              <span className="text-brand">{icon("support")}</span>
+              Help &amp; Support
+            </a>
             <button
               onClick={handleSignOut}
               className="w-full flex items-center gap-3 text-left px-5 py-3.5 rounded-xl text-sm font-semibold bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 hover:-translate-y-0.5 transition-all duration-150"
@@ -136,9 +156,13 @@ export default function AccountPage() {
           </aside>
 
           <div className="flex-1 min-w-0">
+            {tab === "dashboard" && <DashboardTab userId={user.id} username={username} onNavigate={setTab} />}
             {tab === "personal" && <PersonalInfoTab userId={user.id} email={user.email || ""} username={user.user_metadata?.username || ""} />}
             {tab === "address" && <AddressTab userId={user.id} />}
             {tab === "payment" && <PaymentTab userId={user.id} />}
+            {tab === "reviews" && <ReviewsTab userId={user.id} />}
+            {tab === "vouchers" && <VouchersTab />}
+            {tab === "notifications" && <NotificationsTab userId={user.id} />}
             {tab === "password" && <PasswordTab />}
           </div>
         </div>
@@ -158,6 +182,307 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
       <span className="w-1.5 h-5 rounded-full bg-brand inline-block" />
       {children}
     </h2>
+  );
+}
+
+type OrderItem = { id?: string; name: string; qty: number; price: number };
+type DashOrder = {
+  id: string;
+  order_code: string;
+  items: OrderItem[];
+  total: number;
+  status: string;
+  delivery_date: string | null;
+  created_at: string;
+};
+
+const statusGroup = (status: string): "Pending" | "Processing" | "Shipped" | "Delivered" | "Other" => {
+  if (status === "Pending") return "Pending";
+  if (status === "Confirmed") return "Processing";
+  if (status === "Shipped" || status === "Assigned" || status === "Out for Delivery") return "Shipped";
+  if (status === "Delivered") return "Delivered";
+  return "Other";
+};
+
+function DashboardTab({ userId, username, onNavigate }: { userId: string; username: string; onNavigate: (t: Tab) => void }) {
+  const [orders, setOrders] = useState<DashOrder[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from("orders")
+      .select("id, order_code, items, total, status, delivery_date, created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setOrders((data as DashOrder[]) || []);
+        setLoading(false);
+      });
+    fetchAllProductsForSite().then(({ products }) => setProducts(products));
+  }, [userId]);
+
+  const counts = {
+    Pending: orders.filter((o) => statusGroup(o.status) === "Pending").length,
+    Processing: orders.filter((o) => statusGroup(o.status) === "Processing").length,
+    Shipped: orders.filter((o) => statusGroup(o.status) === "Shipped").length,
+    Delivered: orders.filter((o) => statusGroup(o.status) === "Delivered").length,
+  };
+
+  const overviewCards = [
+    { key: "Pending", bg: "bg-orange-50 dark:bg-orange-500/10", fg: "text-orange-600 dark:text-orange-400" },
+    { key: "Processing", bg: "bg-blue-50 dark:bg-blue-500/10", fg: "text-blue-600 dark:text-blue-400" },
+    { key: "Shipped", bg: "bg-green-50 dark:bg-green-500/10", fg: "text-green-600 dark:text-green-400" },
+    { key: "Delivered", bg: "bg-purple-50 dark:bg-purple-500/10", fg: "text-purple-600 dark:text-purple-400" },
+  ] as const;
+
+  const recentOrders = orders.slice(0, 5);
+  const activeOrder = orders.find((o) => statusGroup(o.status) !== "Delivered" && statusGroup(o.status) !== "Other");
+
+  const statusPill: Record<string, string> = {
+    Pending: "bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400",
+    Confirmed: "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
+    Shipped: "bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400",
+    Assigned: "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400",
+    "Out for Delivery": "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400",
+    Delivered: "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400",
+    Cancelled: "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400",
+    Returned: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <p className="text-lg font-bold text-black dark:text-white">Hello, {username} 👋</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Welcome back — here's what's happening with your account.</p>
+      </Card>
+
+      <div>
+        <SectionTitle>Order Overview</SectionTitle>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {overviewCards.map((c) => (
+            <button key={c.key} onClick={() => onNavigate("dashboard")} className="text-left">
+              <Card>
+                <div className={"w-9 h-9 rounded-lg flex items-center justify-center mb-3 " + c.bg + " " + c.fg}>
+                  {icon("orders")}
+                </div>
+                <p className="text-xl font-bold text-black dark:text-white leading-tight">{loading ? "…" : counts[c.key]}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{c.key}</p>
+                <a href="/account/orders" className="text-[11px] font-semibold text-brand mt-2 inline-block">View orders →</a>
+              </Card>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <SectionTitle>Recent Orders</SectionTitle>
+          <a href="/account/orders" className="text-xs font-semibold text-brand">View All Orders</a>
+        </div>
+        <Card>
+          {loading ? (
+            <p className="text-sm text-gray-400">Loading...</p>
+          ) : recentOrders.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400">You haven't placed any orders yet.</p>
+          ) : (
+            <div className="overflow-x-auto -mx-5">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[11px] text-gray-400 uppercase border-b border-gray-100 dark:border-gray-800">
+                    <th className="px-5 py-2 font-semibold">Order</th>
+                    <th className="px-5 py-2 font-semibold">Product</th>
+                    <th className="px-5 py-2 font-semibold">Amount</th>
+                    <th className="px-5 py-2 font-semibold">Status</th>
+                    <th className="px-5 py-2 font-semibold">Date</th>
+                    <th className="px-5 py-2 font-semibold"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentOrders.map((o) => {
+                    const first = o.items?.[0];
+                    const extra = (o.items?.length || 1) - 1;
+                    return (
+                      <tr key={o.id} className="border-b border-gray-50 dark:border-gray-800 last:border-0">
+                        <td className="px-5 py-3 font-semibold text-brand whitespace-nowrap">#{o.order_code}</td>
+                        <td className="px-5 py-3 text-gray-600 dark:text-gray-300 max-w-[160px] truncate">
+                          {first?.name || "—"}{extra > 0 ? " +" + extra : ""}
+                        </td>
+                        <td className="px-5 py-3 text-black dark:text-white font-medium whitespace-nowrap">KSh {o.total.toFixed(2)}</td>
+                        <td className="px-5 py-3">
+                          <span className={"text-[10px] font-bold uppercase rounded-full px-2 py-1 " + (statusPill[o.status] || "bg-gray-100 text-gray-600")}>
+                            {o.status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                          {new Date(o.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
+                        </td>
+                        <td className="px-5 py-3 text-right whitespace-nowrap">
+                          <a href={"/track?code=" + o.order_code} className="text-xs font-semibold text-brand">Track</a>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {activeOrder && (
+        <div>
+          <SectionTitle>Delivery Status</SectionTitle>
+          <Card>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <p className="text-sm font-bold text-black dark:text-white">Order #{activeOrder.order_code}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {activeOrder.delivery_date
+                    ? "Expected delivery " + new Date(activeOrder.delivery_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
+                    : "Delivery date not yet set by the store"}
+                </p>
+              </div>
+              <span className={"text-[11px] font-bold uppercase rounded-full px-2.5 py-1 " + (statusPill[activeOrder.status] || "bg-gray-100 text-gray-600")}>
+                {activeOrder.status}
+              </span>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {products.length > 0 && <ProductRow title="Recommended for You" products={products} />}
+      <RecentlyViewed />
+    </div>
+  );
+}
+
+function ReviewsTab({ userId }: { userId: string }) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [productNames, setProductNames] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchReviewsByUser(userId).then(async (r) => {
+      const revs = r.data || [];
+      setReviews(revs);
+      const ids = Array.from(new Set(revs.map((rv) => rv.product_id)));
+      if (ids.length > 0) {
+        const { data } = await supabase.from("products").select("id, name").in("id", ids);
+        const map: Record<string, string> = {};
+        (data || []).forEach((p: { id: string; name: string }) => (map[p.id] = p.name));
+        setProductNames(map);
+      }
+      setLoading(false);
+    });
+  }, [userId]);
+
+  return (
+    <div>
+      <SectionTitle>My Reviews</SectionTitle>
+      {loading ? (
+        <p className="text-sm text-gray-400">Loading...</p>
+      ) : reviews.length === 0 ? (
+        <Card><p className="text-sm text-gray-500 dark:text-gray-400">You haven't left any reviews yet.</p></Card>
+      ) : (
+        <div className="space-y-3">
+          {reviews.map((rv) => (
+            <Card key={rv.id}>
+              <div className="flex items-center justify-between mb-1">
+                <a href={"/product/" + rv.product_id} className="text-sm font-bold text-brand">{productNames[rv.product_id] || "Product"}</a>
+                <span className="text-xs text-gray-400">{new Date(rv.created_at).toLocaleDateString()}</span>
+              </div>
+              <div className="text-yellow-500 text-xs mb-1">{"★".repeat(rv.rating)}{"☆".repeat(5 - rv.rating)}</div>
+              {rv.comment && <p className="text-sm text-gray-600 dark:text-gray-300">{rv.comment}</p>}
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function VouchersTab() {
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCoupons().then((r) => {
+      const active = (r.data || []).filter((c) => c.active && (!c.expires_at || new Date(c.expires_at) > new Date()));
+      setCoupons(active);
+      setLoading(false);
+    });
+  }, []);
+
+  return (
+    <div>
+      <SectionTitle>Available Vouchers</SectionTitle>
+      {loading ? (
+        <p className="text-sm text-gray-400">Loading...</p>
+      ) : coupons.length === 0 ? (
+        <Card><p className="text-sm text-gray-500 dark:text-gray-400">No active vouchers right now — check back soon.</p></Card>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {coupons.map((c) => (
+            <Card key={c.id}>
+              <p className="text-sm font-black text-brand tracking-wide">{c.code}</p>
+              <p className="text-sm text-black dark:text-white mt-1">
+                {c.discount_type === "percent" ? c.discount_value + "% off" : "KSh " + c.discount_value.toFixed(2) + " off"}
+              </p>
+              {c.min_order && <p className="text-xs text-gray-400 mt-1">Min. order KSh {c.min_order.toFixed(2)}</p>}
+              {c.expires_at && <p className="text-xs text-gray-400">Expires {new Date(c.expires_at).toLocaleDateString()}</p>}
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NotificationsTab({ userId }: { userId: string }) {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchNotifications("customer", userId).then((r) => {
+      setNotifications(r.data || []);
+      setLoading(false);
+    });
+  }, [userId]);
+
+  const handleClick = async (n: Notification) => {
+    if (!n.read) {
+      await markNotificationRead(n.id);
+      setNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, read: true } : x)));
+    }
+  };
+
+  return (
+    <div>
+      <SectionTitle>Notifications</SectionTitle>
+      {loading ? (
+        <p className="text-sm text-gray-400">Loading...</p>
+      ) : notifications.length === 0 ? (
+        <Card><p className="text-sm text-gray-500 dark:text-gray-400">No notifications yet.</p></Card>
+      ) : (
+        <div className="space-y-2">
+          {notifications.map((n) => (
+            <button key={n.id} onClick={() => handleClick(n)} className="w-full text-left">
+              <Card>
+                <div className="flex items-start gap-2">
+                  {!n.read && <span className="w-1.5 h-1.5 bg-brand rounded-full mt-1.5 shrink-0" />}
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-black dark:text-white">{n.title}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{n.body}</p>
+                    <p className="text-[10px] text-gray-400 mt-1">{new Date(n.created_at).toLocaleString()}</p>
+                  </div>
+                </div>
+              </Card>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
