@@ -257,6 +257,32 @@ function DashboardTab({ userId, username, onNavigate }: { userId: string; userna
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Welcome back — here's what's happening with your account.</p>
       </Card>
 
+      <div className="md:hidden">
+        <SectionTitle>Quick Actions</SectionTitle>
+        <div className="grid grid-cols-2 gap-3">
+          <a href="/wishlist" className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 flex items-center gap-3">
+            <span className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">{icon("wishlist")}</span>
+            <span className="text-sm font-semibold text-black dark:text-white">Wishlist</span>
+          </a>
+          <button onClick={() => onNavigate("address")} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 flex items-center gap-3 text-left">
+            <span className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">{icon("address")}</span>
+            <span className="text-sm font-semibold text-black dark:text-white">My Addresses</span>
+          </button>
+          <button onClick={() => onNavigate("payment")} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 flex items-center gap-3 text-left">
+            <span className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">{icon("payment")}</span>
+            <span className="text-sm font-semibold text-black dark:text-white">Payment Methods</span>
+          </button>
+          <button onClick={() => onNavigate("vouchers")} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 flex items-center gap-3 text-left">
+            <span className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">{icon("vouchers")}</span>
+            <span className="text-sm font-semibold text-black dark:text-white">Coupons/Vouchers</span>
+          </button>
+          <button onClick={() => onNavigate("reviews")} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl p-4 flex items-center gap-3 text-left col-span-2">
+            <span className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0">{icon("reviews")}</span>
+            <span className="text-sm font-semibold text-black dark:text-white">My Reviews</span>
+          </button>
+        </div>
+      </div>
+
       <div>
         <SectionTitle>Order Overview</SectionTitle>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -353,6 +379,32 @@ function DashboardTab({ userId, username, onNavigate }: { userId: string; userna
 
       {products.length > 0 && <ProductRow title="Recommended for You" products={products} />}
       <RecentlyViewed />
+
+      <div className="md:hidden">
+        <SectionTitle>Account &amp; Support</SectionTitle>
+        <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden divide-y divide-gray-100 dark:divide-gray-800">
+          {[
+            { label: "Personal Information", action: () => onNavigate("personal") },
+            { label: "Security & Password", action: () => onNavigate("password") },
+            { label: "Notifications", action: () => onNavigate("notifications") },
+            { label: "Help & Support", href: "/contact" },
+            { label: "Privacy Policy", href: "/privacy" },
+            { label: "Terms & Conditions", href: "/terms" },
+          ].map((item) =>
+            item.href ? (
+              <a key={item.label} href={item.href} className="flex items-center justify-between px-4 py-3.5 text-sm text-black dark:text-white">
+                {item.label}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><polyline points="9 18 15 12 9 6" /></svg>
+              </a>
+            ) : (
+              <button key={item.label} onClick={item.action} className="w-full flex items-center justify-between px-4 py-3.5 text-sm text-black dark:text-white text-left">
+                {item.label}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><polyline points="9 18 15 12 9 6" /></svg>
+              </button>
+            )
+          )}
+        </div>
+      </div>
     </div>
   );
 }
