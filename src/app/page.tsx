@@ -9,7 +9,6 @@ import FlashSale from "@/components/FlashSale";
 import RecentlyViewed from "@/components/RecentlyViewed";
 import ProductRow from "@/components/ProductRow";
 import DealOfTheDay from "@/components/DealOfTheDay";
-import PromoTiles from "@/components/PromoTiles";
 import BestSellerSection from "@/components/BestSellerSection";
 import BrandStrip from "@/components/BrandStrip";
 import FeaturedSellers from "@/components/FeaturedSellers";
@@ -74,7 +73,10 @@ export default function Home() {
         </>
       )}
 
-      <PromoTiles />
+           {byCategory("Gaming & VR").length > 0 && <ProductRow title="Gaming Zone" products={byCategory("Gaming & VR")} />}
+           {byCategory("Smart Home").length > 0 && <ProductRow title="Smart Home" products={byCategory("Smart Home")} />}
+           {products.length > 0 && <ProductRow title="New Arrivals" products={products.slice(0, 12)} />}
+
       <BrandStrip />
       <FeaturedSellers />
       <Footer />
