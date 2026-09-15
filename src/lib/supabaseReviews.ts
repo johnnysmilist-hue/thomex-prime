@@ -19,6 +19,15 @@ export async function fetchReviews(productId: string) {
   return { data: data as Review[] | null, error };
 }
 
+export async function fetchReviewsByUser(userId: string) {
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  return { data: data as Review[] | null, error };
+}
+
 export async function fetchUserReview(productId: string, userId: string) {
   const { data } = await supabase
     .from("reviews")
