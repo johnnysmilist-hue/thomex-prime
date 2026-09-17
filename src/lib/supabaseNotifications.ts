@@ -7,6 +7,7 @@ export type Notification = {
   title: string;
   body: string;
   order_id: string | null;
+  url: string | null;
   read: boolean;
   created_at: string;
 };
@@ -29,8 +30,19 @@ export async function createNotification(notification: {
   title: string;
   body: string;
   order_id?: string | null;
+  url?: string | null;
 }) {
   const { error } = await supabase.from("notifications").insert({ ...notification, read: false });
+
+  // Fire the push notification too. Best-effort — a push failure (or push
+  // simply not being configured yet) should never block the in-app
+  // notification from being created.
+  fetch("/api/push/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(notification),
+  }).catch(() => {});
+
   return { error };
 }
 
