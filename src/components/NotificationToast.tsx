@@ -20,6 +20,7 @@ export default function NotificationToast() {
   const router = useRouter();
   const [toast, setToast] = useState<ToastItem | null>(null);
   const [showEnablePrompt, setShowEnablePrompt] = useState(false);
+  const [enableError, setEnableError] = useState("");
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const recipientType = user?.email === ADMIN_EMAIL ? "admin" : "customer";
@@ -64,9 +65,14 @@ export default function NotificationToast() {
   };
 
   const handleEnablePush = async () => {
-    setShowEnablePrompt(false);
     if (!recipientId) return;
-    await subscribeToPush(recipientType, recipientId);
+    setEnableError("");
+    const { error } = await subscribeToPush(recipientType, recipientId);
+    if (error) {
+      setEnableError(error.message);
+      return;
+    }
+    setShowEnablePrompt(false);
   };
 
   return (
@@ -104,13 +110,16 @@ export default function NotificationToast() {
       )}
 
       {showEnablePrompt && (
-        <div className="fixed bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 z-[90] w-[92%] max-w-sm bg-black dark:bg-gray-900 border border-gray-800 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white shrink-0">
-            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-          </svg>
-          <p className="text-xs text-white flex-1">Get notified about your orders, even when you're not on the site.</p>
-          <button onClick={handleEnablePush} className="text-xs font-bold text-brand shrink-0">Enable</button>
-          <button onClick={() => setShowEnablePrompt(false)} className="text-xs text-gray-400 shrink-0">Later</button>
+        <div className="fixed bottom-20 md:bottom-4 left-1/2 -translate-x-1/2 z-[90] w-[92%] max-w-sm bg-black dark:bg-gray-900 border border-gray-800 rounded-2xl px-4 py-3 shadow-lg">
+          <div className="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white shrink-0">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+            </svg>
+            <p className="text-xs text-white flex-1">Get notified about your orders, even when you're not on the site.</p>
+            <button onClick={handleEnablePush} className="text-xs font-bold text-brand shrink-0">Enable</button>
+            <button onClick={() => setShowEnablePrompt(false)} className="text-xs text-gray-400 shrink-0">Later</button>
+          </div>
+          {enableError && <p className="text-[11px] text-red-400 mt-2">{enableError}</p>}
         </div>
       )}
     </>
