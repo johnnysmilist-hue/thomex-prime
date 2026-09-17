@@ -53,10 +53,23 @@ export async function deleteOfficer(id: string) {
 }
 
 export async function assignOfficerToOrder(orderId: string, officerId: string | null) {
+  const { data: order } = await supabase.from("orders").select("order_code, user_id").eq("id", orderId).maybeSingle();
+
   const { error } = await supabase
     .from("orders")
     .update({ assigned_officer_id: officerId, status: officerId ? "Assigned" : "Pending" })
     .eq("id", orderId);
+
+  if (!error && officerId && order?.user_id) {
+    await createNotification({
+      recipient_type: "customer",
+      recipient_id: order.user_id,
+      title: "Order " + order.order_code + " assigned for delivery",
+      body: "A delivery officer has been assigned to your order.",
+      order_id: orderId,
+    });
+  }
+
   return { error };
 }
 
