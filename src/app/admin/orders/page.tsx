@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import AdminLayout from "@/components/AdminLayout";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import AdminGuard from "@/components/AdminGuard";
+import AdminSidebar from "@/components/AdminSidebar";
 import { supabase } from "@/lib/supabaseClient";
 import { createNotification } from "@/lib/supabaseNotifications";
 import { fetchOfficers, assignOfficerToOrder, DeliveryOfficer } from "@/lib/supabaseDeliveryOfficers";
@@ -24,21 +27,22 @@ type Order = {
 };
 
 const statuses = ["Pending", "Confirmed", "Dispatched", "In Transit", "Shipped", "Received", "Ready for Pickup", "Assigned", "Out for Delivery", "Picked Up", "Delivered", "Cancelled", "Returned", "Damaged/Exception"];
+
 const statusPill: Record<string, string> = {
   Pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400",
   Confirmed: "bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
-  Shipped: "bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400",
-  Assigned: "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400",
   Dispatched: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400",
   "In Transit": "bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400",
+  Shipped: "bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400",
   Received: "bg-teal-100 text-teal-700 dark:bg-teal-500/10 dark:text-teal-400",
   "Ready for Pickup": "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400",
-  "Picked Up": "bg-lime-100 text-lime-700 dark:bg-lime-500/10 dark:text-lime-400",
+  Assigned: "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-400",
   "Out for Delivery": "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400",
+  "Picked Up": "bg-lime-100 text-lime-700 dark:bg-lime-500/10 dark:text-lime-400",
   Delivered: "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400",
   Cancelled: "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400",
-  "Damaged/Exception": "bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400",
   Returned: "bg-orange-100 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400",
+  "Damaged/Exception": "bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400",
 };
 
 const statCards = [
@@ -49,6 +53,22 @@ const statCards = [
   { key: "Delivered", label: "Delivered Orders", bg: "bg-green-50 dark:bg-green-500/10", fg: "text-green-600 dark:text-green-400" },
   { key: "Cancelled", label: "Cancelled Orders", bg: "bg-red-50 dark:bg-red-500/10", fg: "text-red-600 dark:text-red-400" },
 ];
+
+const statusNotificationCopy: Record<string, { title: string; body: (code: string) => string }> = {
+  Confirmed: { title: "Order confirmed", body: (c) => "Your order " + c + " has been confirmed and is being prepared." },
+  Dispatched: { title: "Order dispatched", body: (c) => "Your order " + c + " has left the warehouse and is on its way." },
+  "In Transit": { title: "Order in transit", body: (c) => "Your order " + c + " is currently in transit." },
+  Shipped: { title: "Order shipped", body: (c) => "Your order " + c + " has been shipped." },
+  Received: { title: "Order arrived at station", body: (c) => "Your order " + c + " has arrived at the station and is being processed." },
+  "Ready for Pickup": { title: "Order ready for pickup", body: (c) => "Your order " + c + " is ready for you to collect." },
+  Assigned: { title: "Order assigned for delivery", body: (c) => "A delivery officer has been assigned to your order " + c + "." },
+  "Out for Delivery": { title: "Order out for delivery", body: (c) => "Your order " + c + " is out for delivery." },
+  "Picked Up": { title: "Order picked up", body: (c) => "You've collected your order " + c + ". Thanks for shopping with us!" },
+  Delivered: { title: "Order delivered", body: (c) => "Your order " + c + " has been delivered." },
+  Cancelled: { title: "Order cancelled", body: (c) => "Your order " + c + " has been cancelled." },
+  Returned: { title: "Order returned", body: (c) => "Your order " + c + " has been processed as a return." },
+  "Damaged/Exception": { title: "Order needs attention", body: (c) => "There's an issue with your order " + c + ". Our team is looking into it." },
+};
 
 const cardIcon = (key: string) => {
   const common = { xmlns: "http://www.w3.org/2000/svg", width: 20, height: 20, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -155,11 +175,12 @@ export default function AdminOrdersPage() {
 
     const order = orders.find((o) => o.id === id);
     if (order?.user_id) {
+      const copy = statusNotificationCopy[status];
       await createNotification({
         recipient_type: "customer",
         recipient_id: order.user_id,
-        title: "Order " + order.order_code + " updated",
-        body: "Your order is now: " + status,
+        title: copy ? copy.title : "Order " + order.order_code + " updated",
+        body: copy ? copy.body(order.order_code) : "Your order is now: " + status,
         order_id: order.id,
       });
     }
@@ -185,7 +206,13 @@ export default function AdminOrdersPage() {
   });
 
   return (
-    <AdminLayout title="Orders">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <Header />
+      <AdminGuard>
+        <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">
+          <AdminSidebar />
+
+          <div className="flex-1 min-w-0">
             <FadeIn delay={0} className="flex items-center justify-between mb-6 flex-wrap gap-2">
               <h1 className="text-xl font-bold text-black dark:text-white">Orders — List View</h1>
             </FadeIn>
@@ -353,6 +380,10 @@ export default function AdminOrdersPage() {
                 )}
               </div>
             </FadeIn>
-    </AdminLayout>
+          </div>
+        </div>
+      </AdminGuard>
+      <Footer />
+    </main>
   );
 }
