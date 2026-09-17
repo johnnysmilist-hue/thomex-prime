@@ -9,6 +9,7 @@ import { RecentlyViewedProvider } from "@/context/RecentlyViewedContext";
 import MobileNav from "@/components/MobileNav";
 import ChatWidget from "@/components/ChatWidget";
 import { ChatProvider } from "@/context/ChatContext";
+import NotificationToast from "@/components/NotificationToast";
 
 export const metadata: Metadata = {
   title: "Thomex - Tech & Electronics Store",
@@ -33,6 +34,7 @@ export default function RootLayout({
                       {children}
                       <MobileNav />
                       <ChatWidget />
+                      <NotificationToast />
                     </ChatProvider>
                   </RecentlyViewedProvider>
                 </WishlistProvider>
