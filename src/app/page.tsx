@@ -65,26 +65,26 @@ export default function Home() {
 
       {!loading && products.length > 0 && (
         <>
-          {featured.length > 0 && <ProductRow title="Featured Products" products={featured} viewAllHref="/shop" />}
+          {featured.length > 0 && <ProductRow title="Featured Products" products={featured} />}
 
           <section className="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="md:col-span-3">
-              <ProductRow title="Recommended for You" products={products} viewAllHref="/shop" />
+              <ProductRow title="Recommended for You" products={products} />
             </div>
             <div className="md:col-span-1">
               <DealOfTheDay product={dealProduct} endTime={flashSaleEnd} />
             </div>
           </section>
 
-          {byCategory("Laptops").length > 0 && <ProductRow title="Laptops" products={byCategory("Laptops")} viewAllHref={"/shop?category=" + encodeURIComponent("Laptops")} />}
-          {byCategory("Sounds").length > 0 && <ProductRow title="Audio & Headphones" products={byCategory("Sounds")} viewAllHref={"/shop?category=" + encodeURIComponent("Sounds")} />}
-          {byCategory("Cell Phones").length > 0 && <ProductRow title="Phones" products={byCategory("Cell Phones")} viewAllHref={"/shop?category=" + encodeURIComponent("Cell Phones")} />}
+          {byCategory("Laptops").length > 0 && <ProductRow title="Laptops" products={byCategory("Laptops")} />}
+          {byCategory("Sounds").length > 0 && <ProductRow title="Audio & Headphones" products={byCategory("Sounds")} />}
+          {byCategory("Cell Phones").length > 0 && <ProductRow title="Phones" products={byCategory("Cell Phones")} />}
 
           <BestSellerSection products={products} />
 
-          {byCategory("Gaming & VR").length > 0 && <ProductRow title="Gaming Zone" products={byCategory("Gaming & VR")} viewAllHref={"/shop?category=" + encodeURIComponent("Gaming & VR")} />}
-          {byCategory("Smart Home").length > 0 && <ProductRow title="Smart Home" products={byCategory("Smart Home")} viewAllHref={"/shop?category=" + encodeURIComponent("Smart Home")} />}
-          <ProductRow title="New Arrivals" products={products.slice(0, 12)} viewAllHref="/shop" />
+          {byCategory("Gaming & VR").length > 0 && <ProductRow title="Gaming Zone" products={byCategory("Gaming & VR")} />}
+          {byCategory("Smart Home").length > 0 && <ProductRow title="Smart Home" products={byCategory("Smart Home")} />}
+          <ProductRow title="New Arrivals" products={products.slice(0, 12)} />
         </>
       )}
 
