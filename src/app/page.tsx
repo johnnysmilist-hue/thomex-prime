@@ -14,22 +14,29 @@ import BrandStrip from "@/components/BrandStrip";
 import FeaturedSellers from "@/components/FeaturedSellers";
 import Footer from "@/components/Footer";
 import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
+import { fetchSettings } from "@/lib/supabaseSettings";
 import TrustStrip from "@/components/TrustStrip";
 import FlashSaleSection from "@/components/FlashSaleSection";
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [flashSaleEnd, setFlashSaleEnd] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAllProductsForSite().then(({ products }) => {
       setProducts(products);
       setLoading(false);
     });
+    fetchSettings().then((r) => setFlashSaleEnd(r.data?.flash_sale_end || null));
   }, []);
 
   const featured = products.filter((p) => p.featured);
   const byCategory = (cat: string) => products.filter((p) => p.category === cat);
+
+  const dealOfTheDay =
+    [...products].sort((a, b) => (b.discountPercent || 0) - (a.discountPercent || 0))[0] || null;
+  const bestDeal = dealOfTheDay && (dealOfTheDay.discountPercent || 0) > 0 ? dealOfTheDay : null;
 
   return (
     <main className="min-h-screen">
@@ -61,7 +68,7 @@ export default function Home() {
               <ProductRow title="Recommended for You" products={products} />
             </div>
             <div className="md:col-span-1">
-              <DealOfTheDay />
+              <DealOfTheDay product={bestDeal} endTime={flashSaleEnd} />
             </div>
           </section>
 
