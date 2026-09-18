@@ -16,7 +16,7 @@ export default function Categories() {
     <section className="max-w-7xl mx-auto px-4 py-6">
       <div className="flex gap-4 overflow-x-auto sm:grid sm:grid-cols-7 sm:gap-4" style={{ scrollbarWidth: "none" }}>
         {categories.map((cat) => (
-          
+          <a
             key={cat.id}
             href={"/shop?category=" + encodeURIComponent(cat.name)}
             className="flex flex-col items-center gap-2 shrink-0 w-16 sm:w-auto"
