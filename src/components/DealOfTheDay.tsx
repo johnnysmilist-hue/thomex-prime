@@ -22,7 +22,7 @@ export default function DealOfTheDay({ product, endTime }: { product: Product | 
       <h3 className="font-bold mb-3 text-black dark:text-white">Deal of the Day</h3>
 
       {endTime && (
-        <div className="mb-4">
+        <div className="mb-4 bg-gray-900 dark:bg-black rounded-lg px-3 py-2 inline-block">
           <FlashSaleTimer endTime={endTime} />
         </div>
       )}
