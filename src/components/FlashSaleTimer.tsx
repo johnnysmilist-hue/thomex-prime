@@ -15,6 +15,7 @@ export default function FlashSaleTimer({ endTime }: { endTime: string }) {
 
       if (diff <= 0) {
         setEnded(true);
+        clearInterval(interval);
         return;
       }
 
