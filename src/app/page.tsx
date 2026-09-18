@@ -13,23 +13,35 @@ import BestSellerSection from "@/components/BestSellerSection";
 import BrandStrip from "@/components/BrandStrip";
 import FeaturedSellers from "@/components/FeaturedSellers";
 import Footer from "@/components/Footer";
-import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
 import TrustStrip from "@/components/TrustStrip";
-import FlashSaleSection from "@/components/FlashSaleSection";
+import { fetchAllProductsForSite, Product } from "@/lib/supabaseProducts";
+import { fetchSettings } from "@/lib/supabaseSettings";
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [flashSaleEnd, setFlashSaleEnd] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAllProductsForSite().then(({ products }) => {
       setProducts(products);
       setLoading(false);
     });
+    fetchSettings().then((r) => setFlashSaleEnd(r.data?.flash_sale_end || null));
   }, []);
 
   const featured = products.filter((p) => p.featured);
   const byCategory = (cat: string) => products.filter((p) => p.category === cat);
+
+  // Deal of the Day: the product with the biggest real discount. Falls back
+  // to a featured product, then any product, so the section still has
+  // something sensible to show even with no discounts configured yet.
+  const discountOf = (p: Product) => (p.oldPrice && p.oldPrice > p.price ? p.oldPrice - p.price : 0);
+  const dealProduct =
+    [...products].sort((a, b) => discountOf(b) - discountOf(a)).find((p) => discountOf(p) > 0) ||
+    featured[0] ||
+    products[0] ||
+    null;
 
   return (
     <main className="min-h-screen">
@@ -39,8 +51,7 @@ export default function Home() {
         <Hero />
       </div>
       <Categories />
-      <FlashSaleSection />
-
+      <TrustStrip />
       <FlashSale />
       <RecentlyViewed />
 
@@ -61,7 +72,7 @@ export default function Home() {
               <ProductRow title="Recommended for You" products={products} />
             </div>
             <div className="md:col-span-1">
-              <DealOfTheDay />
+              <DealOfTheDay product={dealProduct} endTime={flashSaleEnd} />
             </div>
           </section>
 
@@ -70,12 +81,12 @@ export default function Home() {
           {byCategory("Cell Phones").length > 0 && <ProductRow title="Phones" products={byCategory("Cell Phones")} />}
 
           <BestSellerSection products={products} />
+
+          {byCategory("Gaming & VR").length > 0 && <ProductRow title="Gaming Zone" products={byCategory("Gaming & VR")} />}
+          {byCategory("Smart Home").length > 0 && <ProductRow title="Smart Home" products={byCategory("Smart Home")} />}
+          <ProductRow title="New Arrivals" products={products.slice(0, 12)} />
         </>
       )}
-
-           {byCategory("Gaming & VR").length > 0 && <ProductRow title="Gaming Zone" products={byCategory("Gaming & VR")} />}
-           {byCategory("Smart Home").length > 0 && <ProductRow title="Smart Home" products={byCategory("Smart Home")} />}
-           {products.length > 0 && <ProductRow title="New Arrivals" products={products.slice(0, 12)} />}
 
       <BrandStrip />
       <FeaturedSellers />
