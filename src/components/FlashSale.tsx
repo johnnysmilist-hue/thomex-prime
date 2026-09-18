@@ -28,26 +28,35 @@ export default function FlashSale() {
 
   if (loading || products.length === 0) return null;
 
+  const showArrows = products.length > 4;
+
   return (
     <section className="max-w-7xl mx-auto px-4 py-10">
-      <div className="bg-red-600 text-white rounded-t-lg px-5 py-3 flex items-center justify-between flex-wrap gap-3">
+      <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white rounded-t-lg px-5 py-3 flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13 2 3 14h7l-1 8 11-13h-7l0-7Z" />
+          </svg>
           <h2 className="text-xl font-bold">Flash Sale</h2>
           {endTime && <FlashSaleTimer endTime={endTime} />}
         </div>
-        <a href="/shop" className="text-sm font-semibold underline underline-offset-2">
+        <a href="/shop" className="text-sm font-semibold underline underline-offset-2 hover:no-underline">
           View All
         </a>
       </div>
 
       <div className="border border-t-0 border-red-200 dark:border-red-900 bg-white dark:bg-gray-950 rounded-b-lg p-5 relative">
-        <button
-          onClick={() => scroll("left")}
-          aria-label="Scroll left"
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-black dark:text-white rounded-full w-9 h-9 flex items-center justify-center shadow"
-        >
-          ‹
-        </button>
+        {showArrows && (
+          <button
+            onClick={() => scroll("left")}
+            aria-label="Scroll left"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-black dark:text-white rounded-full w-9 h-9 flex items-center justify-center shadow"
+          >
+            ‹
+          </button>
+        )}
+
+        <div className="pointer-events-none absolute inset-y-5 right-5 w-10 bg-gradient-to-l from-white dark:from-gray-950 to-transparent z-10" />
 
         <div
           ref={scrollRef}
@@ -61,13 +70,15 @@ export default function FlashSale() {
           ))}
         </div>
 
-        <button
-          onClick={() => scroll("right")}
-          aria-label="Scroll right"
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-black dark:text-white rounded-full w-9 h-9 flex items-center justify-center shadow"
-        >
-          ›
-        </button>
+        {showArrows && (
+          <button
+            onClick={() => scroll("right")}
+            aria-label="Scroll right"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-black dark:text-white rounded-full w-9 h-9 flex items-center justify-center shadow"
+          >
+            ›
+          </button>
+        )}
       </div>
     </section>
   );
