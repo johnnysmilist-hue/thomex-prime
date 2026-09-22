@@ -10,7 +10,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 const caveat = Caveat({ subsets: ["latin"], weight: ["600", "700"] });
 
-type OrderItem = { name?: string; price?: number; qty?: number };
+type OrderItem = { id?: string; name?: string; price?: number; qty?: number };
 
 type Order = {
   id: string;
@@ -57,6 +57,7 @@ export default function ReceiptPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
+  const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [notAllowed, setNotAllowed] = useState(false);
 
@@ -74,7 +75,22 @@ export default function ReceiptPage() {
         setLoading(false);
         return;
       }
-      setOrder(data as Order);
+      const loadedOrder = data as Order;
+      setOrder(loadedOrder);
+
+      const productIds = Array.from(
+        new Set((loadedOrder.items || []).map((i) => i.id).filter((id): id is string => Boolean(id)))
+      );
+
+      if (productIds.length > 0) {
+        const { data: products } = await supabase.from("products").select("id, image_url").in("id", productIds);
+        const map: Record<string, string> = {};
+        (products || []).forEach((p: { id: string; image_url: string | null }) => {
+          if (p.image_url) map[p.id] = p.image_url;
+        });
+        setThumbnails(map);
+      }
+
       setLoading(false);
     };
     load();
@@ -166,18 +182,32 @@ export default function ReceiptPage() {
 
           <Divider />
 
-          {items.map((item, i) => (
-            <div key={i} className="flex items-baseline gap-1.5 text-[12px] text-black mb-2.5">
-              <span className="whitespace-nowrap">
-                {item.name}
-                {(item.qty || 1) > 1 ? ` x${item.qty}` : ""}
-              </span>
-              <span className="flex-1 border-b border-dotted border-gray-500 translate-y-[-3px]" />
-              <span className="font-semibold whitespace-nowrap">
-                KSh {((item.price || 0) * (item.qty || 0)).toFixed(2)}
-              </span>
-            </div>
-          ))}
+          {items.map((item, i) => {
+            const thumb = item.id ? thumbnails[item.id] : undefined;
+            return (
+              <div key={i} className="flex items-center gap-2 mb-2.5">
+                <div className="w-9 h-9 shrink-0 bg-gray-100 rounded overflow-hidden flex items-center justify-center print:border print:border-gray-300">
+                  {thumb ? (
+                    <img src={thumb} alt={item.name || "Product"} className="w-full h-full object-cover" />
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+                      <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex-1 flex items-baseline gap-1.5 text-[12px] text-black min-w-0">
+                  <span className="whitespace-nowrap truncate max-w-[110px]">
+                    {item.name}
+                    {(item.qty || 1) > 1 ? ` x${item.qty}` : ""}
+                  </span>
+                  <span className="flex-1 border-b border-dotted border-gray-500 translate-y-[-3px]" />
+                  <span className="font-semibold whitespace-nowrap">
+                    KSh {((item.price || 0) * (item.qty || 0)).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
 
           <Divider />
 
