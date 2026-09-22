@@ -324,18 +324,44 @@ export default function CheckoutPage() {
 
   if (orderCode) {
     return (
-      <main className="min-h-screen bg-white dark:bg-gray-950">
+      <main className="min-h-screen bg-white dark:bg-gray-950 flex flex-col">
         <Header />
-        <div className="max-w-md mx-auto px-4 py-20 text-center">
-          <p className="text-green-600 dark:text-green-400 font-semibold mb-2">Order placed successfully!</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Your order code:</p>
-          <p className="text-2xl font-bold text-brand mb-6">{orderCode}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
-            Save this code to track your order status anytime.
-          </p>
-          <a href="/track-order" className="inline-block bg-brand text-white px-6 py-2 rounded-md font-semibold">
-            Track This Order
-          </a>
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-16 text-center">
+          <div className="relative w-28 h-28 mb-6">
+            <div className="absolute inset-0 rounded-full bg-green-400/20 animate-ping" />
+            <div className="relative w-28 h-28 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+          </div>
+
+          <h1 className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">Order successful</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">Yay! Your order is received</p>
+
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-5 py-4 mb-6 w-full max-w-xs">
+            <p className="text-xs text-gray-400 mb-1">Order Code</p>
+            <p className="text-xl font-bold text-brand mb-3">{orderCode}</p>
+            {address && (
+              <div className="flex items-start gap-2 text-left border-t border-gray-100 dark:border-gray-800 pt-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 shrink-0 mt-0.5">
+                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+                </svg>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{address}</p>
+              </div>
+            )}
+          </div>
+
+          <p className="text-xs text-gray-400 mb-6">Save your order code to track your order status anytime.</p>
+
+          <div className="flex gap-3 w-full max-w-xs">
+            <a href="/track-order" className="flex-1 bg-brand text-white px-5 py-2.5 rounded-md font-semibold text-sm">
+              Track Order
+            </a>
+            <a href="/account/orders" className="flex-1 border border-gray-300 dark:border-gray-700 text-black dark:text-white px-5 py-2.5 rounded-md font-semibold text-sm">
+              My Orders
+            </a>
+          </div>
         </div>
         <Footer />
       </main>
