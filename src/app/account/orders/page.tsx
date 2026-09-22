@@ -22,17 +22,19 @@ type Order = {
 const cancelledStatuses = ["Cancelled", "Canceled", "Returned"];
 
 const statusStyle = (status: string) => {
-  if (status === "Delivered") return "bg-green-600 text-white";
-  if (cancelledStatuses.includes(status)) return "bg-red-500 text-white";
-  return "bg-brand text-white";
+  if (status === "Delivered") return "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400";
+  if (cancelledStatuses.includes(status)) return "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400";
+  return "bg-brand/10 text-brand";
 };
+
+const formatDate = (d: string) => new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
 
 export default function MyOrdersPage() {
   const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"ongoing" | "cancelled">("ongoing");
+  const [tab, setTab] = useState<"current" | "history">("current");
 
   useEffect(() => {
     if (!user) {
@@ -77,9 +79,9 @@ export default function MyOrdersPage() {
     load();
   }, [user]);
 
-  const ongoing = orders.filter((o) => !cancelledStatuses.includes(o.status));
-  const cancelled = orders.filter((o) => cancelledStatuses.includes(o.status));
-  const visible = tab === "ongoing" ? ongoing : cancelled;
+  const current = orders.filter((o) => o.status !== "Delivered" && !cancelledStatuses.includes(o.status));
+  const history = orders.filter((o) => o.status === "Delivered" || cancelledStatuses.includes(o.status));
+  const visible = tab === "current" ? current : history;
 
   if (authLoading) {
     return (
@@ -105,31 +107,31 @@ export default function MyOrdersPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white dark:bg-gray-950">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <Header />
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <h1 className="text-xl font-bold text-black dark:text-white mb-4">Orders</h1>
+        <h1 className="text-xl font-bold text-black dark:text-white mb-4">My Orders</h1>
 
-        <div className="flex gap-6 border-b border-gray-200 dark:border-gray-800 mb-6">
+        <div className="flex gap-1 border border-gray-200 dark:border-gray-800 rounded-md p-1 mb-6 w-fit bg-white dark:bg-gray-900">
           <button
-            onClick={() => setTab("ongoing")}
+            onClick={() => setTab("current")}
             className={
-              tab === "ongoing"
-                ? "text-brand border-b-2 border-brand pb-3 text-sm font-semibold"
-                : "text-gray-500 dark:text-gray-400 pb-3 text-sm font-semibold"
+              tab === "current"
+                ? "bg-brand text-white text-xs font-semibold px-4 py-1.5 rounded"
+                : "text-gray-600 dark:text-gray-300 text-xs font-semibold px-4 py-1.5 rounded"
             }
           >
-            ONGOING/DELIVERED
+            Current
           </button>
           <button
-            onClick={() => setTab("cancelled")}
+            onClick={() => setTab("history")}
             className={
-              tab === "cancelled"
-                ? "text-brand border-b-2 border-brand pb-3 text-sm font-semibold"
-                : "text-gray-500 dark:text-gray-400 pb-3 text-sm font-semibold"
+              tab === "history"
+                ? "bg-brand text-white text-xs font-semibold px-4 py-1.5 rounded"
+                : "text-gray-600 dark:text-gray-300 text-xs font-semibold px-4 py-1.5 rounded"
             }
           >
-            CANCELED/RETURNED {cancelled.length > 0 && "(" + cancelled.length + ")"}
+            History
           </button>
         </div>
 
@@ -137,7 +139,7 @@ export default function MyOrdersPage() {
           <p className="text-sm text-gray-400">Loading orders...</p>
         ) : visible.length === 0 ? (
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {tab === "ongoing" ? "You have no orders yet." : "No canceled or returned orders."}
+            {tab === "current" ? "No active orders right now." : "No past orders yet."}
           </p>
         ) : (
           <div className="space-y-3">
@@ -147,44 +149,58 @@ export default function MyOrdersPage() {
               const thumb = firstItem?.id ? thumbnails[firstItem.id] : undefined;
 
               return (
-                <div key={order.id} className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 flex items-start gap-4">
-                  <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded shrink-0 overflow-hidden flex items-center justify-center">
-                    {thumb ? (
-                      <img src={thumb} alt={firstItem?.name || "Product"} className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-gray-400 text-[10px]">Image</span>
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-black dark:text-white line-clamp-1">
-                      {firstItem?.name || "Order"}
-                      {extraCount > 0 && (
-                        <span className="text-gray-400 font-normal"> +{extraCount} more item{extraCount > 1 ? "s" : ""}</span>
+                <div key={order.id} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-11 h-11 rounded-full bg-brand/10 flex items-center justify-center shrink-0 overflow-hidden">
+                      {thumb ? (
+                        <img src={thumb} alt={firstItem?.name || "Product"} className="w-full h-full object-cover" />
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand">
+                          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" />
+                        </svg>
                       )}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Order {order.order_code}</p>
-                    <span className={"inline-block mt-2 text-[10px] font-bold px-2 py-0.5 rounded " + statusStyle(order.status)}>
-                      {order.status?.toUpperCase()}
-                    </span>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      On {new Date(order.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}
-                      {order.delivery_date && (
-                        <> • Expected delivery {new Date(order.delivery_date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}</>
-                      )}
-                    </p>
-                  </div>
+                    </div>
 
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    <Link href={"/track?code=" + order.order_code} className="text-brand text-xs font-semibold">
-                      See details
-                    </Link>
-                    <Link href={"/account/orders/" + order.id + "/receipt"} className="text-gray-500 dark:text-gray-400 text-xs font-semibold flex items-center gap-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
-                      </svg>
-                      Receipt
-                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-bold text-black dark:text-white">Order ID: #{order.order_code}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
+                            {firstItem?.name || "Order"}
+                            {extraCount > 0 && " +" + extraCount + " more"}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-bold text-black dark:text-white">KSh {order.total.toFixed(2)}</p>
+                          <span className={"inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full " + statusStyle(order.status)}>
+                            {order.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 pt-3 border-t border-gray-50 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                        <p className="flex items-center gap-1.5">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                          Ordered&nbsp;: {formatDate(order.created_at)}
+                        </p>
+                        <p className="flex items-center gap-1.5">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0"><rect x="1" y="3" width="15" height="13" rx="2" /><path d="M16 8h4l3 3v5h-7V8Z" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>
+                          Delivery&nbsp;: {order.delivery_date ? formatDate(order.delivery_date) : "Not yet scheduled"}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-4 mt-3">
+                        <Link href={"/track?code=" + order.order_code} className="text-brand text-xs font-semibold">
+                          See details
+                        </Link>
+                        <Link href={"/account/orders/" + order.id + "/receipt"} className="text-gray-500 dark:text-gray-400 text-xs font-semibold flex items-center gap-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
+                          </svg>
+                          Receipt
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );
