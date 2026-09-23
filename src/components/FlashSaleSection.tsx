@@ -79,9 +79,9 @@ export default function FlashSaleSection() {
       </div>
 
       <div className="bg-white dark:bg-gray-950 px-4 py-5">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+         <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4">
           {products.slice(0, 8).map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} compact />
           ))}
         </div>
       </div>
