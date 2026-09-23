@@ -41,8 +41,8 @@ export default function ProductRow({ title, products }: { title: string; product
         style={{ scrollbarWidth: "none" }}
       >
         {products.map((product) => (
-          <div key={product.id} className="min-w-[180px]">
-            <ProductCard product={product} />
+          <div key={product.id} className="w-[31%] min-w-[31%] sm:w-[180px] sm:min-w-[180px]">
+            <ProductCard product={product} compact />
           </div>
         ))}
       </div>
