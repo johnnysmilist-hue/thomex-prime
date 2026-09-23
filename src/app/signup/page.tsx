@@ -90,8 +90,8 @@ export default function SignUpPage() {
         <BrandBackdrop />
         <div className="relative max-w-md mx-auto px-6 py-16">
           <div className="text-center mb-8">
-            <img src="/logo-dark.png" alt="Thomex" className="h-10 w-auto mx-auto mb-2 dark:hidden" />
-            <img src="/logo-light.png" alt="Thomex" className="h-10 w-auto mx-auto mb-2 hidden dark:block" />
+            <img src="/logo-light.png" alt="Thomex" className="h-10 w-auto mx-auto mb-2 dark:hidden" />
+            <img src="/logo-dark.png" alt="Thomex" className="h-10 w-auto mx-auto mb-2 hidden dark:block" />
             <h1 className="text-lg font-bold text-black dark:text-white">Create your account</h1>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Join Thomex for the best tech deals</p>
           </div>
