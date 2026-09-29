@@ -84,7 +84,7 @@ export default function Header() {
               <circle cx="12" cy="7" r="4" />
             </svg>
           </a>
-          <form onSubmit={handleSearch} className="flex-1 flex items-center bg-gray-100 dark:bg-gray-900 rounded-full pl-4 pr-1 py-1">
+          <form onSubmit={handleSearch} className="flex-1 flex items-center bg-black/[0.04] dark:bg-white/[0.06] backdrop-blur-xl border border-white/60 dark:border-white/10 rounded-full pl-4 pr-1 py-1 shadow-[inset_0_1px_1px_rgba(255,255,255,0.7),0_2px_10px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_2px_10px_rgba(0,0,0,0.3)]">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 shrink-0 mr-2">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -169,7 +169,7 @@ export default function Header() {
           </a>
 
           <div className="flex-1 min-w-[200px] relative">
-            <form onSubmit={handleSearch} className="flex items-center bg-gray-100 dark:bg-gray-900 rounded-full pl-4 pr-1 overflow-hidden">
+            <form onSubmit={handleSearch} className="flex items-center bg-black/[0.04] dark:bg-white/[0.06] backdrop-blur-xl border border-white/60 dark:border-white/10 rounded-full pl-4 pr-1 overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.7),0_2px_10px_rgba(0,0,0,0.06)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.08),0_2px_10px_rgba(0,0,0,0.3)]">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 shrink-0 mr-2">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
