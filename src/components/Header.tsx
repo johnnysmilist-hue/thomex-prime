@@ -84,7 +84,7 @@ export default function Header() {
               <circle cx="12" cy="7" r="4" />
             </svg>
           </a>
-          <form onSubmit={handleSearch} className="flex-1 flex items-center bg-gray-100 dark:bg-gray-900 rounded-full px-4 py-2.5">
+          <form onSubmit={handleSearch} className="flex-1 flex items-center bg-gray-100 dark:bg-gray-900 rounded-full pl-4 pr-1 py-1">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 shrink-0 mr-2">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -99,8 +99,19 @@ export default function Header() {
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               placeholder="Search on Thomex"
-              className="w-full bg-transparent text-sm text-black dark:text-white focus:outline-none"
+              className="w-full bg-transparent text-sm text-black dark:text-white focus:outline-none py-1.5"
             />
+            <span className="w-px h-5 bg-gray-300 dark:bg-gray-700 shrink-0 mx-1" />
+            <a
+              href="/shop"
+              aria-label="Browse filters"
+              className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
+                <circle cx="9" cy="6" r="1.5" fill="currentColor" /><circle cx="15" cy="12" r="1.5" fill="currentColor" /><circle cx="7" cy="18" r="1.5" fill="currentColor" />
+              </svg>
+            </a>
           </form>
 
                  {mounted && (
@@ -158,7 +169,7 @@ export default function Header() {
           </a>
 
           <div className="flex-1 min-w-[200px] relative">
-            <form onSubmit={handleSearch} className="flex items-center bg-gray-100 dark:bg-gray-900 rounded-full pl-4 overflow-hidden">
+            <form onSubmit={handleSearch} className="flex items-center bg-gray-100 dark:bg-gray-900 rounded-full pl-4 pr-1 overflow-hidden">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 shrink-0 mr-2">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -175,6 +186,16 @@ export default function Header() {
                 placeholder="Search anything..."
                 className="w-full py-2.5 text-sm bg-transparent text-black dark:text-white focus:outline-none"
               />
+              <a
+                href="/shop"
+                aria-label="Browse filters"
+                className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-brand transition-colors mr-1"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
+                  <circle cx="9" cy="6" r="1.5" fill="currentColor" /><circle cx="15" cy="12" r="1.5" fill="currentColor" /><circle cx="7" cy="18" r="1.5" fill="currentColor" />
+                </svg>
+              </a>
               <button type="submit" className="bg-brand text-white px-6 py-2.5 rounded-full text-sm font-semibold shrink-0">Search</button>
             </form>
 
